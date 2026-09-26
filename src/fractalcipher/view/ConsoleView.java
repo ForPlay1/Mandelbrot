@@ -4,14 +4,9 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Scanner;
 
-/**
- * Минимальная консольная реализация — только чтобы показать,
- * что View не знает ничего про фракталы/карты, только про
- * ввод-вывод. Позже можно заменить на GUI, не трогая
- * Controller и Model.
- */
 public class ConsoleView implements ImageView {
 
     private final Scanner scanner = new Scanner(System.in);
@@ -29,14 +24,34 @@ public class ConsoleView implements ImageView {
     }
 
     @Override
-    public String requestSourceName() {
-        System.out.print("Источник (mandelbrot / julia / logistic / henon): ");
+    public String requestMode() {
+        System.out.print("Режим (encrypt / benchmark): ");
+        return scanner.nextLine();
+    }
+
+    @Override
+    public String requestPermutationName() {
+        System.out.print("Источник перестановки (mandelbrot / julia / cantor): ");
+        return scanner.nextLine();
+    }
+
+    @Override
+    public String requestDiffusionName() {
+        System.out.print("Источник диффузии (logistic / henon): ");
         return scanner.nextLine();
     }
 
     @Override
     public void showResult(BufferedImage result) {
         System.out.println("Готово. Результат: " + result);
+    }
+
+    @Override
+    public void showBenchmarkResults(List<?> results) {
+        System.out.println("Результаты сравнения:");
+        for (Object r : results) {
+            System.out.println(r);
+        }
     }
 
     @Override
