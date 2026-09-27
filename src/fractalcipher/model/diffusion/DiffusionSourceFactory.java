@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+// Реестр источников диффузии — устроен ровно так же, как
+// PermutationSourceFactory, и по той же причине: Controller/View
+// не должны знать про конкретные формулы карт.
 public class DiffusionSourceFactory {
 
     private final Map<String, DiffusionSource> sources = new HashMap<>();
