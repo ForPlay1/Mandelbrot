@@ -1,0 +1,103 @@
+@startuml ObjectModel
+
+skinparam classAttributeIconSize 0
+hide circle
+
+class Image {
+  - id: String
+  - name: String
+  - image: BufferedImage
+  - size: long
+  - fileType: String
+  - resolution: String
+  - blackAndWhite: boolean
+  + {static} loadFromFile(id, name, file): Image
+}
+
+abstract class Cipher {
+  - id: String
+  - name: String
+  # imageInput: Image
+  # imageOutput: Image
+  + encrypt(): void
+  + {abstract} decrypt(): void
+  # {abstract} preprocess(): void
+  # {abstract} process(): void
+  # {abstract} postprocess(): void
+}
+
+' ВАЖНО: FractalChaosCipher теперь КОНКРЕТНЫЙ класс, а не абстрактный
+' промежуточный слой. Разные "шифраторы" — это разные ЭКЗЕМПЛЯРЫ
+' этого класса с разными PermutationSource/DiffusionSource,
+' а не отдельные классы-наследники на каждую комбинацию.
+class FractalChaosCipher {
+  - permutationSource: PermutationSource
+  - diffusionSource: DiffusionSource
+  - permutationParams: Map<String, Double>
+  - diffusionParams: Map<String, Double>
+  # preprocess(): void
+  # process(): void
+  # postprocess(): void
+  + decrypt(): void
+}
+
+interface PermutationSource {
+  + generatePermutation(length, params): int[]
+  + getName(): String
+}
+
+interface DiffusionSource {
+  + generateStream(length, params): byte[]
+  + getName(): String
+}
+
+class MandelbrotPermutation
+class JuliaPermutation
+class CantorPermutation
+
+class LogisticMapDiffusion
+class HenonMapDiffusion
+
+class PermutationSourceFactory {
+  + get(name): PermutationSource
+  + availableNames(): Set<String>
+}
+
+class DiffusionSourceFactory {
+  + get(name): DiffusionSource
+  + availableNames(): Set<String>
+}
+
+class CipherController {
+  + handleEncrypt(cipher, image): Image
+  + handleDecrypt(cipher, image): Image
+  + handleBenchmark(permFactory, diffFactory, image): List<BenchmarkResult>
+}
+
+' --- Наследование (Template Method) ---
+' Единственный наследник Cipher на сегодня. Новый подкласс появится,
+' только если понадобится ДРУГАЯ структура шагов (например, baseline
+' AES для сравнения) — не для новых фракталов/карт.
+Cipher <|-- FractalChaosCipher
+
+' --- Реализация интерфейсов (Strategy) ---
+PermutationSource <|.. MandelbrotPermutation
+PermutationSource <|.. JuliaPermutation
+PermutationSource <|.. CantorPermutation
+DiffusionSource <|.. LogisticMapDiffusion
+DiffusionSource <|.. HenonMapDiffusion
+
+' --- Композиция/ассоциация ---
+Cipher o-- "0..2" Image : imageInput / imageOutput
+FractalChaosCipher --> PermutationSource : использует (внедряется\nчерез конструктор)
+FractalChaosCipher --> DiffusionSource : использует (внедряется\nчерез конструктор)
+
+PermutationSourceFactory ..> PermutationSource : создаёт
+DiffusionSourceFactory ..> DiffusionSource : создаёт
+
+CipherController --> Cipher : вызывает encrypt()/decrypt()
+CipherController --> PermutationSourceFactory
+CipherController --> DiffusionSourceFactory
+CipherController --> Image
+
+@enduml

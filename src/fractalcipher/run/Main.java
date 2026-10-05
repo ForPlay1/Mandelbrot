@@ -1,4 +1,4 @@
-package fractalcipher;
+package fractalcipher.run;
 
 import fractalcipher.controller.CipherController;
 import fractalcipher.metrics.BenchmarkResult;
