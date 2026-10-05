@@ -1,27 +1,15 @@
 package fractalcipher.view;
 
-import java.awt.image.BufferedImage;
+import fractalcipher.domain.Image;
 
-// Интерфейс View. Смысл в том, что Controller зависит только от
-// ЭТОГО интерфейса, а не от ConsoleView напрямую — значит, позже
-// можно написать GuiView (Swing/JavaFX) и подставить её в Main,
-// вообще не трогая Controller и Model.
+import java.util.List;
+
 public interface ImageView {
-    BufferedImage requestInputImage();
-
-    // "encrypt" или "benchmark" — какой режим работы выбрал пользователь
-    String requestMode();
-
-    String requestPermutationName();
-    String requestDiffusionName();
-
-    void showResult(BufferedImage result);
-
-    // List<?> — сознательно не List<BenchmarkResult>, чтобы View
-    // (по духу MVC) не обязательно знала о существовании класса
-    // BenchmarkResult из пакета metrics; ей достаточно уметь
-    // напечатать что угодно через toString().
-    void showBenchmarkResults(java.util.List<?> results);
-
+    Image requestInputImage();
+    String requestMode();              // "encrypt" / "decrypt" / "benchmark"
+    String requestPermutationName();   // "mandelbrot" / "julia" / "cantor"
+    String requestDiffusionName();     // "logistic" / "henon"
+    void showResult(Image result);
+    void showBenchmarkResults(List<?> results);
     void showError(String message);
 }
