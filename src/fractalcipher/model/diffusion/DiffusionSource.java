@@ -8,7 +8,7 @@ import java.util.Map;
 // нужен просто поток псевдослучайных байт для XOR.
 public interface DiffusionSource {
 
-    // length — сколько байт нужно (в ImageCipherImpl это
+    // length — сколько байт нужно (в FractalChaosCipher.process() это
     // количество_пикселей * 3, по одному байту на R, G, B канал)
     // params — параметры конкретной карты (например "r" и "x0" для
     // логистической карты)

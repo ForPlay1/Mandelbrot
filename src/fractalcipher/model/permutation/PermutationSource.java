@@ -9,7 +9,7 @@ public interface PermutationSource {
 
     // length      — сколько пикселей нужно переставить (width * height)
     // params      — параметры конкретного фрактала (свои для каждого),
-    //               сюда же ImageCipherImpl всегда добавляет "width" и "height",
+    //               сюда же FractalChaosCipher всегда добавляет "width" и "height",
     //               чтобы источник знал форму изображения, а не только длину массива
     //
     // Возвращает массив permutation длиной length, где

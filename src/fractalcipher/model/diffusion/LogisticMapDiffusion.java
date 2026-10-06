@@ -22,11 +22,9 @@ public class LogisticMapDiffusion implements DiffusionSource {
         } while (bits == 0);
 
         double chaos = bits / (double) (1L << 53); // (0.0, 1.0)
-
         // x0 — стартовое значение, часть ключа. Должно быть в (0,1),
         // иначе последовательность быстро выродится в 0 или разойдётся.
         double x = params.getOrDefault("x0", chaos);
-
         byte[] stream = new byte[length];
         for (int i = 0; i < length; i++) {
             // Сама формула логистической карты:

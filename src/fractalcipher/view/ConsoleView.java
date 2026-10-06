@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
+import javax.swing.*;
 
 public class ConsoleView implements ImageView {
 
@@ -47,6 +48,14 @@ public class ConsoleView implements ImageView {
         System.out.println("Готово: " + result.getName()
                 + " [" + result.getResolution() + ", " + result.getFileType()
                 + ", ч/б: " + result.isBlackAndWhite() + "]");
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Результат");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.add(new JLabel(new ImageIcon(result.getImage())));
+            frame.pack();
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+        });
     }
 
     @Override

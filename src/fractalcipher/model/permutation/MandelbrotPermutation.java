@@ -15,7 +15,7 @@ public class MandelbrotPermutation implements PermutationSource {
     // Сколько максимум итераций делаем, прежде чем считать точку
     // "не убегающей" (то есть предположительно внутри множества).
     // Чем больше — тем точнее, но и медленнее.
-    private static final int MAX_ITERATIONS = 300;
+    private static final int MAX_ITERATIONS = 100;
 
     // Радиус, при превышении которого считаем, что z гарантированно
     // улетит в бесконечность (стандартное значение для Мандельброта — 2).
@@ -23,7 +23,7 @@ public class MandelbrotPermutation implements PermutationSource {
 
     @Override
     public int[] generatePermutation(int length, Map<String, Double> params) {
-        // width обязателен в params — его подставляет ImageCipherImpl
+        // width обязателен в params — его подставляет FractalChaosCipher
         // перед вызовом. Если вдруг не передали, откатываемся к
         // length (то есть считаем изображение "одной строкой").
         int width = params.getOrDefault("width", (double) length).intValue();
@@ -102,7 +102,7 @@ public class MandelbrotPermutation implements PermutationSource {
         Arrays.sort(indices, (a, b) -> Double.compare(values[a], values[b]));
 
         // Конвертируем обратно в примитивный int[], потому что
-        // весь остальной код (ImageCipherImpl) работает с int[].
+        // весь остальной код (FractalChaosCipher) работает с int[].
         int[] result = new int[values.length];
         for (int i = 0; i < result.length; i++) result[i] = indices[i];
         return result;
