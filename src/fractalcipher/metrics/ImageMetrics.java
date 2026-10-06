@@ -51,24 +51,26 @@ public class ImageMetrics {
     // шифр должен "размазать" яркости почти равномерно, поэтому
     // хорошее значение — близко к 8.
     public static double entropy(BufferedImage image) {
-        // histogram[v] = сколько раз яркость v встретилась в изображении
-        int[] histogram = new int[256];
-        int width = image.getWidth();
-        int height = image.getHeight();
-
+        int[] histR = new int[256], histG = new int[256], histB = new int[256];
+        int width = image.getWidth(), height = image.getHeight();
         for (int row = 0; row < height; row++) {
             for (int col = 0; col < width; col++) {
-                histogram[grayscale(image.getRGB(col, row))]++;
+                int argb = image.getRGB(col, row);
+                histR[(argb >> 16) & 0xFF]++;
+                histG[(argb >> 8) & 0xFF]++;
+                histB[argb & 0xFF]++;
             }
         }
+        double total = (double) width * height;
+        return (entropyFromHist(histR, total) + entropyFromHist(histG, total) + entropyFromHist(histB, total)) / 3.0;
+    }
 
-        double total = width * height;
+    private static double entropyFromHist(int[] hist, double total) {
         double entropy = 0;
-        for (int count : histogram) {
-            if (count == 0) continue; // log(0) не определён, такие уровни просто пропускаем
-            double p = count / total; // вероятность встретить именно эту яркость
-            // Формула энтропии Шеннона: H = -sum(p * log2(p))
-            entropy -= p * (Math.log(p) / Math.log(2)); // Math.log — натуральный, поэтому делим на log(2), чтобы получить log2
+        for (int count : hist) {
+            if (count == 0) continue;
+            double p = count / total;
+            entropy -= p * (Math.log(p) / Math.log(2));
         }
         return entropy;
     }
@@ -101,17 +103,24 @@ public class ImageMetrics {
     public static double uaci(BufferedImage image1, BufferedImage image2) {
         int width = image1.getWidth();
         int height = image1.getHeight();
-        double sum = 0;
+        double sumR = 0, sumG = 0, sumB = 0;
 
         for (int row = 0; row < height; row++) {
             for (int col = 0; col < width; col++) {
-                // Складываем абсолютную разницу яркостей по каждому пикселю
-                sum += Math.abs(grayscale(image1.getRGB(col, row)) - grayscale(image2.getRGB(col, row)));
+                int p1 = image1.getRGB(col, row);
+                int p2 = image2.getRGB(col, row);
+
+                int r1 = (p1 >> 16) & 0xFF, r2 = (p2 >> 16) & 0xFF;
+                int g1 = (p1 >> 8)  & 0xFF, g2 = (p2 >> 8)  & 0xFF;
+                int b1 =  p1        & 0xFF, b2 =  p2        & 0xFF;
+
+                sumR += Math.abs(r1 - r2);
+                sumG += Math.abs(g1 - g2);
+                sumB += Math.abs(b1 - b2);
             }
         }
-        // Нормируем: делим на число пикселей (среднее) и на 255
-        // (максимально возможную разницу), переводим в проценты.
-        return 100.0 * sum / (width * height * 255);
+        double n = (double) width * height;
+        return 100.0 * (sumR + sumG + sumB) / (3.0 * n * 255.0);
     }
 
     // Вспомогательная функция: упрощённая яркость пикселя как среднее
