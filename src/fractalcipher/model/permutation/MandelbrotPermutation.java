@@ -113,22 +113,27 @@ public class MandelbrotPermutation implements PermutationSource {
     // после сортировки по значению — [1, 2, 0] (у индекса 1 самое
     // маленькое значение, у индекса 0 — самое большое).
     private int[] sortIndicesByValue(double[] values) {
-        // Используем Integer[], а не int[], потому что Arrays.sort
-        // с компаратором работает только с объектами, не с примитивами.
-        Integer[] indices = new Integer[values.length];
-        for (int i = 0; i < indices.length; i++) indices[i] = i;
+        int n = values.length;
 
-        // Сортируем индексы, сравнивая значения values[a] и values[b],
-        // на которые эти индексы указывают (а не сами индексы).
-        // Arrays.sort для объектов — устойчивая сортировка (TimSort),
-        // так что порядок пикселей с одинаковым escape-time не будет
-        // хаотично меняться между запусками.
-        Arrays.sort(indices, (a, b) -> Double.compare(values[a], values[b]));
+        // Упаковываем: старшие 32 бита — индекс, младшие — усечённое значение
+        // (достаточно точности для сравнения, т.к. значения smooth iteration
+        // не различаются на уровне 2^-32).
+        long[] packed = new long[n];
+        for (int i = 0; i < n; i++) {
+            // Превращаем double в сортируемый long через битовое представление
+            long bits = Double.doubleToLongBits(values[i]);
+            // Инвертируем знаковый бит для корректной сортировки отрицательных
+            if (bits < 0) bits ^= 0x7FFFFFFFFFFFFFFFL;
+            // Старшие 32 бита — значение, младшие — индекс
+            packed[i] = (bits & 0xFFFFFFFF00000000L) | (i & 0xFFFFFFFFL);
+        }
 
-        // Конвертируем обратно в примитивный int[], потому что
-        // весь остальной код (FractalChaosCipher) работает с int[].
-        int[] result = new int[values.length];
-        for (int i = 0; i < result.length; i++) result[i] = indices[i];
+        java.util.Arrays.sort(packed); // сортировка примитивов — в разы быстрее
+
+        int[] result = new int[n];
+        for (int i = 0; i < n; i++) {
+            result[i] = (int)(packed[i] & 0xFFFFFFFFL);
+        }
         return result;
     }
 
