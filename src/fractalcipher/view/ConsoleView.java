@@ -33,7 +33,7 @@ public class ConsoleView implements ImageView {
 
     @Override
     public String requestPermutationName() {
-        System.out.print("Источник перестановки (mandelbrot / julia / cantor): ");
+        System.out.print("Источник перестановки (mandelbrot / julia / cantor / burning ship): ");
         return scanner.nextLine();
     }
 

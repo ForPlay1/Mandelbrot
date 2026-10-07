@@ -20,8 +20,9 @@ public class PermutationSourceFactory {
         register(new MandelbrotPermutation());
         register(new JuliaPermutation());
         register(new CantorPermutation());
+        register(new BurningShipPermutation());
         // сюда добавляются остальные ~10-15 кандидатов по мере реализации
-        // (Burning Ship, Hilbert Curve, Sierpinski, IFS и т.д.)
+        // (Hilbert Curve, Sierpinski, IFS и т.д.)
     }
 
     public void register(PermutationSource source) {
