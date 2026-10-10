@@ -13,9 +13,6 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        // Фабрики — тот же единый список стратегий, что и в предыдущей
-        // версии. Никакого реестра классов-комбинаций больше нет:
-        // FractalChaosCipher создаётся на лету с нужной парой стратегий.
         PermutationSourceFactory permutationFactory = new PermutationSourceFactory();
         DiffusionSourceFactory diffusionFactory = new DiffusionSourceFactory();
 
@@ -27,12 +24,38 @@ public class Main {
 
         String mode = view.requestMode();
 
+        // === БЕНЧМАРК: три серии ===
         if ("benchmark".equalsIgnoreCase(mode)) {
-            List<BenchmarkResult> results = controller.handleBenchmark(permutationFactory, diffusionFactory, image);
-            view.showBenchmarkResults(results);
+
+            // --- СЕРИЯ 1: только перестановка ---
+            System.out.println("\n=== СЕРИЯ 1: ТОЛЬКО ПЕРЕСТАНОВКА ===");
+            System.out.println("Сравнение фракталов по разрушению пространственных связей.");
+            System.out.println("NPCR/UACI = 0 (значения пикселей не меняются),");
+            System.out.println("смотрите на корреляцию — чем ближе к 0, тем лучше.\n");
+            List<BenchmarkResult> permOnly =
+                    controller.handleBenchmarkPermutationOnly(permutationFactory, image);
+            view.showBenchmarkResults(permOnly);
+
+            // --- СЕРИЯ 2: только диффузия ---
+            System.out.println("\n=== СЕРИЯ 2: ТОЛЬКО ДИФФУЗИЯ ===");
+            System.out.println("Сравнение хаотических карт по NPCR/UACI/энтропии.");
+            System.out.println("Перестановка = identity, CBC выключен.\n");
+            List<BenchmarkResult> diffOnly =
+                    controller.handleBenchmarkDiffusionOnly(diffusionFactory, image);
+            view.showBenchmarkResults(diffOnly);
+
+            // --- СЕРИЯ 3: полная схема ---
+            System.out.println("\n=== СЕРИЯ 3: ПОЛНАЯ СХЕМА ===");
+            System.out.println("Итоговая криптостойкость + скорость.");
+            System.out.println("CBC с S-боксами включён — метрики определяются им.\n");
+            List<BenchmarkResult> full =
+                    controller.handleBenchmarkFull(permutationFactory, diffusionFactory, image);
+            view.showBenchmarkResults(full);
+
             return;
         }
 
+        // === ОДИНОЧНОЕ ШИФРОВАНИЕ / РАСШИФРОВКА ===
         String permutationName = view.requestPermutationName();
         String diffusionName = view.requestDiffusionName();
 

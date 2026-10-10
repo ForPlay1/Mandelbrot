@@ -13,16 +13,19 @@ public class FractalChaosCipher extends Cipher {
     private final DiffusionSource diffusionSource;
     private final Map<String, Double> permutationParams;
     private final Map<String, Double> diffusionParams;
+    private final EncryptionMode mode;  // <-- НОВОЕ
 
     private int width;
     private int height;
     private int[] pixels;
     private int[] permutation;
 
+    // Старый конструктор — по умолчанию FULL (для обратной совместимости)
     public FractalChaosCipher(String id, String name,
                               PermutationSource permutationSource,
                               DiffusionSource diffusionSource) {
-        this(id, name, permutationSource, diffusionSource, new HashMap<>(), new HashMap<>());
+        this(id, name, permutationSource, diffusionSource,
+                new HashMap<>(), new HashMap<>(), EncryptionMode.FULL);
     }
 
     public FractalChaosCipher(String id, String name,
@@ -30,11 +33,23 @@ public class FractalChaosCipher extends Cipher {
                               DiffusionSource diffusionSource,
                               Map<String, Double> permutationParams,
                               Map<String, Double> diffusionParams) {
+        this(id, name, permutationSource, diffusionSource,
+                permutationParams, diffusionParams, EncryptionMode.FULL);
+    }
+
+    // Новый конструктор с режимом
+    public FractalChaosCipher(String id, String name,
+                              PermutationSource permutationSource,
+                              DiffusionSource diffusionSource,
+                              Map<String, Double> permutationParams,
+                              Map<String, Double> diffusionParams,
+                              EncryptionMode mode) {
         super(id, name);
         this.permutationSource = permutationSource;
         this.diffusionSource = diffusionSource;
         this.permutationParams = permutationParams;
         this.diffusionParams = diffusionParams;
+        this.mode = mode;
     }
 
     @Override
@@ -44,18 +59,32 @@ public class FractalChaosCipher extends Cipher {
         height = buffered.getHeight();
         pixels = buffered.getRGB(0, 0, width, height, null, 0, width);
 
-        Map<String, Double> params = new HashMap<>(permutationParams);
-        params.put("width", (double) width);
-        params.put("height", (double) height);
-        permutation = permutationSource.generatePermutation(pixels.length, params);
+        // === ПЕРЕСТАНОВКА: применяется только в PERMUTATION_ONLY и FULL ===
+        if (mode == EncryptionMode.PERMUTATION_ONLY || mode == EncryptionMode.FULL) {
+            Map<String, Double> params = new HashMap<>(permutationParams);
+            params.put("width", (double) width);
+            params.put("height", (double) height);
+            permutation = permutationSource.generatePermutation(pixels.length, params);
+        } else {
+            // DIFFUSION_ONLY: перестановка = identity (ничего не меняем)
+            permutation = new int[pixels.length];
+            for (int i = 0; i < pixels.length; i++) permutation[i] = i;
+        }
     }
 
     @Override
     protected void process() {
         int[] scrambled = applyPermutation(pixels, permutation);
 
-        // 2 прохода × 4 канала (ARGB) = 8 байт на пиксель
-        byte[] stream = diffusionSource.generateStream(pixels.length * 8, diffusionParams);
+        // === ДИФФУЗИЯ: применяется только в DIFFUSION_ONLY и FULL ===
+        byte[] stream;
+        if (mode == EncryptionMode.DIFFUSION_ONLY || mode == EncryptionMode.FULL) {
+            stream = diffusionSource.generateStream(pixels.length * 8, diffusionParams);
+        } else {
+            // PERMUTATION_ONLY: поток нулевой, но XOR всё равно применяется
+            // (это не меняет данные: x ^ 0 = x)
+            stream = new byte[pixels.length * 8];
+        }
 
         pixels = applyDiffusionEncrypt(scrambled, stream);
     }
@@ -65,7 +94,7 @@ public class FractalChaosCipher extends Cipher {
         BufferedImage result = toImage(pixels, width, height);
         imageOutput = new Image(
                 imageInput.getId() + "_enc",
-                imageInput.getName() + " (encrypted via " + getName() + ")",
+                imageInput.getName() + " (encrypted via " + getName() + " [" + mode + "])",
                 result, estimateSize(result), imageInput.getFileType()
         );
     }
@@ -77,23 +106,36 @@ public class FractalChaosCipher extends Cipher {
         int h = buffered.getHeight();
         int[] cipherPixels = buffered.getRGB(0, 0, w, h, null, 0, w);
 
-        byte[] stream = diffusionSource.generateStream(cipherPixels.length * 8, diffusionParams);
+        byte[] stream;
+        if (mode == EncryptionMode.DIFFUSION_ONLY || mode == EncryptionMode.FULL) {
+            stream = diffusionSource.generateStream(cipherPixels.length * 8, diffusionParams);
+        } else {
+            stream = new byte[cipherPixels.length * 8];
+        }
         int[] unDiffused = applyDiffusionDecrypt(cipherPixels, stream);
 
-        Map<String, Double> params = new HashMap<>(permutationParams);
-        params.put("width", (double) w);
-        params.put("height", (double) h);
-        int[] perm = permutationSource.generatePermutation(cipherPixels.length, params);
+        int[] perm;
+        if (mode == EncryptionMode.PERMUTATION_ONLY || mode == EncryptionMode.FULL) {
+            Map<String, Double> params = new HashMap<>(permutationParams);
+            params.put("width", (double) w);
+            params.put("height", (double) h);
+            perm = permutationSource.generatePermutation(cipherPixels.length, params);
+        } else {
+            perm = new int[cipherPixels.length];
+            for (int i = 0; i < cipherPixels.length; i++) perm[i] = i;
+        }
         int[] inverse = invertPermutation(perm);
         int[] original = applyPermutation(unDiffused, inverse);
 
         BufferedImage result = toImage(original, w, h);
         imageOutput = new Image(
                 imageInput.getId() + "_dec",
-                imageInput.getName() + " (decrypted via " + getName() + ")",
+                imageInput.getName() + " (decrypted via " + getName() + " [" + mode + "])",
                 result, estimateSize(result), imageInput.getFileType()
         );
     }
+
+    // --- Вспомогательные методы (без изменений) ---
 
     private int[] applyPermutation(int[] pixels, int[] permutation) {
         int[] result = new int[pixels.length];
@@ -110,9 +152,7 @@ public class FractalChaosCipher extends Cipher {
         }
         return inverse;
     }
-    // Два S-бокса: один для прямого прохода, другой для обратного.
-    // Генерируются детерминированно из ключа (передаются в diffusionParams
-    // или деривируются отдельно).
+
     private int[] buildSBox(long seed) {
         int[] sbox = new int[256];
         for (int i = 0; i < 256; i++) sbox[i] = i;
@@ -131,21 +171,11 @@ public class FractalChaosCipher extends Cipher {
     }
 
     /**
-     * Шифрование диффузией с CBC-сцеплением и двумя проходами.
-     *
-     * Проход 1 (вперёд):  c_i = p_i ^ s_i ^ c_{i-1}
-     * Проход 2 (назад):   d_i = c_i ^ t_i ^ d_{i+1}
-     *
-     * Здесь s_i и t_i — разные половины хаотического потока,
-     * чтобы сцепления не «сокращались» в формуле.
+     * CBC с S-боксами. Применяется ТОЛЬКО в режиме FULL.
+     * В PERMUTATION_ONLY и DIFFUSION_ONLY — просто XOR со stream.
      */
     private int[] applyDiffusionEncrypt(int[] pixels, byte[] stream) {
         int n = pixels.length;
-
-        long sboxSeed1 = diffusionParams.getOrDefault("sboxCbc1", 111.0).longValue();
-        long sboxSeed2 = diffusionParams.getOrDefault("sboxCbc2", 222.0).longValue();
-        int[] sbox1 = buildSBox(sboxSeed1);
-        int[] sbox2 = buildSBox(sboxSeed2);
 
         // Разворачиваем ARGB в плоский массив каналов
         byte[] ch = new byte[4 * n];
@@ -157,24 +187,38 @@ public class FractalChaosCipher extends Cipher {
             ch[i*4 + 3] = (byte) ( argb        & 0xFF);
         }
 
-        // === ПРОХОД 1: вперёд с S-боксом на состоянии ===
-        int prev = 0;
-        for (int i = 0; i < 4 * n; i++) {
-            int s = stream[i] & 0xFF;
-            int c = ((ch[i] & 0xFF) + s + prev) & 0xFF;
-            c = sbox1[c];  // <<< НЕЛИНЕЙНОСТЬ
-            ch[i] = (byte) c;
-            prev = c;
-        }
+        // === ВЫБОР РЕЖИМА ===
+        if (mode == EncryptionMode.FULL) {
+            // Полная схема: CBC + S-боксы
+            long sboxSeed1 = diffusionParams.getOrDefault("sboxCbc1", 111.0).longValue();
+            long sboxSeed2 = diffusionParams.getOrDefault("sboxCbc2", 222.0).longValue();
+            int[] sbox1 = buildSBox(sboxSeed1);
+            int[] sbox2 = buildSBox(sboxSeed2);
 
-        // === ПРОХОД 2: назад с S-боксом на состоянии ===
-        prev = 0;
-        for (int i = 4 * n - 1; i >= 0; i--) {
-            int s = stream[4 * n + i] & 0xFF;
-            int c = ((ch[i] & 0xFF) + s + prev) & 0xFF;
-            c = sbox2[c];  // <<< НЕЛИНЕЙНОСТЬ
-            ch[i] = (byte) c;
-            prev = c;
+            // ПРОХОД 1: вперёд
+            int prev = 0;
+            for (int i = 0; i < 4 * n; i++) {
+                int s = stream[i] & 0xFF;
+                int c = ((ch[i] & 0xFF) + s + prev) & 0xFF;
+                c = sbox1[c];
+                ch[i] = (byte) c;
+                prev = c;
+            }
+
+            // ПРОХОД 2: назад
+            prev = 0;
+            for (int i = 4 * n - 1; i >= 0; i--) {
+                int s = stream[4 * n + i] & 0xFF;
+                int c = ((ch[i] & 0xFF) + s + prev) & 0xFF;
+                c = sbox2[c];
+                ch[i] = (byte) c;
+                prev = c;
+            }
+        } else {
+            // Упрощённая схема: только XOR, без CBC и S-боксов
+            for (int i = 0; i < 4 * n; i++) {
+                ch[i] = (byte) ((ch[i] & 0xFF) ^ (stream[i] & 0xFF));
+            }
         }
 
         // Собираем пиксели обратно
@@ -188,17 +232,8 @@ public class FractalChaosCipher extends Cipher {
         return result;
     }
 
-    /**
-     * Расшифровка — обратные операции в обратном порядке:
-     * сначала снимаем проход 2 (назад), затем проход 1 (вперёд).
-     */
     private int[] applyDiffusionDecrypt(int[] pixels, byte[] stream) {
         int n = pixels.length;
-
-        long sboxSeed1 = diffusionParams.getOrDefault("sboxCbc1", 111.0).longValue();
-        long sboxSeed2 = diffusionParams.getOrDefault("sboxCbc2", 222.0).longValue();
-        int[] invSbox1 = buildInverseSBox(buildSBox(sboxSeed1));
-        int[] invSbox2 = buildInverseSBox(buildSBox(sboxSeed2));
 
         byte[] ch = new byte[4 * n];
         for (int i = 0; i < n; i++) {
@@ -209,26 +244,39 @@ public class FractalChaosCipher extends Cipher {
             ch[i*4 + 3] = (byte) ( argb        & 0xFF);
         }
 
-        // === СНИМАЕМ ПРОХОД 2 (назад) ===
-        int prev = 0;
-        for (int i = 4 * n - 1; i >= 0; i--) {
-            int s = stream[4 * n + i] & 0xFF;
-            int c_enc = ch[i] & 0xFF;                  // зашифрованное значение
-            int c_pre = invSbox2[c_enc];               // undo S-box
-            int plain = (c_pre - s - prev) & 0xFF;     // undo сложение
-            ch[i] = (byte) plain;
-            prev = c_enc;                              // важно: prev = ЗАШИФРОВАННОЕ
-        }
+        if (mode == EncryptionMode.FULL) {
+            // Обратный порядок: сначала снимаем проход 2, потом проход 1
+            long sboxSeed1 = diffusionParams.getOrDefault("sboxCbc1", 111.0).longValue();
+            long sboxSeed2 = diffusionParams.getOrDefault("sboxCbc2", 222.0).longValue();
+            int[] invSbox1 = buildInverseSBox(buildSBox(sboxSeed1));
+            int[] invSbox2 = buildInverseSBox(buildSBox(sboxSeed2));
 
-        // === СНИМАЕМ ПРОХОД 1 (вперёд) ===
-        prev = 0;
-        for (int i = 0; i < 4 * n; i++) {
-            int s = stream[i] & 0xFF;
-            int c_enc = ch[i] & 0xFF;
-            int c_pre = invSbox1[c_enc];
-            int plain = (c_pre - s - prev) & 0xFF;
-            ch[i] = (byte) plain;
-            prev = c_enc;
+            // СНИМАЕМ ПРОХОД 2
+            int prev = 0;
+            for (int i = 4 * n - 1; i >= 0; i--) {
+                int s = stream[4 * n + i] & 0xFF;
+                int c_enc = ch[i] & 0xFF;
+                int c_pre = invSbox2[c_enc];
+                int plain = (c_pre - s - prev) & 0xFF;
+                ch[i] = (byte) plain;
+                prev = c_enc;
+            }
+
+            // СНИМАЕМ ПРОХОД 1
+            prev = 0;
+            for (int i = 0; i < 4 * n; i++) {
+                int s = stream[i] & 0xFF;
+                int c_enc = ch[i] & 0xFF;
+                int c_pre = invSbox1[c_enc];
+                int plain = (c_pre - s - prev) & 0xFF;
+                ch[i] = (byte) plain;
+                prev = c_enc;
+            }
+        } else {
+            // Упрощённая схема: XOR обратим сам себе
+            for (int i = 0; i < 4 * n; i++) {
+                ch[i] = (byte) ((ch[i] & 0xFF) ^ (stream[i] & 0xFF));
+            }
         }
 
         int[] result = new int[n];
@@ -239,14 +287,6 @@ public class FractalChaosCipher extends Cipher {
                     |  (ch[i*4 + 3] & 0xFF);
         }
         return result;
-    }
-
-    // Упаковка 4 байт потока в один int (ARGB)
-    private int packStream(byte[] stream, int offset) {
-        return ((stream[offset]     & 0xFF) << 24)
-                | ((stream[offset + 1] & 0xFF) << 16)
-                | ((stream[offset + 2] & 0xFF) << 8)
-                |  (stream[offset + 3] & 0xFF);
     }
 
     private BufferedImage toImage(int[] pixels, int width, int height) {

@@ -15,6 +15,15 @@ public class DiffusionSourceFactory {
         register(new LogisticMapDiffusion());
         register(new HenonMapDiffusion());
         // сюда добавляются Лоренц, тент-карта и т.д. по мере реализации
+
+        //класс отключающий диффузию
+        register(new NullDiffusion());
+    }
+
+    // === НОВОЕ: очистка реестра ===
+    // Нужна для создания "фабрики только с null" в бенчмарке.
+    public void clear() {
+        sources.clear();
     }
 
     public void register(DiffusionSource source) {
