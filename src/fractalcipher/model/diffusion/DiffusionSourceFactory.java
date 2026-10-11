@@ -14,6 +14,7 @@ public class DiffusionSourceFactory {
     public DiffusionSourceFactory() {
         register(new LogisticMapDiffusion());
         register(new HenonMapDiffusion());
+        register(new TentMapDiffusion());
         // сюда добавляются Лоренц, тент-карта и т.д. по мере реализации
 
         //класс отключающий диффузию
