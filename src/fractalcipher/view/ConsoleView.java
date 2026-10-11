@@ -39,7 +39,7 @@ public class ConsoleView implements ImageView {
 
     @Override
     public String requestDiffusionName() {
-        System.out.print("Источник диффузии (logistic / henon / tent): ");
+        System.out.print("Источник диффузии (logistic / henon / tent / lorenz / rossler / arnold / null): ");
         return scanner.nextLine();
     }
 
