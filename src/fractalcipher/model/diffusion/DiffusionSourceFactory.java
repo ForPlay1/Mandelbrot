@@ -14,7 +14,6 @@ public class DiffusionSourceFactory {
     public DiffusionSourceFactory() {
         register(new LogisticMapDiffusion());
         register(new HenonMapDiffusion());
-        register(new TentMapDiffusion());
         register(new LorenzDiffusion());
         register(new RosslerDiffusion());
         register(new ArnoldMapDiffusion());

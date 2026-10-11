@@ -1,0 +1,294 @@
+@startuml ObjectModel
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+hide circle
+hide empty members
+
+' ============================================================
+' Не показаны (мёртвый код, на них никто не ссылается):
+' model.ImageCipher, model.ImageCipherImpl, model.EncryptionKey
+' ============================================================
+
+package "fractalcipher.domain" {
+
+  class Image {
+    - id: String
+    - name: String
+    - image: BufferedImage
+    - size: long
+    - fileType: String
+    - resolution: String
+    - blackAndWhite: boolean
+    + {static} loadFromFile(id, name, file): Image
+  }
+
+  abstract class Cipher {
+    - id: String
+    - name: String
+    # imageInput: Image
+    # imageOutput: Image
+    + encrypt(): void
+    + {abstract} decrypt(): void
+    # {abstract} preprocess(): void
+    # {abstract} process(): void
+    # {abstract} postprocess(): void
+  }
+
+  enum EncryptionMode {
+    PERMUTATION_ONLY
+    DIFFUSION_ONLY
+    FULL
+  }
+
+  class FractalChaosCipher {
+    - permutationSource: PermutationSource
+    - diffusionSource: DiffusionSource
+    - permutationParams: Map<String, Double>
+    - diffusionParams: Map<String, Double>
+    - mode: EncryptionMode
+    - width: int
+    - height: int
+    - pixels: int[]
+    - permutation: int[]
+    + FractalChaosCipher(id, name, permSrc, diffSrc)
+    + FractalChaosCipher(id, name, permSrc, diffSrc, permParams, diffParams)
+    + FractalChaosCipher(id, name, permSrc, diffSrc, permParams, diffParams, mode)
+    # preprocess(): void
+    # process(): void
+    # postprocess(): void
+    + decrypt(): void
+    - applyPermutation(pixels, permutation): int[]
+    - invertPermutation(permutation): int[]
+    - applyDiffusionEncrypt(pixels, stream): int[]
+    - applyDiffusionDecrypt(pixels, stream): int[]
+    - buildSBox(seed): int[]
+    - buildInverseSBox(sbox): int[]
+  }
+
+  note right of FractalChaosCipher
+    Режим (mode) определяет, какие этапы работают:
+    • PERMUTATION_ONLY — только перестановка (поток = нули)
+    • DIFFUSION_ONLY — только диффузия (перестановка = identity), XOR
+    • FULL — перестановка + диффузия + CBC с двумя S-боксами,
+      два прохода (вперёд и назад)
+    Шифруются все 4 канала ARGB (включая альфу);
+    от источника диффузии запрашивается 8 × пикселей байт
+    (4 канала × 2 прохода).
+  end note
+}
+
+package "fractalcipher.model" {
+
+  class Complex {
+    + re: double
+    + im: double
+    + add(other): Complex
+    + multiply(other): Complex
+    + absSquared(): double
+  }
+
+  class KeyDerivation <<utility>> {
+    + {static} deriveLong(masterSeed, domain): long
+    + {static} deriveDouble(masterSeed, domain): double
+    + {static} deriveSBox(masterSeed, domain): int[]
+  }
+}
+
+package "fractalcipher.model.permutation" {
+
+  interface PermutationSource {
+    + generatePermutation(length, params): int[]
+    + getName(): String
+  }
+
+  class MandelbrotPermutation
+  class JuliaPermutation
+  class BurningShipPermutation
+  class CantorPermutation
+  class IdentityPermutation <<выключает перестановку>>
+
+  class PermutationSourceFactory {
+    + register(source): void
+    + get(name): PermutationSource
+    + availableNames(): Set<String>
+    + clear(): void
+  }
+}
+
+package "fractalcipher.model.diffusion" {
+
+  interface DiffusionSource {
+    + generateStream(length, params): byte[]
+    + getName(): String
+  }
+
+  class LogisticMapDiffusion
+  class HenonMapDiffusion
+  class TentMapDiffusion
+  class LorenzDiffusion
+  class RosslerDiffusion
+  class ArnoldMapDiffusion
+  class NullDiffusion <<выключает диффузию>>
+
+  class DiffusionUtils <<package-private>> {
+    ~ {static} fracByte(v): int
+    ~ {static} randomUnit(a): double
+    ~ {static} chainTwoPass(length, next): byte[]
+    ~ {static} applySBox(stream, seed): void
+    ~ {static} rk4(state, dt, f): void
+  }
+
+  class DiffusionSourceFactory {
+    + register(source): void
+    + get(name): DiffusionSource
+    + availableNames(): Set<String>
+    + clear(): void
+  }
+}
+
+package "fractalcipher.metrics" {
+
+  class ImageMetrics <<utility>> {
+    + {static} correlationCoefficient(image): double
+    + {static} entropy(image): double
+    + {static} npcr(image1, image2): double
+    + {static} uaci(image1, image2): double
+  }
+
+  class BenchmarkResult {
+    + permutationName: String
+    + diffusionName: String
+    + encryptionTimeMs: long
+    + correlation: double
+    + entropy: double
+    + npcr: double
+    + uaci: double
+  }
+
+  class BenchmarkRunner <<utility>> {
+    - {static} MASTER_SEED: long
+    + {static} runPermutationOnly(pf, image): List<BenchmarkResult>
+    + {static} runDiffusionOnly(df, image): List<BenchmarkResult>
+    + {static} runFull(pf, df, image): List<BenchmarkResult>
+    - {static} run(permNames, diffNames, pf, df, image, mode): List<BenchmarkResult>
+    - {static} withOnePixelFlipped(image): Image
+  }
+}
+
+package "fractalcipher.controller" {
+
+  class CipherController {
+    + handleEncrypt(cipher, image): Image
+    + handleDecrypt(cipher, image): Image
+    + handleBenchmarkPermutationOnly(pf, image): List<BenchmarkResult>
+    + handleBenchmarkDiffusionOnly(df, image): List<BenchmarkResult>
+    + handleBenchmarkFull(pf, df, image): List<BenchmarkResult>
+  }
+}
+
+package "fractalcipher.view" {
+
+  interface ImageView {
+    + requestInputImage(): Image
+    + requestFolder(): File
+    + requestMode(): String
+    + requestPermutationName(): String
+    + requestDiffusionName(): String
+    + showResult(result): void
+    + showBenchmarkResults(results): void
+    + showError(message): void
+  }
+
+  class ConsoleView {
+    - scanner: Scanner
+  }
+}
+
+package "fractalcipher.run" {
+
+  class Main {
+    - {static} ENCRYPTED_SUFFIX: String
+    - {static} IMAGE_EXTENSIONS: List<String>
+    + {static} main(args): void
+    - {static} runBatchEncrypt(view, controller, pf, df): void
+    - {static} isImageToEncrypt(fileName): boolean
+    - {static} baseName(fileName): String
+  }
+}
+
+' ============================================================
+' Наследование (Template Method)
+' ============================================================
+Cipher <|-- FractalChaosCipher
+
+' ============================================================
+' Реализация интерфейсов (Strategy)
+' ============================================================
+PermutationSource <|.. MandelbrotPermutation
+PermutationSource <|.. JuliaPermutation
+PermutationSource <|.. BurningShipPermutation
+PermutationSource <|.. CantorPermutation
+PermutationSource <|.. IdentityPermutation
+
+DiffusionSource <|.. LogisticMapDiffusion
+DiffusionSource <|.. HenonMapDiffusion
+DiffusionSource <|.. TentMapDiffusion
+DiffusionSource <|.. LorenzDiffusion
+DiffusionSource <|.. RosslerDiffusion
+DiffusionSource <|.. ArnoldMapDiffusion
+DiffusionSource <|.. NullDiffusion
+
+ImageView <|.. ConsoleView
+
+' ============================================================
+' Ассоциации (хранит как поле)
+' ============================================================
+Cipher o-- "0..1" Image : imageInput
+Cipher o-- "0..1" Image : imageOutput
+FractalChaosCipher --> PermutationSource : внедряется\nчерез конструктор
+FractalChaosCipher --> DiffusionSource : внедряется\nчерез конструктор
+FractalChaosCipher --> EncryptionMode : mode
+
+' ============================================================
+' Зависимости (используют временно / создают)
+' ============================================================
+PermutationSourceFactory ..> PermutationSource : создаёт и хранит
+DiffusionSourceFactory ..> DiffusionSource : создаёт и хранит
+
+MandelbrotPermutation ..> Complex
+JuliaPermutation ..> Complex
+BurningShipPermutation ..> Complex
+
+ArnoldMapDiffusion ..> DiffusionUtils
+LorenzDiffusion ..> DiffusionUtils
+RosslerDiffusion ..> DiffusionUtils
+
+BenchmarkRunner ..> FractalChaosCipher : создаёт на каждую пару
+BenchmarkRunner ..> EncryptionMode : задаёт режим серии
+BenchmarkRunner ..> KeyDerivation : параметры из мастер-seed
+BenchmarkRunner ..> ImageMetrics
+BenchmarkRunner ..> BenchmarkResult : создаёт
+BenchmarkRunner ..> PermutationSourceFactory
+BenchmarkRunner ..> DiffusionSourceFactory
+BenchmarkRunner ..> IdentityPermutation : фабрика "только identity"
+BenchmarkRunner ..> NullDiffusion : фабрика "только null"
+BenchmarkRunner ..> Image
+
+CipherController --> Cipher : вызывает encrypt()/decrypt()
+CipherController ..> BenchmarkRunner : делегирует серии
+CipherController ..> PermutationSourceFactory
+CipherController ..> DiffusionSourceFactory
+CipherController ..> Image
+CipherController ..> BenchmarkResult
+
+ImageView ..> Image
+
+Main ..> CipherController : создаёт
+Main ..> ConsoleView : создаёт
+Main ..> FractalChaosCipher : создаёт
+Main ..> PermutationSourceFactory : создаёт
+Main ..> DiffusionSourceFactory : создаёт
+Main ..> ImageView
+
+@enduml
