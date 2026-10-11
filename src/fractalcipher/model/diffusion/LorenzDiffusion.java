@@ -24,9 +24,9 @@ public class LorenzDiffusion implements DiffusionSource {
 
         // x0, y0, z0 — часть ключа. Если не переданы — случайные
         // (в реальном шифровании они ВСЕГДА должны приходить из ключа).
-        double x0 = params.containsKey("x0") ? params.get("x0") : DiffusionUtils.randomUnit() * 2 - 1;
-        double y0 = params.containsKey("y0") ? params.get("y0") : DiffusionUtils.randomUnit() * 2 - 1;
-        double z0 = params.containsKey("z0") ? params.get("z0") : DiffusionUtils.randomUnit() * 2;
+        double x0 = params.containsKey("x0") ? params.get("x0") : DiffusionUtils.randomUnit((long)sigma) * 2 - 1;
+        double y0 = params.containsKey("y0") ? params.get("y0") : DiffusionUtils.randomUnit((long)rho) * 2 - 1;
+        double z0 = params.containsKey("z0") ? params.get("z0") : DiffusionUtils.randomUnit((long)beta) * 2;
 
         final double[] s = {x0, y0, z0};
 

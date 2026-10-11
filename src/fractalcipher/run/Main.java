@@ -9,9 +9,20 @@ import fractalcipher.model.permutation.PermutationSourceFactory;
 import fractalcipher.view.ConsoleView;
 import fractalcipher.view.ImageView;
 
+import javax.imageio.ImageIO;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public class Main {
+
+    // Суффикс для зашифрованных файлов; по нему же при повторном запуске
+    // пропускаем уже обработанные картинки
+    private static final String ENCRYPTED_SUFFIX = "_encrypted";
+    private static final List<String> IMAGE_EXTENSIONS = List.of("png", "jpg", "jpeg", "bmp", "gif");
+
     public static void main(String[] args) {
         PermutationSourceFactory permutationFactory = new PermutationSourceFactory();
         DiffusionSourceFactory diffusionFactory = new DiffusionSourceFactory();
@@ -19,10 +30,17 @@ public class Main {
         CipherController controller = new CipherController();
         ImageView view = new ConsoleView();
 
+        // Режим спрашиваем первым: для bencrypt вместо одной картинки нужна папка
+        String mode = view.requestMode();
+
+        // === ПАКЕТНОЕ ШИФРОВАНИЕ ПАПКИ ===
+        if ("bencrypt".equalsIgnoreCase(mode)) {
+            runBatchEncrypt(view, controller, permutationFactory, diffusionFactory);
+            return;
+        }
+
         Image image = view.requestInputImage();
         if (image == null) return;
-
-        String mode = view.requestMode();
 
         // === БЕНЧМАРК: три серии ===
         if ("benchmark".equalsIgnoreCase(mode)) {
@@ -73,5 +91,81 @@ public class Main {
         } catch (UnsupportedOperationException e) {
             view.showError(e.getMessage());
         }
+    }
+
+    // Шифрует все изображения из папки выбранным шифром. Результаты кладутся
+    // в ту же папку: <имя>_encrypted.png. Всегда PNG — он без потерь; JPEG
+    // испортил бы зашифрованные пиксели и расшифровка стала бы невозможной.
+    private static void runBatchEncrypt(ImageView view,
+                                        CipherController controller,
+                                        PermutationSourceFactory permutationFactory,
+                                        DiffusionSourceFactory diffusionFactory) {
+        File dir = view.requestFolder();
+        if (dir == null) return;
+
+        File[] files = dir.listFiles(f -> f.isFile() && isImageToEncrypt(f.getName()));
+        if (files == null || files.length == 0) {
+            view.showError("В папке нет изображений для шифрования (png, jpg, jpeg, bmp, gif)");
+            return;
+        }
+        Arrays.sort(files);
+
+        String permutationName = view.requestPermutationName();
+        String diffusionName = view.requestDiffusionName();
+
+        FractalChaosCipher cipher;
+        try {
+            cipher = new FractalChaosCipher(
+                    "c1", permutationName + "+" + diffusionName,
+                    permutationFactory.get(permutationName),
+                    diffusionFactory.get(diffusionName)
+            );
+        } catch (IllegalArgumentException e) {
+            view.showError(e.getMessage());
+            return;
+        }
+
+        System.out.println("Найдено файлов: " + files.length);
+        int ok = 0;
+        int failed = 0;
+
+        for (int i = 0; i < files.length; i++) {
+            File file = files[i];
+            String prefix = "[" + (i + 1) + "/" + files.length + "] " + file.getName() + ": ";
+            try {
+                long start = System.currentTimeMillis();
+
+                Image input = Image.loadFromFile(file.getName(), file.getName(), file);
+                Image result = controller.handleEncrypt(cipher, input);
+
+                File target = new File(dir, baseName(file.getName()) + ENCRYPTED_SUFFIX + ".png");
+                if (!ImageIO.write(result.getImage(), "png", target)) {
+                    throw new IOException("не удалось записать PNG");
+                }
+
+                System.out.println(prefix + "OK -> " + target.getName()
+                        + " (" + (System.currentTimeMillis() - start) + " мс)");
+                ok++;
+            } catch (Exception e) {
+                // Одна битая картинка не должна останавливать всю папку
+                view.showError(prefix + e.getMessage());
+                failed++;
+            }
+        }
+
+        System.out.println("Готово. Успешно: " + ok + ", с ошибкой: " + failed);
+    }
+
+    // Картинка с поддерживаемым расширением, которая ещё не является результатом шифрования
+    private static boolean isImageToEncrypt(String fileName) {
+        int dot = fileName.lastIndexOf('.');
+        if (dot == -1) return false;
+        String ext = fileName.substring(dot + 1).toLowerCase(Locale.ROOT);
+        return IMAGE_EXTENSIONS.contains(ext) && !baseName(fileName).endsWith(ENCRYPTED_SUFFIX);
+    }
+
+    private static String baseName(String fileName) {
+        int dot = fileName.lastIndexOf('.');
+        return dot == -1 ? fileName : fileName.substring(0, dot);
     }
 }

@@ -29,8 +29,8 @@ public class ArnoldMapDiffusion implements DiffusionSource {
 
         // x0, y0 — часть ключа, из интервала (0; 1). Если не переданы —
         // случайные (в реальном шифровании они ВСЕГДА должны приходить из ключа).
-        double x0 = params.containsKey("x0") ? params.get("x0") : DiffusionUtils.randomUnit();
-        double y0 = params.containsKey("y0") ? params.get("y0") : DiffusionUtils.randomUnit();
+        double x0 = params.containsKey("x0") ? params.get("x0") : DiffusionUtils.randomUnit(a);
+        double y0 = params.containsKey("y0") ? params.get("y0") : DiffusionUtils.randomUnit(b);
         if (!(x0 > 0.0 && x0 < 1.0) || !(y0 > 0.0 && y0 < 1.0)) {
             throw new IllegalArgumentException(
                     "x0 и y0 карты Арнольда должны быть в интервале (0; 1)");

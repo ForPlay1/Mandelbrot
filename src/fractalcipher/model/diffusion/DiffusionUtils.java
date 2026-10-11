@@ -24,8 +24,8 @@ final class DiffusionUtils {
     }
 
     // Случайное число в (0; 1)
-    static double randomUnit() {
-        SecureRandom rnd = new SecureRandom();
+    static double randomUnit(long a) {
+        Random rnd = new Random(a);
         long bits;
         do { bits = rnd.nextLong() >>> 11; } while (bits == 0);
         return bits / (double) (1L << 53);

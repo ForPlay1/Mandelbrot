@@ -26,8 +26,20 @@ public class ConsoleView implements ImageView {
     }
 
     @Override
+    public File requestFolder() {
+        System.out.print("Путь к папке с изображениями: ");
+        String path = scanner.nextLine().trim();
+        File dir = new File(path);
+        if (!dir.isDirectory()) {
+            showError("Это не папка или она не существует: " + path);
+            return null;
+        }
+        return dir;
+    }
+
+    @Override
     public String requestMode() {
-        System.out.print("Режим (encrypt / decrypt / benchmark): ");
+        System.out.print("Режим (encrypt / decrypt / benchmark / bencrypt): ");
         return scanner.nextLine();
     }
 
