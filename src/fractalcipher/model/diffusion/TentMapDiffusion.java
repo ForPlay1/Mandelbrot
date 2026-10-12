@@ -19,21 +19,18 @@ public class TentMapDiffusion implements DiffusionSource {
 
     @Override
     public byte[] generateStream(int length, Map<String, Double> params) {
-        double mu = params.getOrDefault("mu", 1.99);
-        if (!(mu > 1.0 && mu < 2.0)) {
+        final long seed = params.getOrDefault("seed",0.0).longValue();
+        Random rnd = new Random(seed);
+        double mu = params.getOrDefault("mu", DiffusionUtils.randomCord(rnd)+1.0);
+        if (!(mu >= 1.0 && mu <= 2.0)) {
             throw new IllegalArgumentException(
                     "Параметр mu тент-карты должен быть в интервале (1; 2), получено: " + mu);
         }
 
         // x0 — часть ключа. Если не передан — случайный
         // (в реальном шифровании x0 ВСЕГДА должен приходить из ключа).
-        double x;
-        if (params.containsKey("x0")) {
-            x = params.get("x0");
-        } else {
-            x = randomUnit();
-        }
-        if (!(x > 0.0 && x < 1.0)) {
+        double x = params.getOrDefault("x0",DiffusionUtils.randomCord(rnd));
+        if (!(x >= 0.0 && x <= 1.0)) {
             throw new IllegalArgumentException(
                     "Начальное значение x0 тент-карты должно быть в интервале (0; 1), получено: " + x);
         }

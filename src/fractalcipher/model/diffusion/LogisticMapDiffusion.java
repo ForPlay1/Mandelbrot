@@ -1,7 +1,6 @@
 package fractalcipher.model.diffusion;
 
 import java.util.Map;
-import java.security.SecureRandom;
 import java.util.Random;
 
 public class LogisticMapDiffusion implements DiffusionSource {
@@ -9,18 +8,12 @@ public class LogisticMapDiffusion implements DiffusionSource {
     @Override
     public byte[] generateStream(int length, Map<String, Double> params) {
         double r = params.getOrDefault("r", 3.99);
+        long seed = params.getOrDefault("seed",0.0).longValue();
+        Random rnd = new Random(seed);
 
         // x0 — часть ключа. Если не передан — генерируем случайно
         // (но в реальном шифровании x0 ВСЕГДА должен приходить из ключа).
-        double x;
-        if (params.containsKey("x0")) {
-            x = params.get("x0");
-        } else {
-            SecureRandom rnd = new SecureRandom();
-            long bits;
-            do { bits = rnd.nextLong() >>> 11; } while (bits == 0);
-            x = bits / (double) (1L << 53);
-        }
+        double x = params.getOrDefault("x0",DiffusionUtils.randomCord(rnd));
 
         // sboxSeed — опциональный (если 0, S-бокс не применяется)
         long sboxSeed = params.getOrDefault("sboxSeed", 0.0).longValue();

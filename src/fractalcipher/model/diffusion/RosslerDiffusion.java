@@ -1,6 +1,7 @@
 package fractalcipher.model.diffusion;
 
 import java.util.Map;
+import java.util.Random;
 
 // Диффузия на основе системы Рёсслера:
 //   dx/dt = -y - z
@@ -21,11 +22,13 @@ public class RosslerDiffusion implements DiffusionSource {
         final double b = params.getOrDefault("b", 0.2);
         final double c = params.getOrDefault("c", 5.7);
 
+        final long seed = params.getOrDefault("seed",0.0).longValue();
+        Random rnd = new Random(seed);
         // x0, y0, z0 — часть ключа. Если не переданы — случайные
         // (в реальном шифровании они ВСЕГДА должны приходить из ключа).
-        double x0 = params.containsKey("x0") ? params.get("x0") : DiffusionUtils.randomUnit((long)a) * 2 - 1;
-        double y0 = params.containsKey("y0") ? params.get("y0") : DiffusionUtils.randomUnit((long)b) * 2 - 1;
-        double z0 = params.containsKey("z0") ? params.get("z0") : DiffusionUtils.randomUnit((long)c);
+        double x0 = params.containsKey("x0") ? params.get("x0") : DiffusionUtils.randomCord(rnd) * 2 - 1;
+        double y0 = params.containsKey("y0") ? params.get("y0") : DiffusionUtils.randomCord(rnd) * 2 - 1;
+        double z0 = params.containsKey("z0") ? params.get("z0") : DiffusionUtils.randomCord(rnd) * 2;
 
         final double[] s = {x0, y0, z0};
 

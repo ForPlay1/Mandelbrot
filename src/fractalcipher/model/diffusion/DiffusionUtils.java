@@ -24,11 +24,19 @@ final class DiffusionUtils {
     }
 
     // Случайное число в (0; 1)
-    static double randomUnit(long a) {
-        Random rnd = new Random(a);
+    static double randomCord(Random rnd) {
         long bits;
         do { bits = rnd.nextLong() >>> 11; } while (bits == 0);
         return bits / (double) (1L << 53);
+    }
+
+    //Случайное целое число от 1
+    static long randomLong(Random rnd) {
+        long v;
+        do {
+            v = rnd.nextLong() >>> 1;   // 0 .. 2^63 - 1 = Long.MAX_VALUE
+        } while (v == 0);               // исключаем 0, чтобы получить >= 1
+        return v;                       // [1, Long.MAX_VALUE]
     }
 
     // Два прохода со сцеплением: вперёд, затем назад. Траектория

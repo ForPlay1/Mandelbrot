@@ -263,6 +263,9 @@ BurningShipPermutation ..> Complex
 ArnoldMapDiffusion ..> DiffusionUtils
 LorenzDiffusion ..> DiffusionUtils
 RosslerDiffusion ..> DiffusionUtils
+TentMapDiffusion ..> DiffusionUtils
+HenonMapDiffusion ..> DiffusionUtils
+LogisticMapDiffusion ..> DiffusionUtils
 
 BenchmarkRunner ..> FractalChaosCipher : создаёт на каждую пару
 BenchmarkRunner ..> EncryptionMode : задаёт режим серии

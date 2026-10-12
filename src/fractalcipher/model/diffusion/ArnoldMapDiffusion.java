@@ -1,6 +1,7 @@
 package fractalcipher.model.diffusion;
 
 import java.util.Map;
+import java.util.Random;
 
 // Диффузия на основе кошачьей карты Арнольда на торе:
 //   x_{n+1} = (x_n + a * y_n)          mod 1
@@ -20,8 +21,11 @@ public class ArnoldMapDiffusion implements DiffusionSource {
 
     @Override
     public byte[] generateStream(int length, Map<String, Double> params) {
-        final long a = params.getOrDefault("a", 1.0).longValue();
-        final long b = params.getOrDefault("b", 1.0).longValue();
+        final long seed = params.getOrDefault("seed", 0.0).longValue();
+        Random rnd = new Random(seed);
+        final long a = params.getOrDefault("a",(double)DiffusionUtils.randomLong(rnd)).longValue();
+        final long b = params.getOrDefault("b",(double)DiffusionUtils.randomLong(rnd)).longValue();
+
         if (a < 1 || b < 1) {
             throw new IllegalArgumentException(
                     "Параметры a и b карты Арнольда должны быть целыми >= 1");
@@ -29,8 +33,8 @@ public class ArnoldMapDiffusion implements DiffusionSource {
 
         // x0, y0 — часть ключа, из интервала (0; 1). Если не переданы —
         // случайные (в реальном шифровании они ВСЕГДА должны приходить из ключа).
-        double x0 = params.containsKey("x0") ? params.get("x0") : DiffusionUtils.randomUnit(a);
-        double y0 = params.containsKey("y0") ? params.get("y0") : DiffusionUtils.randomUnit(b);
+        double x0 = params.containsKey("x0") ? params.get("x0") : DiffusionUtils.randomCord(rnd);
+        double y0 = params.containsKey("y0") ? params.get("y0") : DiffusionUtils.randomCord(rnd);
         if (!(x0 > 0.0 && x0 < 1.0) || !(y0 > 0.0 && y0 < 1.0)) {
             throw new IllegalArgumentException(
                     "x0 и y0 карты Арнольда должны быть в интервале (0; 1)");

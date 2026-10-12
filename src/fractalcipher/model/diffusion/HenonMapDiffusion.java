@@ -22,19 +22,21 @@ public class HenonMapDiffusion implements DiffusionSource {
 
     @Override
     public byte[] generateStream(int length, Map<String, Double> params) {
-        double a = params.getOrDefault("a", 1.4);
-        double b = params.getOrDefault("b", 0.3);
+        long seed = params.getOrDefault("seed",0.0).longValue();
+        Random rnd = new Random(seed);
+        double a = params.getOrDefault("a", (1.0+2.3)*DiffusionUtils.randomCord(rnd)-2.3);
+        double b = params.getOrDefault("b", (1.5+0.5)*DiffusionUtils.randomCord(rnd)-1.5);
 
         // x0, y0 — часть ключа. Если не переданы — случайные
         // (в реальном шифровании они ВСЕГДА должны приходить из ключа).
         // Диапазон (-0.5; 0.5) лежит внутри области притяжения аттрактора
         // при классических a=1.4, b=0.3.
-        double x = params.containsKey("x0") ? params.get("x0") : randomUnit() - 0.5;
-        double y = params.containsKey("y0") ? params.get("y0") : randomUnit() - 0.5;
+        double x0 = params.getOrDefault("x0",DiffusionUtils.randomCord(rnd)-0.5);
+        double y0 = params.getOrDefault("y0",DiffusionUtils.randomCord(rnd)-0.5);
 
         long sboxSeed = params.getOrDefault("sboxSeed", 0.0).longValue();
 
-        double[] state = {x, y};
+        double[] state = {x0, y0};
 
         // Прогрев
         for (int i = 0; i < BURN_IN; i++) {
@@ -95,13 +97,6 @@ public class HenonMapDiffusion implements DiffusionSource {
         double scaled = Math.abs(v) * 1e6;
         double frac = scaled - Math.floor(scaled);
         return ((int) (frac * 256)) & 0xFF;
-    }
-
-    private static double randomUnit() {
-        SecureRandom rnd = new SecureRandom();
-        long bits;
-        do { bits = rnd.nextLong() >>> 11; } while (bits == 0);
-        return bits / (double) (1L << 53);
     }
 
     private static int[] buildSBox(long seed) {
