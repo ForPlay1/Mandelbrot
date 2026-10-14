@@ -3,6 +3,7 @@ package fractalcipher.run;
 import fractalcipher.controller.CipherController;
 import fractalcipher.domain.FractalChaosCipher;
 import fractalcipher.domain.Image;
+import fractalcipher.exception.ErrorHandler;
 import fractalcipher.metrics.BenchmarkResult;
 import fractalcipher.model.diffusion.DiffusionSourceFactory;
 import fractalcipher.model.permutation.PermutationSourceFactory;
@@ -24,6 +25,24 @@ public class Main {
     private static final List<String> IMAGE_EXTENSIONS = List.of("png", "jpg", "jpeg", "bmp", "gif");
 
     public static void main(String[] args) {
+        // === ЦЕНТРАЛИЗОВАННАЯ ОБРАБОТКА ОШИБОК ===
+        // Единственное место с глобальным try-catch.
+        // Все исключения из run() попадают сюда и обрабатываются
+        // через ErrorHandler — единообразно, безопасно, с логированием.
+        try {
+            run();
+        } catch (Throwable t) {
+            String safe = ErrorHandler.handle(t);
+            System.err.println(safe);
+            System.exit(1);
+        }
+    }
+
+    /**
+     * Вся бизнес-логика приложения. Исключения НЕ обрабатываются здесь —
+     * они пробрасываются наверх, в глобальный перехватчик.
+     */
+    private static void run() {
         PermutationSourceFactory permutationFactory = new PermutationSourceFactory();
         DiffusionSourceFactory diffusionFactory = new DiffusionSourceFactory();
 
@@ -44,36 +63,55 @@ public class Main {
 
         // === БЕНЧМАРК: три серии ===
         if ("benchmark".equalsIgnoreCase(mode)) {
-
-            // --- СЕРИЯ 1: только перестановка ---
-            System.out.println("\n=== СЕРИЯ 1: ТОЛЬКО ПЕРЕСТАНОВКА ===");
-            System.out.println("Сравнение фракталов по разрушению пространственных связей.");
-            System.out.println("NPCR/UACI = 0 (значения пикселей не меняются),");
-            System.out.println("смотрите на корреляцию — чем ближе к 0, тем лучше.\n");
-            List<BenchmarkResult> permOnly =
-                    controller.handleBenchmarkPermutationOnly(permutationFactory, image);
-            view.showBenchmarkResults(permOnly);
-
-            // --- СЕРИЯ 2: только диффузия ---
-            System.out.println("\n=== СЕРИЯ 2: ТОЛЬКО ДИФФУЗИЯ ===");
-            System.out.println("Сравнение хаотических карт по NPCR/UACI/энтропии.");
-            System.out.println("Перестановка = identity, CBC выключен.\n");
-            List<BenchmarkResult> diffOnly =
-                    controller.handleBenchmarkDiffusionOnly(diffusionFactory, image);
-            view.showBenchmarkResults(diffOnly);
-
-            // --- СЕРИЯ 3: полная схема ---
-            System.out.println("\n=== СЕРИЯ 3: ПОЛНАЯ СХЕМА ===");
-            System.out.println("Итоговая криптостойкость + скорость.");
-            System.out.println("CBC с S-боксами включён — метрики определяются им.\n");
-            List<BenchmarkResult> full =
-                    controller.handleBenchmarkFull(permutationFactory, diffusionFactory, image);
-            view.showBenchmarkResults(full);
-
+            runBenchmark(view, controller, permutationFactory, diffusionFactory, image);
             return;
         }
 
         // === ОДИНОЧНОЕ ШИФРОВАНИЕ / РАСШИФРОВКА ===
+        runSingle(view, controller, permutationFactory, diffusionFactory, image, mode);
+    }
+
+    // === БЕНЧМАРК: три серии ===
+    private static void runBenchmark(ImageView view,
+                                     CipherController controller,
+                                     PermutationSourceFactory permutationFactory,
+                                     DiffusionSourceFactory diffusionFactory,
+                                     Image image) {
+
+        // --- СЕРИЯ 1: только перестановка ---
+        System.out.println("\n=== СЕРИЯ 1: ТОЛЬКО ПЕРЕСТАНОВКА ===");
+        System.out.println("Сравнение фракталов по разрушению пространственных связей.");
+        System.out.println("NPCR/UACI = 0 (значения пикселей не меняются),");
+        System.out.println("смотрите на корреляцию — чем ближе к 0, тем лучше.\n");
+        List<BenchmarkResult> permOnly =
+                controller.handleBenchmarkPermutationOnly(permutationFactory, image);
+        view.showBenchmarkResults(permOnly);
+
+        // --- СЕРИЯ 2: только диффузия ---
+        System.out.println("\n=== СЕРИЯ 2: ТОЛЬКО ДИФФУЗИЯ ===");
+        System.out.println("Сравнение хаотических карт по NPCR/UACI/энтропии.");
+        System.out.println("Перестановка = identity, CBC выключен.\n");
+        List<BenchmarkResult> diffOnly =
+                controller.handleBenchmarkDiffusionOnly(diffusionFactory, image);
+        view.showBenchmarkResults(diffOnly);
+
+        // --- СЕРИЯ 3: полная схема ---
+        System.out.println("\n=== СЕРИЯ 3: ПОЛНАЯ СХЕМА ===");
+        System.out.println("Итоговая криптостойкость + скорость.");
+        System.out.println("CBC с S-боксами включён — метрики определяются им.\n");
+        List<BenchmarkResult> full =
+                controller.handleBenchmarkFull(permutationFactory, diffusionFactory, image);
+        view.showBenchmarkResults(full);
+    }
+
+    // === ОДИНОЧНОЕ ШИФРОВАНИЕ / РАСШИФРОВКА ===
+    private static void runSingle(ImageView view,
+                                  CipherController controller,
+                                  PermutationSourceFactory permutationFactory,
+                                  DiffusionSourceFactory diffusionFactory,
+                                  Image image,
+                                  String mode) {
+
         String permutationName = view.requestPermutationName();
         String diffusionName = view.requestDiffusionName();
 
@@ -83,14 +121,10 @@ public class Main {
                 diffusionFactory.get(diffusionName)
         );
 
-        try {
-            Image result = "decrypt".equalsIgnoreCase(mode)
-                    ? controller.handleDecrypt(cipher, image)
-                    : controller.handleEncrypt(cipher, image);
-            view.showResult(result);
-        } catch (UnsupportedOperationException e) {
-            view.showError(e.getMessage());
-        }
+        Image result = "decrypt".equalsIgnoreCase(mode)
+                ? controller.handleDecrypt(cipher, image)
+                : controller.handleEncrypt(cipher, image);
+        view.showResult(result);
     }
 
     // Шифрует все изображения из папки выбранным шифром. Результаты кладутся
@@ -121,7 +155,8 @@ public class Main {
                     diffusionFactory.get(diffusionName)
             );
         } catch (IllegalArgumentException e) {
-            view.showError(e.getMessage());
+            // Локальная обработка: неверное имя источника. Показываем пользователю.
+            view.showError(ErrorHandler.handle(e));
             return;
         }
 
@@ -146,9 +181,12 @@ public class Main {
                 System.out.println(prefix + "OK -> " + target.getName()
                         + " (" + (System.currentTimeMillis() - start) + " мс)");
                 ok++;
-            } catch (Exception e) {
-                // Одна битая картинка не должна останавливать всю папку
-                view.showError(prefix + e.getMessage());
+            } catch (Throwable t) {
+                // Локальная обработка: одна битая картинка не должна
+                // останавливать всю папку. Логирование — через ErrorHandler,
+                // продолжение — со следующего файла.
+                String safe = ErrorHandler.handle(t);
+                view.showError(prefix + safe);
                 failed++;
             }
         }

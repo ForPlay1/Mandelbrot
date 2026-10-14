@@ -42,6 +42,11 @@ public class ImageMetrics {
             varX += (x[i] - meanX) * (x[i] - meanX);
             varY += (y[i] - meanY) * (y[i] - meanY);
         }
+
+        // НОВОЕ: защита от деления на ноль для однотонных изображений.
+        // Без этого получим NaN, что ломает сравнение в бенчмарке.
+        if (varX == 0 || varY == 0) return 0.0;
+
         return cov / Math.sqrt(varX * varY);
     }
 

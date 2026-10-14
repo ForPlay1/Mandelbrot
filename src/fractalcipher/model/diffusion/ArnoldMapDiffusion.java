@@ -2,6 +2,7 @@ package fractalcipher.model.diffusion;
 
 import java.util.Map;
 import java.util.Random;
+import fractalcipher.exception.InvalidConfigurationException;
 
 // Диффузия на основе кошачьей карты Арнольда на торе:
 //   x_{n+1} = (x_n + a * y_n)          mod 1
@@ -27,7 +28,7 @@ public class ArnoldMapDiffusion implements DiffusionSource {
         final long b = params.getOrDefault("b",(double)DiffusionUtils.randomLong(rnd)).longValue();
 
         if (a < 1 || b < 1) {
-            throw new IllegalArgumentException(
+            throw new InvalidConfigurationException(
                     "Параметры a и b карты Арнольда должны быть целыми >= 1");
         }
 
@@ -36,7 +37,7 @@ public class ArnoldMapDiffusion implements DiffusionSource {
         double x0 = params.containsKey("x0") ? params.get("x0") : DiffusionUtils.randomCord(rnd);
         double y0 = params.containsKey("y0") ? params.get("y0") : DiffusionUtils.randomCord(rnd);
         if (!(x0 > 0.0 && x0 < 1.0) || !(y0 > 0.0 && y0 < 1.0)) {
-            throw new IllegalArgumentException(
+            throw new InvalidConfigurationException(
                     "x0 и y0 карты Арнольда должны быть в интервале (0; 1)");
         }
 
@@ -49,7 +50,7 @@ public class ArnoldMapDiffusion implements DiffusionSource {
                 ((long) (y0 * 0x1p62)) << 1
         };
         if (s[0] == 0 && s[1] == 0) {
-            throw new IllegalArgumentException(
+            throw new InvalidConfigurationException(
                     "Начальная точка (0, 0) — неподвижная точка карты, выберите другие x0, y0");
         }
 

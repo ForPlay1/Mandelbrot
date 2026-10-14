@@ -1,8 +1,8 @@
 package fractalcipher.model.diffusion;
 
-import java.security.SecureRandom;
 import java.util.Random;
 import java.util.function.IntSupplier;
+import fractalcipher.exception.EncryptionFailedException;
 
 // Общие куски, которые нужны всем картам: сцепление, S-бокс, RK4,
 // перевод double в байт. Package-private — наружу не торчит.
@@ -98,7 +98,7 @@ final class DiffusionUtils {
         for (int i = 0; i < n; i++) {
             s[i] += dt / 6.0 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
             if (Double.isNaN(s[i]) || Double.isInfinite(s[i]) || Math.abs(s[i]) > 1e6) {
-                throw new IllegalStateException(
+                throw new EncryptionFailedException(
                         "Траектория системы разошлась — проверьте параметры и начальные условия");
             }
         }

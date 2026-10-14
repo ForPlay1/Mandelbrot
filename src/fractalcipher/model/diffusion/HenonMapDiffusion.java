@@ -1,8 +1,8 @@
 package fractalcipher.model.diffusion;
 
-import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Random;
+import fractalcipher.exception.EncryptionFailedException;
 
 // Диффузия на основе карты Хенона:
 //   x_{n+1} = 1 - a*x_n^2 + y_n
@@ -80,7 +80,7 @@ public class HenonMapDiffusion implements DiffusionSource {
         double ny = b * x;
 
         if (Double.isNaN(nx) || Double.isInfinite(nx) || Math.abs(nx) > 1e6) {
-            throw new IllegalStateException(
+            throw new EncryptionFailedException(
                     "Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0");
         }
 
