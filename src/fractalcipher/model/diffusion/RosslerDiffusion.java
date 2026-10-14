@@ -60,6 +60,6 @@ public class RosslerDiffusion implements DiffusionSource {
 
     @Override
     public String getName() {
-        return "rossler";
+        return "Рёсслер";
     }
 }

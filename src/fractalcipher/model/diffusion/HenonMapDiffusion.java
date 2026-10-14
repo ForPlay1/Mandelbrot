@@ -114,6 +114,6 @@ public class HenonMapDiffusion implements DiffusionSource {
 
     @Override
     public String getName() {
-        return "henon";
+        return "Хенон";
     }
 }

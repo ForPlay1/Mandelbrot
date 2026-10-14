@@ -139,6 +139,6 @@ public class MandelbrotPermutation implements PermutationSource {
 
     @Override
     public String getName() {
-        return "mandelbrot";
+        return "Мандельброт";
     }
 }

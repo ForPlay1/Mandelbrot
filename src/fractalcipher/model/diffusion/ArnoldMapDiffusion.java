@@ -76,6 +76,6 @@ public class ArnoldMapDiffusion implements DiffusionSource {
 
     @Override
     public String getName() {
-        return "arnold";
+        return "Арнольд";
     }
 }

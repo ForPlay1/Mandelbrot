@@ -4,6 +4,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Ровно те поля, которые вы обсудили с преподавателем:
@@ -78,6 +79,9 @@ public class Image {
             }
         }
         return true;
+    }
+    public static List<String> getImageExtensions() {
+        return List.of("png", "jpg", "jpeg", "bmp", "gif");
     }
 
     public String getId() { return id; }

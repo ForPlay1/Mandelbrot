@@ -9,5 +9,5 @@ public class NullDiffusion implements DiffusionSource {
         return new byte[length]; // все нули
     }
     @Override
-    public String getName() { return "null"; }
+    public String getName() { return "Нет"; }
 }

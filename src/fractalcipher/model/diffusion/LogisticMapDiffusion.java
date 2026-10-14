@@ -64,6 +64,6 @@ public class LogisticMapDiffusion implements DiffusionSource {
 
     @Override
     public String getName() {
-        return "logistic";
+        return "Логистический";
     }
 }

@@ -124,6 +124,6 @@ public class BurningShipPermutation implements PermutationSource {
 
     @Override
     public String getName() {
-        return "burning ship";
+        return "Горящий корабль";
     }
 }

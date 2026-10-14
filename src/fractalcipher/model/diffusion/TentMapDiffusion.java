@@ -110,6 +110,6 @@ public class TentMapDiffusion implements DiffusionSource {
 
     @Override
     public String getName() {
-        return "tent";
+        return "Тент";
     }
 }

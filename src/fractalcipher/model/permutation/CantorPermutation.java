@@ -86,6 +86,6 @@ public class CantorPermutation implements PermutationSource {
 
     @Override
     public String getName() {
-        return "cantor";
+        return "Кантор";
     }
 }

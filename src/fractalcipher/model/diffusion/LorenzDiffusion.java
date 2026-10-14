@@ -61,6 +61,6 @@ public class LorenzDiffusion implements DiffusionSource {
 
     @Override
     public String getName() {
-        return "lorenz";
+        return "Лоренц";
     }
 }

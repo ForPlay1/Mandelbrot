@@ -110,6 +110,6 @@ public class JuliaPermutation implements PermutationSource {
 
     @Override
     public String getName() {
-        return "julia";
+        return "Жюлиа";
     }
 }
