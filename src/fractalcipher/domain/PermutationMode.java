@@ -6,13 +6,13 @@ public enum PermutationMode {
     CANTOR("Кантор"),
     BURNING_SHIP("Горящий корабль");
 
-    private final String translation;
+    private final String name;
 
     PermutationMode(String translation) {
-        this.translation = translation;
+        this.name = translation;
     }
 
-    public String getTranslation() {
-        return translation;
+    public String getName() {
+        return name;
     }
 }

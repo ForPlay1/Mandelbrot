@@ -1,8 +1,8 @@
 package fractalcipher.model.diffusion;
 
-import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Random;
+import fractalcipher.exception.InvalidConfigurationException;
 
 // Диффузия на основе тент-карты:
 //   x_{n+1} = mu * x_n         , если x_n < 0.5
@@ -23,7 +23,7 @@ public class TentMapDiffusion implements DiffusionSource {
         Random rnd = new Random(seed);
         double mu = params.getOrDefault("mu", DiffusionUtils.randomCord(rnd)+1.0);
         if (!(mu >= 1.0 && mu <= 2.0)) {
-            throw new IllegalArgumentException(
+            throw new InvalidConfigurationException(
                     "Параметр mu тент-карты должен быть в интервале (1; 2), получено: " + mu);
         }
 
@@ -31,7 +31,7 @@ public class TentMapDiffusion implements DiffusionSource {
         // (в реальном шифровании x0 ВСЕГДА должен приходить из ключа).
         double x = params.getOrDefault("x0",DiffusionUtils.randomCord(rnd));
         if (!(x >= 0.0 && x <= 1.0)) {
-            throw new IllegalArgumentException(
+            throw new InvalidConfigurationException(
                     "Начальное значение x0 тент-карты должно быть в интервале (0; 1), получено: " + x);
         }
 
@@ -86,13 +86,6 @@ public class TentMapDiffusion implements DiffusionSource {
         double scaled = x * 1e6;
         double frac = scaled - Math.floor(scaled);
         return (byte) (((int) (frac * 256)) & 0xFF);
-    }
-
-    private static double randomUnit() {
-        SecureRandom rnd = new SecureRandom();
-        long bits;
-        do { bits = rnd.nextLong() >>> 11; } while (bits == 0);
-        return bits / (double) (1L << 53);
     }
 
     private static int[] buildSBox(long seed) {

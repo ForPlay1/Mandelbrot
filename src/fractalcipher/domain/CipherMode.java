@@ -6,14 +6,14 @@ public enum CipherMode {
     BENCHMARK("Бенчмарк"),
     BENCRYPT("Шифрование папки");
 
-    private final String translation;
+    private final String name;
 
     CipherMode(String translation) {
-        this.translation = translation;
+        this.name = translation;
     }
 
-    public String getTranslation() {
-        return translation;
+    public String getName() {
+        return name;
     }
 
 //    // Словарь: ключ -> функция-обработчик

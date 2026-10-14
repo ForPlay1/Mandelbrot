@@ -3,6 +3,7 @@ package fractalcipher.model.permutation;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import fractalcipher.exception.UnsupportedSourceException;
 
 // Реестр всех источников перестановки. Смысл существования этого
 // класса: Controller и View обращаются только к нему по имени
@@ -43,7 +44,7 @@ public class PermutationSourceFactory {
     public PermutationSource get(String name) {
         PermutationSource source = sources.get(name);
         if (source == null) {
-            throw new IllegalArgumentException("Неизвестный источник перестановки: " + name);
+            throw new UnsupportedSourceException("Неизвестный источник перестановки: " + name);
         }
         return source;
     }

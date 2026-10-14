@@ -58,6 +58,17 @@ public class Image {
         return dot == -1 ? "unknown" : fileName.substring(dot + 1).toLowerCase();
     }
 
+    // Порог на пиксель: максимально допустимое отклонение между каналами.
+    // 8 из 255 — примерно 3%, человеческий глаз на таком уровне
+    // различия не замечает. Для более строгого определения — 4, для
+    // более мягкого — 16.
+    private static final int CHANNEL_THRESHOLD = 8;
+
+    // Доля «цветных» пикселей, которую допускаем. 1% — достаточно,
+    // чтобы пережить JPEG-артефакты и шум сжатия, но не пропустить
+    // реально цветное изображение.
+    private static final double COLORFUL_PIXEL_RATIO = 0.01;
+
     /**
      * Эвристика: если у КАЖДОГО пикселя R=G=B, считаем изображение
      * чёрно-белым (точнее — оттенками серого; формально "чёрно-белое"
@@ -69,13 +80,42 @@ public class Image {
      * проблемой, можно проверять не все пиксели, а случайную выборку.
      */
     private static boolean detectBlackAndWhite(BufferedImage image) {
-        for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) {
-                int rgb = image.getRGB(x, y);
-                int r = (rgb >> 16) & 0xFF;
-                int g = (rgb >> 8) & 0xFF;
-                int b = rgb & 0xFF;
-                if (r != g || g != b) return false;
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int totalPixels = width * height;
+
+        // Сколько пикселей МОЖЕТ быть цветными, прежде чем признаем
+        // изображение цветным. Считаем один раз.
+        int allowedColorful = (int) (totalPixels * COLORFUL_PIXEL_RATIO);
+        int colorfulPixels = 0;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int argb = image.getRGB(x, y);
+
+                // === НОВОЕ: пропускаем полностью прозрачные пиксели ===
+                // У них нет видимого цвета, R/G/B могут быть любыми.
+                int alpha = (argb >>> 24) & 0xFF;
+                if (alpha == 0) continue;
+
+                int r = (argb >> 16) & 0xFF;
+                int g = (argb >> 8) & 0xFF;
+                int b = argb & 0xFF;
+
+                // === НОВОЕ: порог на максимальное отклонение ===
+                int diffRG = Math.abs(r - g);
+                int diffGB = Math.abs(g - b);
+                int diffRB = Math.abs(r - b);
+                int maxDiff = Math.max(diffRG, Math.max(diffGB, diffRB));
+
+                if (maxDiff > CHANNEL_THRESHOLD) {
+                    colorfulPixels++;
+
+                    // === НОВОЕ: ранний выход при превышении лимита ===
+                    // Если цветных пикселей уже больше допустимого —
+                    // нет смысла продолжать, экономим время.
+                    if (colorfulPixels > allowedColorful) return false;
+                }
             }
         }
         return true;

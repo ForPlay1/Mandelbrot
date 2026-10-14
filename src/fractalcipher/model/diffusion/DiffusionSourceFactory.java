@@ -3,6 +3,7 @@ package fractalcipher.model.diffusion;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import fractalcipher.exception.UnsupportedSourceException;
 
 // Реестр источников диффузии — устроен ровно так же, как
 // PermutationSourceFactory, и по той же причине: Controller/View
@@ -34,7 +35,7 @@ public class DiffusionSourceFactory {
     public DiffusionSource get(String name) {
         DiffusionSource source = sources.get(name);
         if (source == null) {
-            throw new IllegalArgumentException("Неизвестный источник диффузии: " + name);
+            throw new UnsupportedSourceException("Неизвестный источник диффузии: " + name);
         }
         return source;
     }

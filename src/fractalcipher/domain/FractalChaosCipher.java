@@ -6,6 +6,7 @@ import fractalcipher.model.permutation.PermutationSource;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
+import fractalcipher.exception.*;
 
 public class FractalChaosCipher extends Cipher {
 
@@ -64,7 +65,18 @@ public class FractalChaosCipher extends Cipher {
             Map<String, Double> params = new HashMap<>(permutationParams);
             params.put("width", (double) width);
             params.put("height", (double) height);
-            permutation = permutationSource.generatePermutation(pixels.length, params);
+            try {
+                permutation = permutationSource.generatePermutation(pixels.length, params);
+            } catch (EncryptionFailedException e) {
+                // Пробрасываем как есть — категория уже ENCRYPTION
+                throw e;
+            } catch (RuntimeException e) {
+                // БЫЛО: исключение пробрасывалось как есть.
+                // СТАЛО: оборачиваем в EncryptionFailedException для
+                // единообразной классификации.
+                throw new EncryptionFailedException(
+                        "Ошибка генерации перестановки: " + e.getMessage(), e);
+            }
         } else {
             // DIFFUSION_ONLY: перестановка = identity (ничего не меняем)
             permutation = new int[pixels.length];
@@ -79,7 +91,14 @@ public class FractalChaosCipher extends Cipher {
         // === ДИФФУЗИЯ: применяется только в DIFFUSION_ONLY и FULL ===
         byte[] stream;
         if (mode == EncryptionMode.DIFFUSION_ONLY || mode == EncryptionMode.FULL) {
-            stream = diffusionSource.generateStream(pixels.length * 8, diffusionParams);
+            try {
+                stream = diffusionSource.generateStream(pixels.length * 8, diffusionParams);
+            } catch (EncryptionFailedException e) {
+                throw e;
+            } catch (RuntimeException e) {
+                throw new EncryptionFailedException(
+                        "Ошибка генерации потока диффузии: " + e.getMessage(), e);
+            }
         } else {
             // PERMUTATION_ONLY: поток нулевой, но XOR всё равно применяется
             // (это не меняет данные: x ^ 0 = x)
@@ -108,7 +127,14 @@ public class FractalChaosCipher extends Cipher {
 
         byte[] stream;
         if (mode == EncryptionMode.DIFFUSION_ONLY || mode == EncryptionMode.FULL) {
-            stream = diffusionSource.generateStream(cipherPixels.length * 8, diffusionParams);
+            try {
+                stream = diffusionSource.generateStream(cipherPixels.length * 8, diffusionParams);
+            } catch (EncryptionFailedException e) {
+                throw e;
+            } catch (RuntimeException e) {
+                throw new EncryptionFailedException(
+                        "Ошибка генерации потока диффузии: " + e.getMessage(), e);
+            }
         } else {
             stream = new byte[cipherPixels.length * 8];
         }
@@ -119,7 +145,14 @@ public class FractalChaosCipher extends Cipher {
             Map<String, Double> params = new HashMap<>(permutationParams);
             params.put("width", (double) w);
             params.put("height", (double) h);
-            perm = permutationSource.generatePermutation(cipherPixels.length, params);
+            try {
+                perm = permutationSource.generatePermutation(cipherPixels.length, params);
+            } catch (EncryptionFailedException e) {
+                throw e;
+            } catch (RuntimeException e) {
+                throw new EncryptionFailedException(
+                        "Ошибка генерации перестановки: " + e.getMessage(), e);
+            }
         } else {
             perm = new int[cipherPixels.length];
             for (int i = 0; i < cipherPixels.length; i++) perm[i] = i;

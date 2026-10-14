@@ -9,13 +9,13 @@ public enum DiffusionMode {
     ARNOLD("Арнольд"),
     NULL("Нет");
 
-    private final String translation;
+    private final String name;
 
-    DiffusionMode(String translation) {
-        this.translation = translation;
+    DiffusionMode(String name) {
+        this.name = name;
     }
 
-    public String getTranslation() {
-        return translation;
+    public String getName() {
+        return name;
     }
 }

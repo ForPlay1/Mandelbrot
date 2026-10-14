@@ -4,12 +4,12 @@ import fractalcipher.domain.EncryptionMode;
 import fractalcipher.domain.FractalChaosCipher;
 import fractalcipher.domain.Image;
 import fractalcipher.model.KeyDerivation;
-import fractalcipher.model.diffusion.DiffusionSource;
 import fractalcipher.model.diffusion.DiffusionSourceFactory;
 import fractalcipher.model.diffusion.NullDiffusion;
 import fractalcipher.model.permutation.IdentityPermutation;
-import fractalcipher.model.permutation.PermutationSource;
 import fractalcipher.model.permutation.PermutationSourceFactory;
+import fractalcipher.exception.EncryptionFailedException;
+import fractalcipher.exception.ErrorHandler;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -151,7 +151,16 @@ public class BenchmarkRunner {
                             ImageMetrics.uaci(encrypted.getImage(), encryptedModified.getImage())
                     ));
                 } catch (UnsupportedOperationException e) {
-                    System.out.println("[Пропущено] " + permutationName + " + " + diffusionName + ": " + e.getMessage());
+                    // БЫЛО: только UnsupportedOperationException.
+                    // Неизвестный источник — пропускаем комбинацию.
+                    System.out.println("[Пропущено] " + permutationName + " + " + diffusionName
+                            + ": " + e.getMessage());
+                } catch (EncryptionFailedException e) {
+                    // НОВОЕ: ошибка шифрования (например, разошлась траектория).
+                    // Логируем через ErrorHandler и продолжаем бенчмарк.
+                    ErrorHandler.handle(e);
+                    System.out.println("[Пропущено] " + permutationName + " + " + diffusionName
+                            + ": " + e.getMessage());
                 }
             }
         }

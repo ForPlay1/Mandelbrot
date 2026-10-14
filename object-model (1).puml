@@ -133,7 +133,8 @@ package "fractalcipher.model.diffusion" {
 
   class DiffusionUtils <<package-private>> {
     ~ {static} fracByte(v): int
-    ~ {static} randomUnit(a): double
+    ~ {static} randomCord(rnd): double
+    ~ {static} randomLong(rnd): long
     ~ {static} chainTwoPass(length, next): byte[]
     ~ {static} applySBox(stream, seed): void
     ~ {static} rk4(state, dt, f): void
