@@ -21,7 +21,22 @@ package "fractalcipher.domain" {
     - resolution: String
     - blackAndWhite: boolean
     + {static} loadFromFile(id, name, file): Image
+    - {static} detectBlackAndWhite(image): boolean
+    + {static} getImageExtensions(): List<String>
   }
+  note right of Image
+    detectBlackAndWhite — пороговый алгоритм:
+    • CHANNEL_THRESHOLD (8/255 ≈ 3%) — допустимое
+      отклонение между R, G, B внутри пикселя;
+    • COLORFUL_PIXEL_RATIO (1%) — доля цветных
+      пикселей, которую допускаем (для JPEG-шума);
+    • полностью прозрачные пиксели (alpha == 0)
+      пропускаются — у них нет видимого цвета;
+    • ранний выход при превышении лимита цветных.
+
+    getImageExtensions — общий список расширений
+    (png, jpg, jpeg, bmp, gif) для Main и MainView.
+  end note
 
   abstract class Cipher {
     - id: String
@@ -40,6 +55,50 @@ package "fractalcipher.domain" {
     DIFFUSION_ONLY
     FULL
   }
+  note right of EncryptionMode
+    Используется внутри FractalChaosCipher
+    для научного сравнения вклада этапов.
+  end note
+
+  enum CipherMode {
+    ENCRYPT
+    DECRYPT
+    BENCHMARK
+    BENCRYPT
+  }
+  note right of CipherMode
+    Режим работы приложения — выбирается
+    в MainView. Значения соответствуют
+    кнопкам UI: Шифрование / Расшифровка /
+    Бенчмарк / Бенчмарк+Шифр.
+  end note
+
+  enum PermutationMode {
+    MANDELBROT
+    JULIA
+    CANTOR
+    BURNING_SHIP
+  }
+  note right of PermutationMode
+    Выбор источника перестановки из UI.
+    getName() возвращает русское название
+    для отображения пользователю.
+  end note
+
+  enum DiffusionMode {
+    LOGISTIC
+    HENON
+    TENT
+    LORENZ
+    ROSSLER
+    ARNOLD
+    NULL
+  }
+  note right of DiffusionMode
+    Выбор источника диффузии из UI.
+    Имена совпадают с getName() соответствующих
+    DiffusionSource (русские названия).
+  end note
 
   class FractalChaosCipher {
     - permutationSource: PermutationSource
@@ -75,6 +134,9 @@ package "fractalcipher.domain" {
     Шифруются все 4 канала ARGB (включая альфу);
     от источника диффузии запрашивается 8 × пикселей байт
     (4 канала × 2 прохода).
+
+    Обработка ошибок: ошибки перестановки и диффузии
+    оборачиваются в EncryptionFailedException.
   end note
 }
 
@@ -114,6 +176,10 @@ package "fractalcipher.model.permutation" {
     + availableNames(): Set<String>
     + clear(): void
   }
+  note right of PermutationSourceFactory
+    get(name) бросает UnsupportedSourceException
+    при неизвестном имени.
+  end note
 }
 
 package "fractalcipher.model.diffusion" {
@@ -139,6 +205,10 @@ package "fractalcipher.model.diffusion" {
     ~ {static} applySBox(stream, seed): void
     ~ {static} rk4(state, dt, f): void
   }
+  note right of DiffusionUtils
+    rk4 бросает EncryptionFailedException
+    при расхождении траектории.
+  end note
 
   class DiffusionSourceFactory {
     + register(source): void
@@ -146,6 +216,52 @@ package "fractalcipher.model.diffusion" {
     + availableNames(): Set<String>
     + clear(): void
   }
+  note right of DiffusionSourceFactory
+    get(name) бросает UnsupportedSourceException
+    при неизвестном имени.
+  end note
+}
+
+package "fractalcipher.exception" {
+
+  class FractalCipherException {
+    - category: ErrorCategory
+    + FractalCipherException(category, message)
+    + FractalCipherException(category, message, cause)
+    + getCategory(): ErrorCategory
+  }
+
+  class InvalidInputException
+  class InvalidConfigurationException
+  class EncryptionFailedException
+  class UnsupportedSourceException
+
+  class ErrorHandler <<utility>> {
+    - {static} logStream: PrintStream
+    - {static} verbose: boolean
+    + {static} handle(t): String
+    + {static} setVerbose(v): void
+    + {static} setLogStream(stream): void
+    - {static} classify(t): ErrorCategory
+    - {static} log(t, category): void
+    - {static} safeMessage(t, category): String
+  }
+
+  enum ErrorCategory {
+    USER_INPUT
+    CONFIGURATION
+    ENCRYPTION
+    IO
+    INTERNAL
+  }
+
+  note right of ErrorHandler
+    Централизованная обработка ошибок:
+    • классификация по категориям;
+    • логирование (в System.err или файл);
+    • безопасное сообщение для пользователя
+      (INTERNAL не раскрывает деталей).
+  end note
 }
 
 package "fractalcipher.metrics" {
@@ -175,6 +291,11 @@ package "fractalcipher.metrics" {
     - {static} run(permNames, diffNames, pf, df, image, mode): List<BenchmarkResult>
     - {static} withOnePixelFlipped(image): Image
   }
+  note right of BenchmarkRunner
+    run ловит EncryptionFailedException
+    и пропускает сбойную комбинацию,
+    логируя её через ErrorHandler.
+  end note
 }
 
 package "fractalcipher.controller" {
@@ -204,6 +325,59 @@ package "fractalcipher.view" {
   class ConsoleView {
     - scanner: Scanner
   }
+  note right of ConsoleView
+    Текстовая реализация ImageView.
+    Используется Main для вывода в консоль,
+    пока MainView отвечает за GUI.
+  end note
+
+  class MainView {
+    - root: BorderPane
+    - preview: ImageView
+    - selectedFile: File
+    - outputDir: File
+    - modeChosen: boolean
+    - inputChosen: boolean
+    - outputChosen: boolean
+    - modeGroup: ToggleGroup
+    - permGroup: ToggleGroup
+    - diffGroup: ToggleGroup
+    - selectionByButton: Map<ToggleButton, Enum<?>>
+    - handlers: Map<Enum<?>, Consumer<Enum<?>>>
+    - {static} userParams: Map<Class<?>, Object>
+    + MainView()
+    + getRoot(): Parent
+    + {static} getUserParams(): Map<Class<?>, Object>
+    - registerHandlers(): void
+    - buildSidebar(): Node
+    - buildDropZone(): Node
+    - buildOutputZone(): Node
+    - buildModeButtons(): Node
+    - buildPermutationButtons(): Node
+    - buildDiffusionButtons(): Node
+    - buildRunButton(): Node
+    - buildPreviewArea(): Node
+    - buildSelectionMap(): Map<ToggleButton, Enum<?>>
+    - onOptionSelected(btn): void
+    - onRun(): void
+    - updateEnabledState(): void
+    - showAlert(msg): void
+  }
+  note right of MainView
+    JavaFX-интерфейс приложения:
+    • левая панель — выбор режима, перестановки,
+      диффузии, drag&drop входного файла/папки
+      и папки результата;
+    • правая область — предпросмотр изображения;
+    • при «Запустить» формируется userParams
+      (Map<Class<?>, Object>) и публикуется статически;
+    • Main (в worker-потоке) читает userParams
+      и запускает бизнес-логику.
+
+    handlers: Map<Enum<?>, Consumer<Enum<?>>> —
+    единый словарь для логирования выбора
+    (можно расширять, не меняя onOptionSelected).
+  end note
 }
 
 package "fractalcipher.run" {
@@ -211,17 +385,44 @@ package "fractalcipher.run" {
   class Main {
     - {static} ENCRYPTED_SUFFIX: String
     - {static} IMAGE_EXTENSIONS: List<String>
-    + {static} main(args): void
-    - {static} runBatchEncrypt(view, controller, pf, df): void
+    + main(args): void
+    + start(stage): void
+    - {static} run(selection): void
+    - {static} runBenchmark(image, controller, pf, df, view): void
+    - {static} runSingle(mode, permName, diffName, image, controller, pf, df, view): void
+    - {static} runBatchEncrypt(permName, diffName, inputDir, outputDir, controller, pf, df, view): void
     - {static} isImageToEncrypt(fileName): boolean
     - {static} baseName(fileName): String
   }
+  note right of Main
+    Наследник javafx.application.Application.
+
+    main — единственная точка глобального try-catch:
+    • запускает JavaFX через launch(args);
+    • параллельно поднимает worker-поток, который
+      в цикле ждёт MainView.getUserParams(),
+      а после получения — вызывает run(selection).
+
+    Обработка ошибок: все непойманные исключения
+    идут в ErrorHandler.handle, логируются,
+    и приложение завершается через System.exit(1).
+  end note
 }
 
 ' ============================================================
 ' Наследование (Template Method)
 ' ============================================================
 Cipher <|-- FractalChaosCipher
+Application <|-- Main
+
+' ============================================================
+' Иерархия исключений
+' ============================================================
+RuntimeException <|-- FractalCipherException
+FractalCipherException <|-- InvalidInputException
+FractalCipherException <|-- InvalidConfigurationException
+FractalCipherException <|-- EncryptionFailedException
+FractalCipherException <|-- UnsupportedSourceException
 
 ' ============================================================
 ' Реализация интерфейсов (Strategy)
@@ -257,6 +458,9 @@ FractalChaosCipher --> EncryptionMode : mode
 PermutationSourceFactory ..> PermutationSource : создаёт и хранит
 DiffusionSourceFactory ..> DiffusionSource : создаёт и хранит
 
+PermutationSourceFactory ..> UnsupportedSourceException : бросает
+DiffusionSourceFactory ..> UnsupportedSourceException : бросает
+
 MandelbrotPermutation ..> Complex
 JuliaPermutation ..> Complex
 BurningShipPermutation ..> Complex
@@ -268,6 +472,13 @@ TentMapDiffusion ..> DiffusionUtils
 HenonMapDiffusion ..> DiffusionUtils
 LogisticMapDiffusion ..> DiffusionUtils
 
+DiffusionUtils ..> EncryptionFailedException : бросает (rk4)
+HenonMapDiffusion ..> EncryptionFailedException : бросает (step)
+TentMapDiffusion ..> InvalidConfigurationException : бросает (параметры)
+ArnoldMapDiffusion ..> InvalidConfigurationException : бросает (параметры)
+
+FractalChaosCipher ..> EncryptionFailedException : оборачивает\nошибки перестановки\nи диффузии
+
 BenchmarkRunner ..> FractalChaosCipher : создаёт на каждую пару
 BenchmarkRunner ..> EncryptionMode : задаёт режим серии
 BenchmarkRunner ..> KeyDerivation : параметры из мастер-seed
@@ -278,6 +489,8 @@ BenchmarkRunner ..> DiffusionSourceFactory
 BenchmarkRunner ..> IdentityPermutation : фабрика "только identity"
 BenchmarkRunner ..> NullDiffusion : фабрика "только null"
 BenchmarkRunner ..> Image
+BenchmarkRunner ..> EncryptionFailedException : ловит
+BenchmarkRunner ..> ErrorHandler : логирует сбойные\nкомбинации
 
 CipherController --> Cipher : вызывает encrypt()/decrypt()
 CipherController ..> BenchmarkRunner : делегирует серии
@@ -288,11 +501,38 @@ CipherController ..> BenchmarkResult
 
 ImageView ..> Image
 
+' ============================================================
+' Main и MainView
+' ============================================================
 Main ..> CipherController : создаёт
 Main ..> ConsoleView : создаёт
 Main ..> FractalChaosCipher : создаёт
 Main ..> PermutationSourceFactory : создаёт
 Main ..> DiffusionSourceFactory : создаёт
 Main ..> ImageView
+Main ..> ErrorHandler : глобальный\nперехват исключений
+Main ..> MainView : читает userParams\n(статически)
+Main ..> CipherMode : разбирает выбор\nиз UI
+Main ..> PermutationMode : разбирает выбор\nиз UI
+Main ..> DiffusionMode : разбирает выбор\nиз UI
+Main ..> Image : loadFromFile
+
+MainView ..> CipherMode : кнопки режима
+MainView ..> PermutationMode : кнопки перестановки
+MainView ..> DiffusionMode : кнопки диффузии
+MainView ..> Image : getImageExtensions()
+MainView ..> Alert : показывает\nпользователю
+MainView ..> FileChooser : выбор файла
+MainView ..> DirectoryChooser : выбор папки
+MainView ..> Dragboard : drag&drop
+
+ErrorHandler ..> FractalCipherException : классифицирует
+ErrorHandler --> ErrorCategory : использует
+
+' ============================================================
+' Связь MainView ↔ Main через userParams
+' (статический Map<Class<?>, Object>)
+' ============================================================
+MainView -[hidden]-> Main
 
 @enduml
