@@ -5,7 +5,7 @@ import java.util.Map;
 // Временная заглушка
 public class NullDiffusion implements DiffusionSource {
     @Override
-    public byte[] generateStream(int length, Map<String, Double> params) {
+    public byte[] generateStream(final int length, final Map<String, Double> params) {
         return new byte[length]; // все нули
     }
     @Override

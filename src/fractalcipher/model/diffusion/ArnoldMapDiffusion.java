@@ -21,11 +21,11 @@ public class ArnoldMapDiffusion implements DiffusionSource {
     private static final int BURN_IN = 1000;
 
     @Override
-    public byte[] generateStream(int length, Map<String, Double> params) {
+    public byte[] generateStream(final int length, final Map<String, Double> params) {
         final long seed = params.getOrDefault("seed", 0.0).longValue();
-        Random rnd = new Random(seed);
-        final long a = params.getOrDefault("a",(double)DiffusionUtils.randomLong(rnd)).longValue();
-        final long b = params.getOrDefault("b",(double)DiffusionUtils.randomLong(rnd)).longValue();
+        final Random rnd = new Random(seed);
+        final long a = params.getOrDefault("a", (double) DiffusionUtils.randomLong(rnd)).longValue();
+        final long b = params.getOrDefault("b", (double) DiffusionUtils.randomLong(rnd)).longValue();
 
         if (a < 1 || b < 1) {
             throw new InvalidConfigurationException(
@@ -34,14 +34,14 @@ public class ArnoldMapDiffusion implements DiffusionSource {
 
         // x0, y0 — часть ключа, из интервала (0; 1). Если не переданы —
         // случайные (в реальном шифровании они ВСЕГДА должны приходить из ключа).
-        double x0 = params.containsKey("x0") ? params.get("x0") : DiffusionUtils.randomCord(rnd);
-        double y0 = params.containsKey("y0") ? params.get("y0") : DiffusionUtils.randomCord(rnd);
+        final double x0 = params.containsKey("x0") ? params.get("x0") : DiffusionUtils.randomCord(rnd);
+        final double y0 = params.containsKey("y0") ? params.get("y0") : DiffusionUtils.randomCord(rnd);
         if (!(x0 > 0.0 && x0 < 1.0) || !(y0 > 0.0 && y0 < 1.0)) {
             throw new InvalidConfigurationException(
                     "x0 и y0 карты Арнольда должны быть в интервале (0; 1)");
         }
 
-        long sboxSeed = params.getOrDefault("sboxSeed", 0.0).longValue();
+        final long sboxSeed = params.getOrDefault("sboxSeed", 0.0).longValue();
 
         // Точка на решётке 2^64 (double даёт 53 значащих бита, остальные нули —
         // после прогрева старшие биты всё равно зависят от всех младших)
@@ -58,7 +58,7 @@ public class ArnoldMapDiffusion implements DiffusionSource {
             step(s, a, b);
         }
 
-        byte[] stream = DiffusionUtils.chainTwoPass(length, () -> {
+        final byte[] stream = DiffusionUtils.chainTwoPass(length, () -> {
             step(s, a, b);
             return (int) (s[0] >>> 56) ^ (int) (s[1] >>> 56);
         });
@@ -68,9 +68,9 @@ public class ArnoldMapDiffusion implements DiffusionSource {
     }
 
     // Переполнение long == mod 2^64
-    private static void step(long[] s, long a, long b) {
-        long x = s[0];
-        long y = s[1];
+    private static void step(final long[] s, final long a, final long b) {
+        final long x = s[0];
+        final long y = s[1];
         s[0] = x + a * y;
         s[1] = b * x + (a * b + 1) * y;
     }

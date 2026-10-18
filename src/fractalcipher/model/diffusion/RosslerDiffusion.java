@@ -17,35 +17,35 @@ public class RosslerDiffusion implements DiffusionSource {
     private static final int BURN_IN_STEPS = 3000;
 
     @Override
-    public byte[] generateStream(int length, Map<String, Double> params) {
+    public byte[] generateStream(final int length, final Map<String, Double> params) {
         final double a = params.getOrDefault("a", 0.2);
         final double b = params.getOrDefault("b", 0.2);
         final double c = params.getOrDefault("c", 5.7);
 
-        final long seed = params.getOrDefault("seed",0.0).longValue();
-        Random rnd = new Random(seed);
+        final long seed = params.getOrDefault("seed", 0.0).longValue();
+        final Random rnd = new Random(seed);
         // x0, y0, z0 — часть ключа. Если не переданы — случайные
         // (в реальном шифровании они ВСЕГДА должны приходить из ключа).
-        double x0 = params.containsKey("x0") ? params.get("x0") : DiffusionUtils.randomCord(rnd) * 2 - 1;
-        double y0 = params.containsKey("y0") ? params.get("y0") : DiffusionUtils.randomCord(rnd) * 2 - 1;
-        double z0 = params.containsKey("z0") ? params.get("z0") : DiffusionUtils.randomCord(rnd) * 2;
+        final double x0 = params.containsKey("x0") ? params.get("x0") : DiffusionUtils.randomCord(rnd) * 2 - 1;
+        final double y0 = params.containsKey("y0") ? params.get("y0") : DiffusionUtils.randomCord(rnd) * 2 - 1;
+        final double z0 = params.containsKey("z0") ? params.get("z0") : DiffusionUtils.randomCord(rnd) * 2;
 
         final double[] s = {x0, y0, z0};
 
-        DiffusionUtils.Deriv f = (st, out) -> {
+        final DiffusionUtils.Deriv f = (final double[] st, final double[] out) -> {
             out[0] = -st[1] - st[2];
             out[1] = st[0] + a * st[1];
             out[2] = b + st[2] * (st[0] - c);
         };
 
-        long sboxSeed = params.getOrDefault("sboxSeed", 0.0).longValue();
+        final long sboxSeed = params.getOrDefault("sboxSeed", 0.0).longValue();
 
         // Прогрев — выходим на аттрактор
         for (int i = 0; i < BURN_IN_STEPS; i++) {
             DiffusionUtils.rk4(s, DT, f);
         }
 
-        byte[] stream = DiffusionUtils.chainTwoPass(length, () -> {
+        final byte[] stream = DiffusionUtils.chainTwoPass(length, () -> {
             for (int k = 0; k < STEPS_PER_SAMPLE; k++) {
                 DiffusionUtils.rk4(s, DT, f);
             }

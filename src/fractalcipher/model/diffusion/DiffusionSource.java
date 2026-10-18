@@ -12,7 +12,7 @@ public interface DiffusionSource {
     // количество_пикселей * 3, по одному байту на R, G, B канал)
     // params — параметры конкретной карты (например "r" и "x0" для
     // логистической карты)
-    byte[] generateStream(int length, Map<String, Double> params);
+    byte[] generateStream(final int length, final Map<String, Double> params);
 
     String getName();
 }

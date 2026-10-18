@@ -12,26 +12,26 @@ final class DiffusionUtils {
 
     // Правая часть системы ОДУ: по состоянию s записывает производную в out
     interface Deriv {
-        void apply(double[] s, double[] out);
+        void apply(final double[] s, final double[] out);
     }
 
     // Байт (0..255) из дробной части v*1e6 — отбрасываем старшие,
     // предсказуемые разряды
-    static int fracByte(double v) {
-        double scaled = Math.abs(v) * 1e6;
-        double frac = scaled - Math.floor(scaled);
+    static int fracByte(final double v) {
+        final double scaled = Math.abs(v) * 1e6;
+        final double frac = scaled - Math.floor(scaled);
         return ((int) (frac * 256)) & 0xFF;
     }
 
     // Случайное число в (0; 1)
-    static double randomCord(Random rnd) {
+    static double randomCord(final Random rnd) {
         long bits;
         do { bits = rnd.nextLong() >>> 11; } while (bits == 0);
         return bits / (double) (1L << 53);
     }
 
     //Случайное целое число от 1
-    static long randomLong(Random rnd) {
+    static long randomLong(final Random rnd) {
         long v;
         do {
             v = rnd.nextLong() >>> 1;   // 0 .. 2^63 - 1 = Long.MAX_VALUE
@@ -41,8 +41,8 @@ final class DiffusionUtils {
 
     // Два прохода со сцеплением: вперёд, затем назад. Траектория
     // продолжается (next вызывается 2*length раз).
-    static byte[] chainTwoPass(int length, IntSupplier next) {
-        byte[] stream = new byte[length];
+    static byte[] chainTwoPass(final int length, final IntSupplier next) {
+        final byte[] stream = new byte[length];
 
         byte prev = 0;
         for (int i = 0; i < length; i++) {
@@ -60,15 +60,15 @@ final class DiffusionUtils {
     }
 
     // Опциональный S-бокс (если seed == 0 — ничего не делает)
-    static void applySBox(byte[] stream, long seed) {
+    static void applySBox(final byte[] stream, final long seed) {
         if (seed == 0L) return;
 
-        int[] sbox = new int[256];
+        final int[] sbox = new int[256];
         for (int i = 0; i < 256; i++) sbox[i] = i;
-        Random rnd = new Random(seed);
+        final Random rnd = new Random(seed);
         for (int i = 255; i > 0; i--) {
-            int j = rnd.nextInt(i + 1);
-            int tmp = sbox[i];
+            final int j = rnd.nextInt(i + 1);
+            final int tmp = sbox[i];
             sbox[i] = sbox[j];
             sbox[j] = tmp;
         }
@@ -79,13 +79,13 @@ final class DiffusionUtils {
     }
 
     // Один шаг Рунге–Кутты 4-го порядка, состояние s обновляется на месте
-    static void rk4(double[] s, double dt, Deriv f) {
-        int n = s.length;
-        double[] k1 = new double[n];
-        double[] k2 = new double[n];
-        double[] k3 = new double[n];
-        double[] k4 = new double[n];
-        double[] tmp = new double[n];
+    static void rk4(final double[] s, final double dt, final Deriv f) {
+        final int n = s.length;
+        final double[] k1 = new double[n];
+        final double[] k2 = new double[n];
+        final double[] k3 = new double[n];
+        final double[] k4 = new double[n];
+        final double[] tmp = new double[n];
 
         f.apply(s, k1);
         for (int i = 0; i < n; i++) tmp[i] = s[i] + 0.5 * dt * k1[i];
