@@ -127,6 +127,33 @@ public class ImageMetrics {
         double n = (double) width * height;
         return 100.0 * (sumR + sumG + sumB) / (3.0 * n * 255.0);
     }
+    /**
+     * MSE (Mean Squared Error) — среднеквадратичная ошибка между оригиналом
+     * и изображением после расшифровки.
+     * Если MSE = 0, значит изображение восстановлено идеально (без потерь).
+     */
+    public static double mse(BufferedImage original, BufferedImage decrypted) {
+        int width = original.getWidth();
+        int height = original.getHeight();
+        double sum = 0;
+
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+                int p1 = original.getRGB(col, row);
+                int p2 = decrypted.getRGB(col, row);
+
+                int r1 = (p1 >> 16) & 0xFF, r2 = (p2 >> 16) & 0xFF;
+                int g1 = (p1 >> 8)  & 0xFF, g2 = (p2 >> 8)  & 0xFF;
+                int b1 =  p1        & 0xFF, b2 =  p2        & 0xFF;
+
+                // Суммируем квадраты разностей по трем каналам (R, G, B)
+                sum += Math.pow(r1 - r2, 2) + Math.pow(g1 - g2, 2) + Math.pow(b1 - b2, 2);
+            }
+        }
+
+        // Нормируем на общее количество пикселей и на 3 канала
+        return sum / (width * height * 3.0);
+    }
 
     // Вспомогательная функция: упрощённая яркость пикселя как среднее
     // R, G и B (без весов по восприятию глаза — для метрик сравнения

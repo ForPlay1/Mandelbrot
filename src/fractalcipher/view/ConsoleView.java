@@ -39,7 +39,7 @@ public class ConsoleView implements ImageView {
 
     @Override
     public String requestMode() {
-        System.out.print("Режим (encrypt / decrypt / benchmark / bencrypt): ");
+        System.out.print("Режим (encrypt / decrypt / benchmark / bencrypt / bendecrypt): ");
         return scanner.nextLine();
     }
 
