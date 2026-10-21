@@ -1,10 +1,8 @@
 package fractalcipher.model.permutation;
 
-import fractalcipher.model.Complex;
-
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 // Единственная НЕ-заглушка среди источников перестановки на момент
 // написания. Идея: каждому пикселю (row, col) ставим в соответствие
@@ -55,22 +53,29 @@ public class MandelbrotPermutation implements PermutationSource {
         // Массив "оценок" по одной на пиксель — сюда положим escape-time.
         double[] values = new double[length];
 
-        for (int i = 0; i < length; i++) {
+        // Лямбда требует effectively final переменные
+        final int fWidth = width;
+        final int fHeight = height;
+        final double fReMin = reMin, fReMax = reMax, fImMin = imMin, fImMax = imMax;
+        final int fMaxIter = maxIter;
+
+        IntStream.range(0,length).parallel().forEach(i -> {
             // Разворачиваем линейный индекс пикселя i (0..length-1)
             // обратно в двумерные координаты (row, col), как если бы
             // пиксели шли построчно слева направо, сверху вниз.
-            int row = i / width;
-            int col = i % width;
+            int row = i / fWidth;
+            int col = i % fWidth;
 
             // Линейная интерполяция: col пробегает 0..width-1, значит
             // col/width пробегает [0,1), и re линейно ложится в
             // [reMin, reMax). Аналогично для im по row/height.
-            double re = reMin + (reMax - reMin) * col / width;
-            double im = imMin + (imMax - imMin) * row / height;
+            // c — координата пикселя
+            double cRe = fReMin + (fReMax - fReMin) * col / fWidth;
+            double cIm = fImMin + (fImMax - fImMin) * row / fHeight;
 
             // === ИЗМЕНЕНИЕ 2: Smooth iteration count ===
-            values[i] = smoothEscapeTime(new Complex(re, im), maxIter);
-        }
+            values[i] = smoothEscapeTime(cRe, cIm, fMaxIter);
+        });
 
         // Превращаем массив оценок в перестановку индексов.
         return sortIndicesByValue(values);
@@ -79,30 +84,58 @@ public class MandelbrotPermutation implements PermutationSource {
     // === ИЗМЕНЕНИЕ 3: Smooth iteration count вместо целого ===
     // Возвращает дробное число итераций, что даёт непрерывное
     // значение и практически исключает повторения.
-    private double smoothEscapeTime(Complex c, int maxIter) {
-        Complex z = new Complex(0, 0);
+    private double smoothEscapeTime(double cRe, double cIm, int maxIter) {
+        // === МАТЕМАТИЧЕСКАЯ ОПТИМИЗАЦИЯ (Cardioid/Bulb check) ===
+        // Если точка внутри главной кардиоиды или луковицы — она точно в множестве.
+        // Мы не тратим время на цикл, а сразу возвращаем maxIter.
+
+        double xMinusQuarter = cRe - 0.25;
+        double ySquared = cIm * cIm;
+        double q = xMinusQuarter * xMinusQuarter + ySquared;
+
+        // Проверка главной кардиоиды
+        if (q * (q + xMinusQuarter) < 0.25 * ySquared) {
+            return maxIter;
+        }
+
+        // Проверка луковицы (period-2 bulb)
+        if ((cRe + 1.0) * (cRe + 1.0) + ySquared < 0.0625) {
+            return maxIter;
+        }
+        // ========================================================
+
+        double zRe = 0.0;
+        double zIm = 0.0;
         int iterations = 0;
         double radiusSquared = ESCAPE_RADIUS * ESCAPE_RADIUS;
 
-        while (iterations < maxIter && z.absSquared() <= radiusSquared) {
-            z = z.multiply(z).add(c);
+        while (iterations < maxIter) {
+            double zRe2 = zRe * zRe;
+            double zIm2 = zIm * zIm;
+
+            if (zRe2 + zIm2 > radiusSquared) {
+                break;
+            }
+
+            // z = z^2 + c
+            // (a+bi)^2 = (a^2 - b^2) + i(2ab)
+            double nextZRe = zRe2 - zIm2 + cRe;
+            double nextZIm = 2.0 * zRe * zIm + cIm;
+
+            zRe = nextZRe;
+            zIm = nextZIm;
             iterations++;
         }
 
-        // Если точка "улетела" — вычисляем smooth iteration count.
-        // Формула: nu = log(log(|z|) / log(2)) / log(2)
-        // smoothIter = iterations + 1 - nu
         if (iterations < maxIter) {
-            double absZ = Math.sqrt(z.absSquared());
-            // Защита от log(0) и отрицательных значений
+            double magSq = zRe * zRe + zIm * zIm;
+            double absZ = Math.sqrt(magSq);
             if (absZ > 1.0) {
                 double logZn = Math.log(absZ);
                 double nu = Math.log(logZn / Math.log(2.0)) / Math.log(2.0);
                 return iterations + 1.0 - nu;
             }
         }
-
-        // Точка внутри множества — возвращаем maxIter (или близкое значение)
         return iterations;
     }
 
@@ -128,7 +161,7 @@ public class MandelbrotPermutation implements PermutationSource {
             packed[i] = (bits & 0xFFFFFFFF00000000L) | (i & 0xFFFFFFFFL);
         }
 
-        java.util.Arrays.sort(packed); // сортировка примитивов — в разы быстрее
+        java.util.Arrays.parallelSort(packed); // сортировка примитивов — в разы быстрее
 
         int[] result = new int[n];
         for (int i = 0; i < n; i++) {

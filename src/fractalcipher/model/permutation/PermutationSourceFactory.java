@@ -22,8 +22,8 @@ public class PermutationSourceFactory {
         register(new JuliaPermutation());
         register(new CantorPermutation());
         register(new BurningShipPermutation());
-        // сюда добавляются остальные ~10-15 кандидатов по мере реализации
-        // (Hilbert Curve, Sierpinski, IFS и т.д.)
+        register(new SierpinskiPermutation()); // <-- НОВОЕ
+        register(new DragonPermutation());     // <-- НОВОЕ
         //класс отключающий перестановку
         register(new IdentityPermutation());
     }

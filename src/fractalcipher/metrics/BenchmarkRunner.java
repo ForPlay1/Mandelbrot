@@ -96,85 +96,85 @@ public class BenchmarkRunner {
                                              DiffusionSourceFactory diffusionFactory,
                                              Image originalImage,
                                              EncryptionMode mode) {
-        List<BenchmarkResult> results = new ArrayList<>();
         Image modifiedImage = withOnePixelFlipped(originalImage);
-
-        for (String permutationName : permutationNames) {
-            for (String diffusionName : diffusionNames) {
-                try {
-                    long permSeed = KeyDerivation.deriveLong(
-                            MASTER_SEED, "permutation:" + permutationName);
-                    double x0 = KeyDerivation.deriveDouble(
-                            MASTER_SEED, "diffusion:" + diffusionName + ":x0");
-                    long sboxSeed = KeyDerivation.deriveLong(
-                            MASTER_SEED, "diffusion:" + diffusionName + ":sbox");
-                    long sboxCbc1 = KeyDerivation.deriveLong(
-                            MASTER_SEED, "diffusion:" + diffusionName + ":cbc1");
-                    long sboxCbc2 = KeyDerivation.deriveLong(
-                            MASTER_SEED, "diffusion:" + diffusionName + ":cbc2");
-
-                    Map<String, Double> permParams = new HashMap<>();
-                    permParams.put("seed", (double) permSeed);
-
-                    Map<String, Double> diffParams = new HashMap<>();
-                    diffParams.put("x0", x0);
-                    diffParams.put("sboxSeed", (double) sboxSeed);
-                    diffParams.put("sboxCbc1", (double) sboxCbc1);
-                    diffParams.put("sboxCbc2", (double) sboxCbc2);
-
-                    long start = System.currentTimeMillis();
-
-                    FractalChaosCipher cipher = new FractalChaosCipher(
-                            "bench", permutationName + "+" + diffusionName,
-                            permutationFactory.get(permutationName),
-                            diffusionFactory.get(diffusionName),
-                            permParams, diffParams, mode);
-                    cipher.setImageInput(originalImage);
-                    cipher.encrypt();
-                    Image encrypted = cipher.getImageOutput();
-                    long elapsed = System.currentTimeMillis() - start;
-
-                    FractalChaosCipher cipherForModified = new FractalChaosCipher(
-                            "bench", permutationName + "+" + diffusionName,
-                            permutationFactory.get(permutationName),
-                            diffusionFactory.get(diffusionName),
-                            permParams, diffParams, mode);
-                    cipherForModified.setImageInput(modifiedImage);
-                    cipherForModified.encrypt();
-                    Image encryptedModified = cipherForModified.getImageOutput();
-
-                    // --- 3. РАСШИФРОВКА (для проверки MSE) ---
-                    // Используем тот же шифр, просто меняем вход на зашифрованное изображение
-                    cipher.setImageInput(encrypted);
-                    cipher.decrypt();
-                    Image decrypted = cipher.getImageOutput();
-
-                    // --- 4. СЧЕТ МЕТРИК ---
-                    double mseValue = ImageMetrics.mse(originalImage.getImage(), decrypted.getImage());
-
-                    results.add(new BenchmarkResult(
-                            originalImage.getName(), // <-- ДОБАВЛЕНО
-                            permutationName, diffusionName, elapsed,
-                            ImageMetrics.correlationCoefficient(encrypted.getImage()),
-                            ImageMetrics.entropy(encrypted.getImage()),
-                            ImageMetrics.npcr(encrypted.getImage(), encryptedModified.getImage()),
-                            ImageMetrics.uaci(encrypted.getImage(), encryptedModified.getImage()),
-                            mseValue // <-- ДОБАВЛЕНО
-                    ));
-                } catch (UnsupportedOperationException e) {
-                    // БЫЛО: только UnsupportedOperationException.
-                    // Неизвестный источник — пропускаем комбинацию.
-                    System.out.println("[Пропущено] " + permutationName + " + " + diffusionName
-                            + ": " + e.getMessage());
-                } catch (EncryptionFailedException e) {
-                    // НОВОЕ: ошибка шифрования (например, разошлась траектория).
-                    // Логируем через ErrorHandler и продолжаем бенчмарк.
-                    ErrorHandler.handle(e);
-                    System.out.println("[Пропущено] " + permutationName + " + " + diffusionName
-                            + ": " + e.getMessage());
-                }
+        List<String> permutations = new ArrayList<>(permutationFactory.availableNames());
+        List<String> diffusions = new ArrayList<>(diffusionFactory.availableNames());
+        //Делаем список всех пар
+        List<String[]> pairs = new ArrayList<>();
+        for(String p : permutations){
+            for(String d : diffusions) {
+                pairs.add(new String[]{p, d});
             }
         }
+        // Потокобезопасный список для сбора результатов
+        List<BenchmarkResult> results = java.util.Collections.synchronizedList(new ArrayList<>());
+        pairs.parallelStream().forEach(pair -> {
+            String permutationName = pair[0];
+            String diffusionName = pair[1];
+            try {
+                long permSeed = KeyDerivation.deriveLong(
+                        MASTER_SEED, "permutation:" + permutationName);
+                double x0 = KeyDerivation.deriveDouble(
+                        MASTER_SEED, "diffusion:" + diffusionName + ":x0");
+                long sboxSeed = KeyDerivation.deriveLong(
+                        MASTER_SEED, "diffusion:" + diffusionName + ":sbox");
+                long sboxCbc1 = KeyDerivation.deriveLong(
+                        MASTER_SEED, "diffusion:" + diffusionName + ":cbc1");
+                long sboxCbc2 = KeyDerivation.deriveLong(
+                        MASTER_SEED, "diffusion:" + diffusionName + ":cbc2");
+
+                Map<String, Double> permParams = new HashMap<>();
+                permParams.put("seed", (double) permSeed);
+
+                Map<String, Double> diffParams = new HashMap<>();
+                diffParams.put("x0", x0);
+                diffParams.put("sboxSeed", (double) sboxSeed);
+                diffParams.put("sboxCbc1", (double) sboxCbc1);
+                diffParams.put("sboxCbc2", (double) sboxCbc2);
+
+                long start = System.currentTimeMillis();
+
+                FractalChaosCipher cipher = new FractalChaosCipher(
+                        "bench", permutationName + "+" + diffusionName,
+                        permutationFactory.get(permutationName),
+                        diffusionFactory.get(diffusionName),
+                        permParams, diffParams, mode);
+                cipher.setImageInput(originalImage);
+                cipher.encrypt();
+                Image encrypted = cipher.getImageOutput();
+                long elapsed = System.currentTimeMillis() - start;
+
+                FractalChaosCipher cipherForModified = new FractalChaosCipher(
+                        "bench", permutationName + "+" + diffusionName,
+                        permutationFactory.get(permutationName),
+                        diffusionFactory.get(diffusionName),
+                        permParams, diffParams, mode);
+                cipherForModified.setImageInput(modifiedImage);
+                cipherForModified.encrypt();
+                Image encryptedModified = cipherForModified.getImageOutput();
+
+                // --- 3. РАСШИФРОВКА (для проверки MSE) ---
+                // Используем тот же шифр, просто меняем вход на зашифрованное изображение
+                cipher.setImageInput(encrypted);
+                cipher.decrypt();
+                Image decrypted = cipher.getImageOutput();
+
+                // --- 4. СЧЕТ МЕТРИК ---
+                double mseValue = ImageMetrics.mse(originalImage.getImage(), decrypted.getImage());
+
+                results.add(new BenchmarkResult(
+                        originalImage.getName(), // <-- ДОБАВЛЕНО
+                        permutationName, diffusionName, elapsed,
+                        ImageMetrics.correlationCoefficient(encrypted.getImage()),
+                        ImageMetrics.entropy(encrypted.getImage()),
+                        ImageMetrics.npcr(encrypted.getImage(), encryptedModified.getImage()),
+                        ImageMetrics.uaci(encrypted.getImage(), encryptedModified.getImage()),
+                        mseValue // <-- ДОБАВЛЕНО
+                ));
+            } catch (Exception e) {
+                System.out.println("[Пропущено] " + permutationName + " + " + diffusionName + ": " + e.getMessage());
+            }
+        });
         return results;
     }
 

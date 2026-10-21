@@ -1,9 +1,10 @@
 package fractalcipher.model.permutation;
 
-import fractalcipher.model.Complex;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 // Перестановка на основе фрактала Burning Ship.
 // Формула: z_{n+1} = (|Re(z_n)| + i·|Im(z_n)|)^2 + c
@@ -45,7 +46,6 @@ public class BurningShipPermutation implements PermutationSource {
         // каждая сессия давала уникальный фрактал.
         double cRe = params.getOrDefault("cRe", -1.8 + rnd.nextDouble() * 1.0);
         double cIm = params.getOrDefault("cIm", -0.1 + rnd.nextDouble() * 0.3);
-        Complex c = new Complex(cRe, cIm);
 
         // Хаотическое максимальное число итераций — как у Мандельброта.
         int maxIter = params.getOrDefault("maxIter",
@@ -54,17 +54,21 @@ public class BurningShipPermutation implements PermutationSource {
         // Массив "оценок" — по одной на пиксель.
         double[] values = new double[length];
 
-        for (int i = 0; i < length; i++) {
-            int row = i / width;
-            int col = i % width;
+        final int fWidth = width;
+        final int fHeight = height;
+        final double fReMin = reMin, fReMax = reMax, fImMin = imMin, fImMax = imMax;
+        final int fMaxIter = maxIter;
+        final double fCRe = cRe, fCIm = cIm;
 
-            // z_0 — координата пикселя (как у Жюлиа).
-            double re = reMin + (reMax - reMin) * col / width;
-            double im = imMin + (imMax - imMin) * row / height;
-            Complex z0 = new Complex(re, im);
+        IntStream.range(0,length).parallel().forEach(i-> {
+            int row = i / fWidth;
+            int col = i % fWidth;
 
-            values[i] = smoothEscapeTimeBurningShip(z0, c, maxIter);
-        }
+            double zRe0 = fReMin + (fReMax - fReMin) * col / fWidth;
+            double zIm0 = fImMin + (fImMax - fImMin) * row / fHeight;
+
+            values[i] = smoothEscapeTimeBurningShip(zRe0, zIm0, fCRe, fCIm, fMaxIter);
+        });
 
         return sortIndicesByValue(values);
     }
@@ -72,22 +76,37 @@ public class BurningShipPermutation implements PermutationSource {
     // === Smooth iteration count для Burning Ship ===
     // Отличие от Мандельброта и Жюлиа: перед возведением в квадрат
     // берётся модуль Re и Im.
-    private double smoothEscapeTimeBurningShip(Complex z0, Complex c, int maxIter) {
-        Complex z = z0; // стартуем с z_0 (как у Жюлиа)
+    private double smoothEscapeTimeBurningShip(double zRe, double zIm, double cRe, double cIm, int maxIter) {
         int iterations = 0;
         double radiusSquared = ESCAPE_RADIUS * ESCAPE_RADIUS;
 
-        while (iterations < maxIter && z.absSquared() <= radiusSquared) {
-            // === ГЛАВНОЕ ОТЛИЧИЕ: модули перед возведением в квадрат ===
+        while (iterations < maxIter) {
+            double zRe2 = zRe * zRe;
+            double zIm2 = zIm * zIm;
+
+            if (zRe2 + zIm2 > radiusSquared) {
+                break;
+            }
+
             // Формула: (|Re(z)| + i·|Im(z)|)^2 + c
-            Complex absZ = new Complex(Math.abs(z.re), Math.abs(z.im));
-            z = absZ.multiply(absZ).add(c);
+            double absZRe = Math.abs(zRe);
+            double absZIm = Math.abs(zIm);
+
+            // Возведение в квадрат модулей
+            double absZRe2 = absZRe * absZRe;
+            double absZIm2 = absZIm * absZIm;
+
+            double nextZRe = absZRe2 - absZIm2 + cRe;
+            double nextZIm = 2.0 * absZRe * absZIm + cIm;
+
+            zRe = nextZRe;
+            zIm = nextZIm;
             iterations++;
         }
 
-        // Smooth iteration count — та же формула, что у Мандельброта/Жюлиа.
         if (iterations < maxIter) {
-            double absZ = Math.sqrt(z.absSquared());
+            double magSq = zRe * zRe + zIm * zIm;
+            double absZ = Math.sqrt(magSq);
             if (absZ > 1.0) {
                 double logZn = Math.log(absZ);
                 double nu = Math.log(logZn / Math.log(2.0)) / Math.log(2.0);
@@ -113,7 +132,7 @@ public class BurningShipPermutation implements PermutationSource {
             packed[i] = (bits & 0xFFFFFFFF00000000L) | (i & 0xFFFFFFFFL);
         }
 
-        Arrays.sort(packed);
+        Arrays.parallelSort(packed);
 
         int[] result = new int[n];
         for (int i = 0; i < n; i++) {

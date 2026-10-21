@@ -147,7 +147,7 @@ public class ImageMetrics {
                 int b1 =  p1        & 0xFF, b2 =  p2        & 0xFF;
 
                 // Суммируем квадраты разностей по трем каналам (R, G, B)
-                sum += Math.pow(r1 - r2, 2) + Math.pow(g1 - g2, 2) + Math.pow(b1 - b2, 2);
+                sum += (r1 - r2) * (r1 - r2) + (g1 - g2) * (g1 - g2) + (b1 - b2) * (b1 - b2);
             }
         }
 

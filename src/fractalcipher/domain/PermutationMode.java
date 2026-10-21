@@ -4,7 +4,10 @@ public enum PermutationMode {
     MANDELBROT("Мандельброт"),
     JULIA("Жюлиа"),
     CANTOR("Кантор"),
-    BURNING_SHIP("Горящий корабль");
+    BURNING_SHIP("Горящий корабль"),
+    SIERPINSKI("Серпинский"), // <-- НОВОЕ
+    DRAGON("Дракон");         // <-- НОВОЕ
+
 
     private final String name;
 

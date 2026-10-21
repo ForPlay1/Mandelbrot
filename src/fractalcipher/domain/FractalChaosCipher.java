@@ -20,6 +20,11 @@ public class FractalChaosCipher extends Cipher {
     private int height;
     private int[] pixels;
     private int[] permutation;
+    // === НОВЫЕ ПОЛЯ ДЛЯ КЭШИРОВАНИЯ ===
+    private final int[] sbox1;
+    private final int[] sbox2;
+    private final int[] invSbox1;
+    private final int[] invSbox2;
 
     // Старый конструктор — по умолчанию FULL (для обратной совместимости)
     public FractalChaosCipher(String id, String name,
@@ -36,6 +41,7 @@ public class FractalChaosCipher extends Cipher {
                               Map<String, Double> diffusionParams) {
         this(id, name, permutationSource, diffusionSource,
                 permutationParams, diffusionParams, EncryptionMode.FULL);
+
     }
 
     // Новый конструктор с режимом
@@ -51,6 +57,22 @@ public class FractalChaosCipher extends Cipher {
         this.permutationParams = permutationParams;
         this.diffusionParams = diffusionParams;
         this.mode = mode;
+        // === ИНИЦИАЛИЗАЦИЯ S-БОКСОВ (ОДИН РАЗ) ===
+        if (mode == EncryptionMode.FULL) {
+            long sboxSeed1 = diffusionParams.getOrDefault("sboxCbc1", 111.0).longValue();
+            long sboxSeed2 = diffusionParams.getOrDefault("sboxCbc2", 222.0).longValue();
+
+            this.sbox1 = buildSBox(sboxSeed1);
+            this.sbox2 = buildSBox(sboxSeed2);
+
+            this.invSbox1 = buildInverseSBox(this.sbox1);
+            this.invSbox2 = buildInverseSBox(this.sbox2);
+        } else {
+            this.sbox1 = null;
+            this.sbox2 = null;
+            this.invSbox1 = null;
+            this.invSbox2 = null;
+        }
     }
 
     @Override
@@ -222,12 +244,6 @@ public class FractalChaosCipher extends Cipher {
 
         // === ВЫБОР РЕЖИМА ===
         if (mode == EncryptionMode.FULL) {
-            // Полная схема: CBC + S-боксы
-            long sboxSeed1 = diffusionParams.getOrDefault("sboxCbc1", 111.0).longValue();
-            long sboxSeed2 = diffusionParams.getOrDefault("sboxCbc2", 222.0).longValue();
-            int[] sbox1 = buildSBox(sboxSeed1);
-            int[] sbox2 = buildSBox(sboxSeed2);
-
             // ПРОХОД 1: вперёд
             int prev = 0;
             for (int i = 0; i < 4 * n; i++) {
@@ -278,12 +294,6 @@ public class FractalChaosCipher extends Cipher {
         }
 
         if (mode == EncryptionMode.FULL) {
-            // Обратный порядок: сначала снимаем проход 2, потом проход 1
-            long sboxSeed1 = diffusionParams.getOrDefault("sboxCbc1", 111.0).longValue();
-            long sboxSeed2 = diffusionParams.getOrDefault("sboxCbc2", 222.0).longValue();
-            int[] invSbox1 = buildInverseSBox(buildSBox(sboxSeed1));
-            int[] invSbox2 = buildInverseSBox(buildSBox(sboxSeed2));
-
             // СНИМАЕМ ПРОХОД 2
             int prev = 0;
             for (int i = 4 * n - 1; i >= 0; i--) {

@@ -108,6 +108,9 @@ public class MainView {
         handlers.put(PermutationMode.JULIA,        key -> System.out.println("Перестановка: Жюлиа"));
         handlers.put(PermutationMode.CANTOR,       key -> System.out.println("Перестановка: Кантор"));
         handlers.put(PermutationMode.BURNING_SHIP, key -> System.out.println("Перестановка: Горящий корабль"));
+        // НОВЫЕ ОБРАБОТЧИКИ:
+        handlers.put(PermutationMode.SIERPINSKI,   key -> System.out.println("Перестановка: Серпинский"));
+        handlers.put(PermutationMode.DRAGON,       key -> System.out.println("Перестановка: Дракон"));
 
         handlers.put(DiffusionMode.LOGISTIC, key -> System.out.println("Диффузия: Логистическая"));
         handlers.put(DiffusionMode.HENON,    key -> System.out.println("Диффузия: Хенон"));
@@ -374,6 +377,9 @@ public class MainView {
         addToggle(grid, "Жюлиа",           PermutationMode.JULIA,        permGroup, 1, 0);
         addToggle(grid, "Кантор",          PermutationMode.CANTOR,       permGroup, 0, 1);
         addToggle(grid, "Горящий корабль", PermutationMode.BURNING_SHIP, permGroup, 1, 1);
+        // НОВЫЕ КНОПКИ:
+        addToggle(grid, "Серпинский",      PermutationMode.SIERPINSKI,   permGroup, 0, 2);
+        addToggle(grid, "Дракон",          PermutationMode.DRAGON,       permGroup, 1, 2);
 
         permutationGrid = grid;
         return grid;

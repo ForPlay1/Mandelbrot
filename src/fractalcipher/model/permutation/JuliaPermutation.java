@@ -1,9 +1,8 @@
 package fractalcipher.model.permutation;
 
-import fractalcipher.model.Complex;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 // Множество Жюлиа считается той же формулой z = z^2+c,
 // что и Мандельброт, но с точностью до наоборот: c — фиксированный
@@ -39,41 +38,55 @@ public class JuliaPermutation implements PermutationSource {
         // Оно генерируется из seed и определяет "форму" фрактала.
         double cRe = params.getOrDefault("cRe", -0.8 + rnd.nextDouble() * 1.6);
         double cIm = params.getOrDefault("cIm", -0.8 + rnd.nextDouble() * 1.6);
-        Complex c = new Complex(cRe, cIm);
 
         int maxIter = params.getOrDefault("maxIter",(double) (DEFAULT_MAX_ITERATIONS + rnd.nextInt(700))).intValue();
         double[] values = new double[length];
 
-        for (int i = 0; i < length; i++) {
-            int row = i / width;
-            int col = i % width;
+        final int fWidth = width;
+        final int fHeight = height;
+        final double fReMin = reMin, fReMax = reMax, fImMin = imMin, fImMax = imMax;
+        final int fMaxIter = maxIter;
+        final double fCRe = cRe, fCIm = cIm;
 
-            // z_0 — координата точки (в отличие от Мандельброта, где z_0 = 0)
-            double re = reMin + (reMax - reMin) * col / width;
-            double im = imMin + (imMax - imMin) * row / height;
-            Complex z0 = new Complex(re, im);
+        IntStream.range(0,length).parallel().forEach(i -> {
+            int row = i / fWidth;
+            int col = i % fWidth;
 
-            // Считаем smooth escape-time для Жюлиа
-            values[i] = smoothEscapeTimeJulia(z0, c, maxIter);
-        }
+            // z0 — координата точки
+            double zRe0 = fReMin + (fReMax - fReMin) * col / fWidth;
+            double zIm0 = fImMin + (fImMax - fImMin) * row / fHeight;
+
+            values[i] = smoothEscapeTimeJulia(zRe0, zIm0, fCRe, fCIm, fMaxIter);
+        });
         return sortIndicesByValue(values);
     }
 
     // === Smooth iteration count для Жюлиа ===
     // Отличие от Мандельброта: z_0 — входная точка, c — фиксирован.
-    private double smoothEscapeTimeJulia(Complex z0, Complex c, int maxIter) {
-        Complex z = z0; // стартуем с z_0, а не с 0
+    private double smoothEscapeTimeJulia(double zRe, double zIm, double cRe, double cIm, int maxIter) {
         int iterations = 0;
         double radiusSquared = ESCAPE_RADIUS * ESCAPE_RADIUS;
 
-        while (iterations < maxIter && z.absSquared() <= radiusSquared) {
-            z = z.multiply(z).add(c); // z = z^2 + c
+        while (iterations < maxIter) {
+            double zRe2 = zRe * zRe;
+            double zIm2 = zIm * zIm;
+
+            if (zRe2 + zIm2 > radiusSquared) {
+                break;
+            }
+
+            // z = z^2 + c
+            double nextZRe = zRe2 - zIm2 + cRe;
+            double nextZIm = 2.0 * zRe * zIm + cIm;
+
+            zRe = nextZRe;
+            zIm = nextZIm;
             iterations++;
         }
 
-        // Smooth iteration count
         if (iterations < maxIter) {
-            double absZ = Math.sqrt(z.absSquared());
+            double magSq = zRe * zRe + zIm * zIm;
+            double absZ = Math.sqrt(magSq);
             if (absZ > 1.0) {
                 double logZn = Math.log(absZ);
                 double nu = Math.log(logZn / Math.log(2.0)) / Math.log(2.0);
@@ -82,6 +95,7 @@ public class JuliaPermutation implements PermutationSource {
         }
         return iterations;
     }
+
 
     private int[] sortIndicesByValue(double[] values) {
         int n = values.length;
@@ -99,7 +113,7 @@ public class JuliaPermutation implements PermutationSource {
             packed[i] = (bits & 0xFFFFFFFF00000000L) | (i & 0xFFFFFFFFL);
         }
 
-        java.util.Arrays.sort(packed); // сортировка примитивов — в разы быстрее
+        java.util.Arrays.parallelSort(packed); // сортировка примитивов — в разы быстрее
 
         int[] result = new int[n];
         for (int i = 0; i < n; i++) {

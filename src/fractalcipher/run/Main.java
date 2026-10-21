@@ -27,11 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class Main extends Application {
 
@@ -148,19 +144,26 @@ public class Main extends Application {
         }
 
         System.out.println("\n=== БЕНЧМАРК: Найдено изображений: " + imagesToProcess.size() + " ===");
-        List<BenchmarkResult> allResults = new java.util.ArrayList<>();
+        List<BenchmarkResult> allResults = Collections.synchronizedList(new java.util.ArrayList<>());
 
-        for (File file : imagesToProcess) {
-            System.out.println("\nАнализ изображения: " + file.getName());
-            try {
-                Image image = Image.loadFromFile(file.getName(), file.getName(), file);
-                allResults.addAll(controller.handleBenchmarkPermutationOnly(permutationFactory, image));
-                allResults.addAll(controller.handleBenchmarkDiffusionOnly(diffusionFactory, image));
-                allResults.addAll(controller.handleBenchmarkFull(permutationFactory, diffusionFactory, image));
-            } catch (Throwable t) {
-                view.showError("Ошибка при бенчмарке файла " + file.getName() + ": " + ErrorHandler.handle(t));
-            }
-        }
+        imagesToProcess.parallelStream().forEach(file -> {
+            System.out.println("Анализ изображения (в потоке): " + file.getName());
+           try{
+               Image image = Image.loadFromFile(file.getName(), file.getName(), file);
+               //Вычисляем  локальный список результатов для этой картинки
+               List<BenchmarkResult> localResults = new ArrayList<>();
+               localResults.addAll(controller.handleBenchmarkPermutationOnly(permutationFactory, image));
+               localResults.addAll(controller.handleBenchmarkDiffusionOnly(diffusionFactory, image));
+               localResults.addAll(controller.handleBenchmarkFull(permutationFactory, diffusionFactory, image));
+
+               // Безопасно добавляем в общий список
+               allResults.addAll(localResults);
+
+           } catch (Throwable t) {
+               // Ошибки выводим в консоль, чтобы они не прервали остальные потоки
+               System.err.println("Ошибка при бенчмарке файла " + file.getName() + ": " + t.getMessage());
+           }
+        });
         // Сохраняем данные в csv файл
         try {
             String csvBaseName = inputFile.isDirectory() ? inputFile.getName() : "single_image";
