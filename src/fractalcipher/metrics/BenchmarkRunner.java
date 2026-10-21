@@ -153,6 +153,7 @@ public class BenchmarkRunner {
                     double mseValue = ImageMetrics.mse(originalImage.getImage(), decrypted.getImage());
 
                     results.add(new BenchmarkResult(
+                            originalImage.getName(), // <-- ДОБАВЛЕНО
                             permutationName, diffusionName, elapsed,
                             ImageMetrics.correlationCoefficient(encrypted.getImage()),
                             ImageMetrics.entropy(encrypted.getImage()),

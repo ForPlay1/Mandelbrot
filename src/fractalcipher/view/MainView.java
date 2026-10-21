@@ -182,18 +182,16 @@ public class MainView {
         return null;
     }
 
-    private boolean isFolderMode() {
-        CipherMode m = selectedValue(CipherMode.class);
-        if (m != null) {
-            // Оба пакетных режима требуют выбора ПАПКИ, а не файла
-            return m == CipherMode.BENCRYPT || m == CipherMode.BENDECRYPT;
+    private CipherMode getSelectedMode() {
+        if (modeGroup.getSelectedToggle() instanceof ToggleButton btn) {
+            return (CipherMode) btn.getUserData();
         }
+        return null;
+    }
 
-        if (modeGroup.getSelectedToggle() instanceof ToggleButton btn
-                && btn.getUserData() instanceof CipherMode fromBtn) {
-            return fromBtn == CipherMode.BENCRYPT || fromBtn == CipherMode.BENDECRYPT;
-        }
-        return false;
+    private boolean isFolderMode() {
+        CipherMode m = getSelectedMode();
+        return m == CipherMode.BENCRYPT || m == CipherMode.BENDECRYPT;
     }
 
     // ==========================================================
@@ -270,9 +268,17 @@ public class MainView {
             Dragboard db = event.getDragboard();
             if (db.hasFiles()) {
                 File f = db.getFiles().get(0);
-                if (isFolderMode()) {
+                CipherMode mode = selectedValue(CipherMode.class);
+
+                // Если это БЕНЧМАРК — разрешаем кидать и папки, и файлы
+                if (mode == CipherMode.BENCHMARK) {
                     if (f.isDirectory()) onFolderSelected(f);
-                    else showAlert("В режиме «Бенчмарк+Шифр» нужно перетащить папку");
+                    else if (f.isFile()) onFileSelected(f);
+                }
+                // Для остальных режимов проверяем isFolderMode()
+                else if (isFolderMode()) {
+                    if (f.isDirectory()) onFolderSelected(f);
+                    else showAlert("В этом режиме нужно перетащить папку");
                 } else {
                     if (f.isFile()) onFileSelected(f);
                     else showAlert("Перетащите файл, а не папку");
@@ -441,8 +447,33 @@ public class MainView {
     // ==========================================================
 
     private void onChooseInput() {
-        if (isFolderMode()) onChooseFolder();
-        else                onChooseFile();
+        CipherMode mode = getSelectedMode();
+
+        // Если выбран Бенчмарк — спрашиваем, файл или папку хочет пользователь
+        if (mode == CipherMode.BENCHMARK) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Бенчмарк");
+            alert.setHeaderText("Что вы хотите протестировать?");
+            alert.setContentText("Выберите вариант:");
+
+            ButtonType btnFile = new ButtonType("Одно изображение");
+            ButtonType btnFolder = new ButtonType("Папка с изображениями");
+            ButtonType btnCancel = new ButtonType("Отмена", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+            alert.getButtonTypes().setAll(btnFile, btnFolder, btnCancel);
+
+            alert.showAndWait().ifPresent(type -> {
+                if (type == btnFile) {
+                    onChooseFile();
+                } else if (type == btnFolder) {
+                    onChooseFolder();
+                }
+            });
+        } else if (isFolderMode()) {
+            onChooseFolder();
+        } else {
+            onChooseFile();
+        }
     }
 
     private void onChooseFile() {
@@ -501,26 +532,23 @@ public class MainView {
     }
 
     private void onRun() {
-        // 1. Проверяем базовые требования (режим, вход, выход)
-        if (!modeChosen || !inputChosen || !outputChosen
-                || selectedFile == null || outputDir == null) {
-            showAlert("Выберите режим, входной файл/папку и папку результата");
-            return;
-        }
-
-        // === БЕРЕМ РЕЖИМ НАПРЯМУЮ ИЗ ВЫБРАННОЙ КНОПКИ ===
-        CipherMode mode = null;
-        if (modeGroup.getSelectedToggle() instanceof ToggleButton modeBtn) {
-            mode = (CipherMode) modeBtn.getUserData();
-        }
+        CipherMode mode = getSelectedMode();
         if (mode == null) {
             showAlert("Ошибка: режим не распознан.");
             return;
         }
 
-        // 2. Проверяем, нужны ли методы (только для шифрования и бенчмарка)
-        boolean needMethods = (mode == CipherMode.ENCRYPT || mode == CipherMode.BENCRYPT || mode == CipherMode.BENCHMARK);
+        // Для Бенчмарка НЕ ТРЕБУЕТСЯ папка результата
+        boolean needOutput = (mode != CipherMode.BENCHMARK);
 
+        // Проверяем базовые требования
+        if (!modeChosen || !inputChosen || selectedFile == null || (needOutput && (!outputChosen || outputDir == null))) {
+            showAlert("Выберите режим и входной файл/папку" + (needOutput ? " и папку результата" : ""));
+            return;
+        }
+
+        // Проверяем, нужны ли методы (для Бенчмарка не нужны, он сам перебирает все)
+        boolean needMethods = (mode == CipherMode.ENCRYPT || mode == CipherMode.BENCRYPT);
         if (needMethods) {
             if (permGroup.getSelectedToggle() == null || diffGroup.getSelectedToggle() == null) {
                 showAlert("Для шифрования необходимо выбрать методы перестановки и диффузии");
@@ -532,6 +560,7 @@ public class MainView {
         userParams = new HashMap<>();
         userParams.put(CipherMode.class, mode);
 
+        // Добавляем выбранные методы (если они есть)
         if (permGroup.getSelectedToggle() instanceof ToggleButton permBtn) {
             userParams.put(PermutationMode.class, permBtn.getUserData());
         }
@@ -540,17 +569,26 @@ public class MainView {
         }
 
         userParams.put(File.class, selectedFile);
-        userParams.put(Path.class, outputDir.toPath());
 
+        // Передаем папку результата только если она нужна
+        if (needOutput) {
+            userParams.put(Path.class, outputDir.toPath());
+        }
+
+        // Выводим информацию в консоль
         System.out.println("Запуск режима: " + mode);
         if (needMethods) {
             System.out.println("  перестановка = " + userParams.get(PermutationMode.class));
             System.out.println("  диффузия     = " + userParams.get(DiffusionMode.class));
+        } else if (mode == CipherMode.BENCHMARK) {
+            System.out.println("  методы будут перебраны автоматически");
         } else {
             System.out.println("  методы будут взяты из файлов ключей (.key)");
         }
         System.out.println("  вход         = " + selectedFile.getAbsolutePath());
-        System.out.println("  результат    = " + outputDir.getAbsolutePath());
+        if (needOutput) {
+            System.out.println("  результат    = " + outputDir.getAbsolutePath());
+        }
 
         showAlert("Запуск: " + mode + ". Проверьте консоль.");
     }
@@ -567,23 +605,39 @@ public class MainView {
     // ==========================================================
 
     private void updateEnabledState() {
-        // перестановка и диффузия — только после выбора режима
-        setGridDisabled(permutationGrid, !modeChosen);
-        setGridDisabled(diffusionGrid,   !modeChosen);
+        CipherMode mode = getSelectedMode();
+        boolean needOutput = (mode != CipherMode.BENCHMARK);
+        boolean needMethods = (mode == CipherMode.ENCRYPT || mode == CipherMode.BENCRYPT);
 
-        // зона входа — только после выбора режима
+        // Перестановка и диффузия — только после выбора режима (и если они вообще нужны)
+        setGridDisabled(permutationGrid, !modeChosen || !needMethods);
+        setGridDisabled(diffusionGrid,   !modeChosen || !needMethods);
+
+        // Зона входа — только после выбора режима
         if (dropZoneBox != null)  dropZoneBox.setDisable(!modeChosen);
         if (chooseButton != null) chooseButton.setDisable(!modeChosen);
 
-        // зона выхода — только после выбора режима И входного файла/папки
-        boolean outputEnabled = modeChosen && inputChosen;
-        if (outputZoneBox != null)       outputZoneBox.setDisable(!outputEnabled);
-        if (chooseOutputButton != null)  chooseOutputButton.setDisable(!outputEnabled);
+        // Зона выхода — скрываем, если это Бенчмарк
+        if (outputZoneBox != null) {
+            outputZoneBox.setVisible(needOutput);
+            outputZoneBox.setManaged(needOutput);
+            outputZoneBox.setDisable(!needOutput || !(modeChosen && inputChosen));
+        }
+        if (chooseOutputButton != null) {
+            chooseOutputButton.setDisable(!needOutput || !(modeChosen && inputChosen));
+        }
+        if (outputLabel != null) {
+            outputLabel.setVisible(needOutput);
+            outputLabel.setManaged(needOutput);
+        }
 
-        // подсказки
+        // Подсказки в зоне Drag & Drop
         if (dropHint != null) {
             if (!modeChosen) {
                 dropHint.setText("Сначала выберите режим");
+            } else if (mode == CipherMode.BENCHMARK) {
+                dropHint.setText("Перетащите файл ИЛИ папку сюда\nПоддерживаемые форматы: "
+                        + String.join(", ", image_extensions));
             } else if (isFolderMode()) {
                 dropHint.setText("Перетащите папку с изображениями сюда\nПоддерживаемые форматы: "
                         + String.join(", ", image_extensions));
@@ -593,23 +647,24 @@ public class MainView {
             }
         }
 
-        if (outputHint != null) {
+        // Подсказки в зоне выхода (если она видима)
+        if (outputHint != null && needOutput) {
             if (!modeChosen)          outputHint.setText("Сначала выберите режим");
             else if (!inputChosen)    outputHint.setText("Сначала выберите входной файл/папку");
             else                      outputHint.setText("Перетащите папку для результата сюда");
         }
 
-        // «Запустить» — проверяем, что выбрано.
+        // «Запустить» — проверяем, что выбрано всё необходимое
         if (runButton != null) {
-            CipherMode m = selectedValue(CipherMode.class);
-            boolean needMethods = (m == CipherMode.ENCRYPT || m == CipherMode.BENCRYPT || m == CipherMode.BENCHMARK);
-
             boolean methodsChosen = true;
             if (needMethods) {
                 methodsChosen = (permGroup.getSelectedToggle() != null) && (diffGroup.getSelectedToggle() != null);
             }
 
-            runButton.setDisable(!(modeChosen && inputChosen && outputChosen && methodsChosen));
+            boolean outputIsReady = needOutput ? outputChosen : true;
+
+            // Кнопка активна, если выбран режим, вход, (выход, если нужен) и (методы, если нужны)
+            runButton.setDisable(!(modeChosen && inputChosen && outputIsReady && methodsChosen));
         }
     }
 

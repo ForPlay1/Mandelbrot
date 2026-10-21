@@ -4,6 +4,7 @@ package fractalcipher.metrics;
 // одного cipherName — потому что больше нет отдельного класса на
 // каждую комбинацию, сравниваем именно ПАРЫ стратегий.
 public class BenchmarkResult {
+    public final String imageName;
     public final String permutationName;
     public final String diffusionName;
     public final long encryptionTimeMs;
@@ -13,8 +14,9 @@ public class BenchmarkResult {
     public final double uaci;
     public final double mse;
 
-    public BenchmarkResult(String permutationName, String diffusionName, long encryptionTimeMs,
+    public BenchmarkResult(String imageName,String permutationName, String diffusionName, long encryptionTimeMs,
                            double correlation, double entropy, double npcr, double uaci, double mse) {
+        this.imageName = imageName;
         this.permutationName = permutationName;
         this.diffusionName = diffusionName;
         this.encryptionTimeMs = encryptionTimeMs;
@@ -24,6 +26,14 @@ public class BenchmarkResult {
         this.uaci = uaci;
         this.mse = mse;
     }
+
+    // Метод для создания строки CSV
+    public String toCsvRow() {
+        return String.format("%s,%s,%s,%d,%.4f,%.4f,%.2f,%.2f,%.4f",
+                imageName, permutationName, diffusionName,
+                encryptionTimeMs, correlation, entropy, npcr, uaci, mse);
+    }
+
 
     @Override
     public String toString() {

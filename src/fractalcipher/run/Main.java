@@ -9,6 +9,7 @@ import fractalcipher.domain.PermutationMode;
 import fractalcipher.exception.ErrorHandler;
 import fractalcipher.exception.InvalidInputException;
 import fractalcipher.metrics.BenchmarkResult;
+import fractalcipher.metrics.CsvExporter;
 import fractalcipher.model.EncryptionKey;
 import fractalcipher.model.KeyDerivation;
 import fractalcipher.model.KeyManager;
@@ -87,7 +88,7 @@ public class Main extends Application {
         }
 
         // Методы (перестановка и диффузия) обязательны ТОЛЬКО для шифрования
-        boolean needMethods = (mode == CipherMode.ENCRYPT || mode == CipherMode.BENCRYPT || mode == CipherMode.BENCHMARK);
+        boolean needMethods = (mode == CipherMode.ENCRYPT || mode == CipherMode.BENCRYPT);
         if (needMethods && (perm == null || diff == null)) {
             System.out.println("Для шифрования необходимо выбрать методы — выходим.");
             return;
@@ -108,8 +109,7 @@ public class Main extends Application {
             }
             case BENCHMARK -> {
                 try {
-                    Image image = Image.loadFromFile(input.getName(), input.getName(), input);
-                    runBenchmark(image, controller, permutationFactory, diffusionFactory, view);
+                    runBenchmark(input, controller, permutationFactory, diffusionFactory, view);
                 } catch (Throwable t) {
                     view.showError(ErrorHandler.handle(t));
                 }
@@ -127,18 +127,49 @@ public class Main extends Application {
     }
 
     // === БЕНЧМАРК ===
-    private static void runBenchmark(Image image, CipherController controller,
+    private static void runBenchmark(File inputFile, CipherController controller,
                                      PermutationSourceFactory permutationFactory,
                                      DiffusionSourceFactory diffusionFactory,
                                      ImageView view) {
-        System.out.println("\n=== СЕРИЯ 1: ТОЛЬКО ПЕРЕСТАНОВКА ===");
-        view.showBenchmarkResults(controller.handleBenchmarkPermutationOnly(permutationFactory, image));
+        List<File> imagesToProcess = new java.util.ArrayList<>();
 
-        System.out.println("\n=== СЕРИЯ 2: ТОЛЬКО ДИФФУЗИЯ ===");
-        view.showBenchmarkResults(controller.handleBenchmarkDiffusionOnly(diffusionFactory, image));
+        if (inputFile.isDirectory()) {
+            File[] files = inputFile.listFiles(f -> f.isFile() && isImageToEncrypt(f.getName()));
+            if (files != null) {
+                imagesToProcess.addAll(Arrays.asList(files));
+            }
+        } else if (inputFile.isFile()) {
+            imagesToProcess.add(inputFile);
+        }
 
-        System.out.println("\n=== СЕРИЯ 3: ПОЛНАЯ СХЕМА ===");
-        view.showBenchmarkResults(controller.handleBenchmarkFull(permutationFactory, diffusionFactory, image));
+        if (imagesToProcess.isEmpty()) {
+            view.showError("Не найдено изображений для бенчмарка.");
+            return;
+        }
+
+        System.out.println("\n=== БЕНЧМАРК: Найдено изображений: " + imagesToProcess.size() + " ===");
+        List<BenchmarkResult> allResults = new java.util.ArrayList<>();
+
+        for (File file : imagesToProcess) {
+            System.out.println("\nАнализ изображения: " + file.getName());
+            try {
+                Image image = Image.loadFromFile(file.getName(), file.getName(), file);
+                allResults.addAll(controller.handleBenchmarkPermutationOnly(permutationFactory, image));
+                allResults.addAll(controller.handleBenchmarkDiffusionOnly(diffusionFactory, image));
+                allResults.addAll(controller.handleBenchmarkFull(permutationFactory, diffusionFactory, image));
+            } catch (Throwable t) {
+                view.showError("Ошибка при бенчмарке файла " + file.getName() + ": " + ErrorHandler.handle(t));
+            }
+        }
+        // Сохраняем данные в csv файл
+        try {
+            String csvBaseName = inputFile.isDirectory() ? inputFile.getName() : "single_image";
+            CsvExporter.export(allResults, "benchmark_" + csvBaseName); // <-- Без папки
+        } catch (IOException e) {
+            view.showError("Не удалось сохранить CSV: " + e.getMessage());
+        }
+
+        view.showBenchmarkResults(allResults);
     }
 
     // === ОДИНОЧНОЕ ШИФРОВАНИЕ / РАСШИФРОВКА ===
