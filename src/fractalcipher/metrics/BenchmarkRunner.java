@@ -143,12 +143,22 @@ public class BenchmarkRunner {
                     cipherForModified.encrypt();
                     Image encryptedModified = cipherForModified.getImageOutput();
 
+                    // --- 3. РАСШИФРОВКА (для проверки MSE) ---
+                    // Используем тот же шифр, просто меняем вход на зашифрованное изображение
+                    cipher.setImageInput(encrypted);
+                    cipher.decrypt();
+                    Image decrypted = cipher.getImageOutput();
+
+                    // --- 4. СЧЕТ МЕТРИК ---
+                    double mseValue = ImageMetrics.mse(originalImage.getImage(), decrypted.getImage());
+
                     results.add(new BenchmarkResult(
                             permutationName, diffusionName, elapsed,
                             ImageMetrics.correlationCoefficient(encrypted.getImage()),
                             ImageMetrics.entropy(encrypted.getImage()),
                             ImageMetrics.npcr(encrypted.getImage(), encryptedModified.getImage()),
-                            ImageMetrics.uaci(encrypted.getImage(), encryptedModified.getImage())
+                            ImageMetrics.uaci(encrypted.getImage(), encryptedModified.getImage()),
+                            mseValue // <-- ДОБАВЛЕНО
                     ));
                 } catch (UnsupportedOperationException e) {
                     // БЫЛО: только UnsupportedOperationException.

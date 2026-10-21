@@ -21,63 +21,45 @@ public class HenonMapDiffusion implements DiffusionSource {
     private static final int BURN_IN = 1000;
 
     @Override
-    public byte[] generateStream(int length, Map<String, Double> params) {
-        long seed = params.getOrDefault("seed",0.0).longValue();
-        Random rnd = new Random(seed);
-        double a = params.getOrDefault("a", (1.0+2.3)*DiffusionUtils.randomCord(rnd)-2.3);
-        double b = params.getOrDefault("b", (1.5+0.5)*DiffusionUtils.randomCord(rnd)-1.5);
+    public byte[] generateStream(final int length, final Map<String, Double> params) {
+        final long seed = params.getOrDefault("seed", 0.0).longValue();
+        final Random rnd = new Random(seed);
+        final double a = params.getOrDefault("a", (1.0 + 2.3) * DiffusionUtils.randomCord(rnd) - 2.3);
+        final double b = params.getOrDefault("b", (1.5 + 0.5) * DiffusionUtils.randomCord(rnd) - 1.5);
 
         // x0, y0 — часть ключа. Если не переданы — случайные
         // (в реальном шифровании они ВСЕГДА должны приходить из ключа).
         // Диапазон (-0.5; 0.5) лежит внутри области притяжения аттрактора
         // при классических a=1.4, b=0.3.
-        double x0 = params.getOrDefault("x0",DiffusionUtils.randomCord(rnd)-0.5);
-        double y0 = params.getOrDefault("y0",DiffusionUtils.randomCord(rnd)-0.5);
+        final double x0 = params.getOrDefault("x0", DiffusionUtils.randomCord(rnd) - 0.5);
+        final double y0 = params.getOrDefault("y0", DiffusionUtils.randomCord(rnd) - 0.5);
 
-        long sboxSeed = params.getOrDefault("sboxSeed", 0.0).longValue();
+        final long sboxSeed = params.getOrDefault("sboxSeed", 0.0).longValue();
 
-        double[] state = {x0, y0};
+        final double[] state = {x0, y0};
 
         // Прогрев
         for (int i = 0; i < BURN_IN; i++) {
             step(state, a, b);
         }
 
-        byte[] stream = new byte[length];
-
-        // === ПРОХОД 1: вперёд со сцеплением ===
-        byte prev = 0;
-        for (int i = 0; i < length; i++) {
+        // Два прохода со сцеплением (вперёд и назад)
+        final byte[] stream = DiffusionUtils.chainTwoPass(length, () -> {
             step(state, a, b);
-            stream[i] = (byte) (nextByte(state) ^ prev);
-            prev = stream[i];
-        }
+            return DiffusionUtils.fracByte(state[0]) ^ DiffusionUtils.fracByte(state[1]);
+        });
 
-        // === ПРОХОД 2: назад со сцеплением ===
-        prev = 0;
-        for (int i = length - 1; i >= 0; i--) {
-            step(state, a, b);
-            stream[i] = (byte) (stream[i] ^ nextByte(state) ^ prev);
-            prev = stream[i];
-        }
-
-        // === S-бокс (опционально) ===
-        if (sboxSeed != 0L) {
-            int[] sbox = buildSBox(sboxSeed);
-            for (int i = 0; i < length; i++) {
-                stream[i] = (byte) sbox[stream[i] & 0xFF];
-            }
-        }
-
+        // S-бокс (опционально)
+        DiffusionUtils.applySBox(stream, sboxSeed);
         return stream;
     }
 
     // Один шаг карты Хенона (state[0] = x, state[1] = y)
-    private static void step(double[] state, double a, double b) {
-        double x = state[0];
-        double y = state[1];
-        double nx = 1.0 - a * x * x + y;
-        double ny = b * x;
+    private static void step(final double[] state, final double a, final double b) {
+        final double x = state[0];
+        final double y = state[1];
+        final double nx = 1.0 - a * x * x + y;
+        final double ny = b * x;
 
         if (Double.isNaN(nx) || Double.isInfinite(nx) || Math.abs(nx) > 1e6) {
             throw new EncryptionFailedException(
@@ -86,30 +68,6 @@ public class HenonMapDiffusion implements DiffusionSource {
 
         state[0] = nx;
         state[1] = ny;
-    }
-
-    // Один байт из пары (x, y): XOR байтов, взятых из x и из y
-    private static byte nextByte(double[] state) {
-        return (byte) (fracByte(state[0]) ^ fracByte(state[1]));
-    }
-
-    private static int fracByte(double v) {
-        double scaled = Math.abs(v) * 1e6;
-        double frac = scaled - Math.floor(scaled);
-        return ((int) (frac * 256)) & 0xFF;
-    }
-
-    private static int[] buildSBox(long seed) {
-        int[] sbox = new int[256];
-        for (int i = 0; i < 256; i++) sbox[i] = i;
-        Random rnd = new Random(seed);
-        for (int i = 255; i > 0; i--) {
-            int j = rnd.nextInt(i + 1);
-            int tmp = sbox[i];
-            sbox[i] = sbox[j];
-            sbox[j] = tmp;
-        }
-        return sbox;
     }
 
     @Override

@@ -6,8 +6,13 @@ import fractalcipher.domain.Image;
 import fractalcipher.domain.CipherMode;
 import fractalcipher.domain.DiffusionMode;
 import fractalcipher.domain.PermutationMode;
+import fractalcipher.exception.EncryptionFailedException;
 import fractalcipher.exception.ErrorHandler;
+import fractalcipher.exception.InvalidInputException;
 import fractalcipher.metrics.BenchmarkResult;
+import fractalcipher.model.EncryptionKey;
+import fractalcipher.model.KeyDerivation;
+import fractalcipher.model.KeyManager;
 import fractalcipher.model.diffusion.DiffusionSourceFactory;
 import fractalcipher.model.permutation.PermutationSourceFactory;
 import fractalcipher.view.ConsoleView;
@@ -21,16 +26,17 @@ import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Scanner;
 
 public class Main extends Application
 {
 
-    // Суффикс для зашифрованных файлов; по нему же при повторном запуске
-    // пропускаем уже обработанные картинки
     private static final String ENCRYPTED_SUFFIX = "_encrypted";
     private static final List<String> IMAGE_EXTENSIONS = Image.getImageExtensions();
 
@@ -246,8 +252,9 @@ public class Main extends Application
             view.showError(ErrorHandler.handle(e));
             return;
         }
+        Arrays.sort(files);
 
-        System.out.println("Найдено файлов: " + files.length);
+        System.out.println("Найдено файлов для расшифровки: " + files.length);
         int ok = 0;
         int failed = 0;
 
@@ -255,18 +262,38 @@ public class Main extends Application
             File file = files[i];
             String prefix = "[" + (i + 1) + "/" + files.length + "] " + file.getName() + ": ";
             try {
-                long start = System.currentTimeMillis();
+                // 1. Ищем и загружаем ключ
+                File keyFile = KeyManager.getKeyFile(file);
+                if (!keyFile.exists()) {
+                    throw new InvalidInputException("Ключ не найден: " + keyFile.getName());
+                }
+                EncryptionKey key = KeyManager.loadKey(keyFile);
 
+                // 2. Восстанавливаем параметры
+                Map<String, Double> permParams = buildPermParams(key.masterSeed, key.permutationSourceName);
+                Map<String, Double> diffParams = buildDiffParams(key.masterSeed, key.diffusionSourceName);
+
+                FractalChaosCipher cipher = new FractalChaosCipher(
+                        "batch", key.permutationSourceName + "+" + key.diffusionSourceName,
+                        permutationFactory.get(key.permutationSourceName),
+                        diffusionFactory.get(key.diffusionSourceName),
+                        permParams, diffParams
+                );
+
+                // 3. Расшифровываем
                 Image input = Image.loadFromFile(file.getName(), file.getName(), file);
-                Image result = controller.handleEncrypt(cipher, input);
+                Image result = controller.handleDecrypt(cipher, input);
 
                 File target = new File(outputDir, baseName(file.getName()) + ENCRYPTED_SUFFIX + ".png");
                 if (!ImageIO.write(result.getImage(), "png", target)) {
+                // 4. Сохраняем (убираем _encrypted и добавляем _decrypted)
+                String decName = baseName(file.getName()).replace(ENCRYPTED_SUFFIX, "") + "_decrypted.png";
+                File targetImage = new File(dir, decName);
+                if (!ImageIO.write(result.getImage(), "png", targetImage)) {
                     throw new IOException("не удалось записать PNG");
                 }
 
-                System.out.println(prefix + "OK -> " + target.getName()
-                        + " (" + (System.currentTimeMillis() - start) + " мс)");
+                System.out.println(prefix + "OK -> " + targetImage.getName());
                 ok++;
             } catch (Throwable t) {
                 // Локальная обработка: одна битая картинка не должна

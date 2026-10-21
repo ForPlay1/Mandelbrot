@@ -28,12 +28,12 @@ public class DiffusionSourceFactory {
         sources.clear();
     }
 
-    public void register(DiffusionSource source) {
+    public void register(final DiffusionSource source) {
         sources.put(source.getName(), source);
     }
 
-    public DiffusionSource get(String name) {
-        DiffusionSource source = sources.get(name);
+    public DiffusionSource get(final String name) {
+        final DiffusionSource source = sources.get(name);
         if (source == null) {
             throw new UnsupportedSourceException("Неизвестный источник диффузии: " + name);
         }
