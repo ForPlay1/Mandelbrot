@@ -4,7 +4,8 @@ public enum CipherMode {
     ENCRYPT("Шифрование"),
     DECRYPT("Дешифровка"),
     BENCHMARK("Бенчмарк"),
-    BENCRYPT("Шифрование папки");
+    BENCRYPT("Шифрование папки"),
+    BENDECRYPT("Расшифровка папки"); // <-- ДОБАВЛЕНО
 
     private final String name;
 
