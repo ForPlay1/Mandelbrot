@@ -65,12 +65,13 @@ package "fractalcipher.domain" {
     DECRYPT
     BENCHMARK
     BENCRYPT
+    BENDECRYPT
   }
   note right of CipherMode
     Режим работы приложения — выбирается
     в MainView. Значения соответствуют
     кнопкам UI: Шифрование / Расшифровка /
-    Бенчмарк / Бенчмарк+Шифр.
+    Бенчмарк / Шифр. папки / Расшиф. папки.
   end note
 
   enum PermutationMode {
@@ -78,6 +79,8 @@ package "fractalcipher.domain" {
     JULIA
     CANTOR
     BURNING_SHIP
+    SIERPINSKI
+    DRAGON
   }
   note right of PermutationMode
     Выбор источника перестановки из UI.
@@ -110,6 +113,10 @@ package "fractalcipher.domain" {
     - height: int
     - pixels: int[]
     - permutation: int[]
+    - sbox1: int[]
+    - sbox2: int[]
+    - invSbox1: int[]
+    - invSbox2: int[]
     + FractalChaosCipher(id, name, permSrc, diffSrc)
     + FractalChaosCipher(id, name, permSrc, diffSrc, permParams, diffParams)
     + FractalChaosCipher(id, name, permSrc, diffSrc, permParams, diffParams, mode)
@@ -135,20 +142,11 @@ package "fractalcipher.domain" {
     от источника диффузии запрашивается 8 × пикселей байт
     (4 канала × 2 прохода).
 
-    Обработка ошибок: ошибки перестановки и диффузии
-    оборачиваются в EncryptionFailedException.
+    S-боксы кэшируются в конструкторе для ускорения.
   end note
 }
 
 package "fractalcipher.model" {
-
-  class Complex {
-    + re: double
-    + im: double
-    + add(other): Complex
-    + multiply(other): Complex
-    + absSquared(): double
-  }
 
   class KeyDerivation <<utility>> {
     + {static} deriveLong(masterSeed, domain): long
@@ -168,6 +166,8 @@ package "fractalcipher.model.permutation" {
   class JuliaPermutation
   class BurningShipPermutation
   class CantorPermutation
+  class SierpinskiPermutation
+  class DragonPermutation
   class IdentityPermutation <<выключает перестановку>>
 
   class PermutationSourceFactory {
@@ -271,9 +271,11 @@ package "fractalcipher.metrics" {
     + {static} entropy(image): double
     + {static} npcr(image1, image2): double
     + {static} uaci(image1, image2): double
+    + {static} mse(original, decrypted): double
   }
 
   class BenchmarkResult {
+    + imageName: String
     + permutationName: String
     + diffusionName: String
     + encryptionTimeMs: long
@@ -281,7 +283,17 @@ package "fractalcipher.metrics" {
     + entropy: double
     + npcr: double
     + uaci: double
+    + mse: double
+    + toCsvRow(): String
   }
+
+  class CsvExporter <<utility>> {
+    + {static} export(results, baseFileName): void
+  }
+  note right of CsvExporter
+    Сохраняет результаты бенчмарка в папку "benchmarks"
+    в формате CSV (с точкой в качестве десятичного разделителя).
+  end note
 
   class BenchmarkRunner <<utility>> {
     - {static} MASTER_SEED: long
@@ -292,9 +304,8 @@ package "fractalcipher.metrics" {
     - {static} withOnePixelFlipped(image): Image
   }
   note right of BenchmarkRunner
-    run ловит EncryptionFailedException
-    и пропускает сбойную комбинацию,
-    логируя её через ErrorHandler.
+    run использует parallelStream для перебора пар.
+    Ловит EncryptionFailedException и пропускает сбойные комбинации.
   end note
 }
 
@@ -357,26 +368,26 @@ package "fractalcipher.view" {
     - buildDiffusionButtons(): Node
     - buildRunButton(): Node
     - buildPreviewArea(): Node
-    - buildSelectionMap(): Map<ToggleButton, Enum<?>>
     - onOptionSelected(btn): void
+    - onChooseInput(): void
     - onRun(): void
     - updateEnabledState(): void
+    - getSelectedMode(): CipherMode
+    - isFolderMode(): boolean
     - showAlert(msg): void
   }
   note right of MainView
     JavaFX-интерфейс приложения:
     • левая панель — выбор режима, перестановки,
-      диффузии, drag&drop входного файла/папки
-      и папки результата;
+      диффузии, drag&drop;
     • правая область — предпросмотр изображения;
     • при «Запустить» формируется userParams
-      (Map<Class<?>, Object>) и публикуется статически;
-    • Main (в worker-потоке) читает userParams
-      и запускает бизнес-логику.
+      и публикуется статически;
+    • Main (в worker-потоке) читает userParams.
 
-    handlers: Map<Enum<?>, Consumer<Enum<?>>> —
-    единый словарь для логирования выбора
-    (можно расширять, не меняя onOptionSelected).
+    Для режима Бенчмарк зона выбора выходной папки скрыта.
+    Для режимов пакетной обработки (BENCRYPT, BENDECRYPT)
+    перетаскивание и выбор работают только с папками.
   end note
 }
 
@@ -388,24 +399,21 @@ package "fractalcipher.run" {
     + main(args): void
     + start(stage): void
     - {static} run(selection): void
-    - {static} runBenchmark(image, controller, pf, df, view): void
-    - {static} runSingle(mode, permName, diffName, image, controller, pf, df, view): void
+    - {static} runBenchmark(inputFile, controller, pf, df, view): void
+    - {static} runSingle(mode, permName, diffName, inputFile, image, controller, pf, df, view): void
     - {static} runBatchEncrypt(permName, diffName, inputDir, outputDir, controller, pf, df, view): void
+    - {static} runBatchDecrypt(inputDir, outputDir, controller, pf, df, view): void
+    - {static} buildPermParams(masterSeed, permName): Map<String, Double>
+    - {static} buildDiffParams(masterSeed, diffName): Map<String, Double>
     - {static} isImageToEncrypt(fileName): boolean
     - {static} baseName(fileName): String
   }
   note right of Main
     Наследник javafx.application.Application.
-
-    main — единственная точка глобального try-catch:
-    • запускает JavaFX через launch(args);
-    • параллельно поднимает worker-поток, который
-      в цикле ждёт MainView.getUserParams(),
-      а после получения — вызывает run(selection).
-
-    Обработка ошибок: все непойманные исключения
-    идут в ErrorHandler.handle, логируются,
-    и приложение завершается через System.exit(1).
+    main — единственная точка глобального try-catch.
+    run() разветвляется на обработку одиночных файлов,
+    папок (шифрование/расшифровка) и бенчмарка.
+    Бенчмарк поддерживает как файлы, так и папки.
   end note
 }
 
@@ -431,6 +439,8 @@ PermutationSource <|.. MandelbrotPermutation
 PermutationSource <|.. JuliaPermutation
 PermutationSource <|.. BurningShipPermutation
 PermutationSource <|.. CantorPermutation
+PermutationSource <|.. SierpinskiPermutation
+PermutationSource <|.. DragonPermutation
 PermutationSource <|.. IdentityPermutation
 
 DiffusionSource <|.. LogisticMapDiffusion
@@ -460,10 +470,6 @@ DiffusionSourceFactory ..> DiffusionSource : создаёт и хранит
 
 PermutationSourceFactory ..> UnsupportedSourceException : бросает
 DiffusionSourceFactory ..> UnsupportedSourceException : бросает
-
-MandelbrotPermutation ..> Complex
-JuliaPermutation ..> Complex
-BurningShipPermutation ..> Complex
 
 ArnoldMapDiffusion ..> DiffusionUtils
 LorenzDiffusion ..> DiffusionUtils
@@ -516,6 +522,10 @@ Main ..> CipherMode : разбирает выбор\nиз UI
 Main ..> PermutationMode : разбирает выбор\nиз UI
 Main ..> DiffusionMode : разбирает выбор\nиз UI
 Main ..> Image : loadFromFile
+Main ..> CsvExporter : сохраняет\nрезультаты бенчмарка
+Main ..> KeyDerivation : строит параметры
+Main ..> KeyManager : сохраняет/читает\nключи
+Main ..> EncryptionKey : использует для\nсериализации
 
 MainView ..> CipherMode : кнопки режима
 MainView ..> PermutationMode : кнопки перестановки
@@ -526,12 +536,12 @@ MainView ..> FileChooser : выбор файла
 MainView ..> DirectoryChooser : выбор папки
 MainView ..> Dragboard : drag&drop
 
+CsvExporter ..> BenchmarkResult : читает данные
 ErrorHandler ..> FractalCipherException : классифицирует
 ErrorHandler --> ErrorCategory : использует
 
 ' ============================================================
 ' Связь MainView ↔ Main через userParams
-' (статический Map<Class<?>, Object>)
 ' ============================================================
 MainView -[hidden]-> Main
 
