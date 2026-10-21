@@ -29,7 +29,8 @@ public class BenchmarkResult {
 
     // Метод для создания строки CSV
     public String toCsvRow() {
-        return String.format("%s,%s,%s,%d,%.4f,%.4f,%.2f,%.2f,%.4f",
+        // ВАЖНО: Locale.US гарантирует, что дробные числа будут с точкой, а не с запятой
+        return String.format(java.util.Locale.US, "%s,%s,%s,%d,%.4f,%.4f,%.2f,%.2f,%.4f",
                 imageName, permutationName, diffusionName,
                 encryptionTimeMs, correlation, entropy, npcr, uaci, mse);
     }
