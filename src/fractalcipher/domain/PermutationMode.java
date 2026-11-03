@@ -1,12 +1,12 @@
 package fractalcipher.domain;
 
 public enum PermutationMode {
-    MANDELBROT("Мандельброт"),
-    JULIA("Жюлиа"),
-    CANTOR("Кантор"),
-    BURNING_SHIP("Горящий корабль"),
-    SIERPINSKI("Серпинский"), // <-- НОВОЕ
-    DRAGON("Дракон");         // <-- НОВОЕ
+    MANDELBROT("mandelbrot"),
+    JULIA("julia"),
+    CANTOR("cantor"),
+    BURNING_SHIP("burning ship"),
+    SIERPINSKI("sierphinski"), // <-- НОВОЕ
+    DRAGON("dragon");         // <-- НОВОЕ
 
 
     private final String name;

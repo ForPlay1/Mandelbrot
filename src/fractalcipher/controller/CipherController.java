@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CipherController {
 
@@ -52,8 +53,7 @@ public class CipherController {
                 case BENCHMARK -> runBenchmark(input);
                 case ENCRYPT, DECRYPT -> {
                     Image image = Image.loadFromFile(input.getName(), input.getName(), input);
-                    runSingle(mode, (perm != null ? perm.getName() : null), (diff != null ? diff.getName() : null), input, image);
-                }
+                    runSingle(mode, (perm != null ? perm.getName() : null), (diff != null ? diff.getName() : null), input, image, output);                }
             }
         } catch (Throwable t) {
             view.showError(ErrorHandler.handle(t));
@@ -62,11 +62,13 @@ public class CipherController {
 
     // === ОДИНОЧНОЕ ШИФРОВАНИЕ / РАСШИФРОВКА ===
     private void runSingle(CipherMode mode, String permutationName, String diffusionName,
-                           File inputFile, Image image) {
+                           File inputFile, Image image, File outputDir) {
         boolean isDecrypt = (mode == CipherMode.DECRYPT);
         File targetFile;
         File keyFile;
+
         long masterSeed;
+
 
         if (isDecrypt) {
             targetFile = inputFile;
@@ -99,6 +101,9 @@ public class CipherController {
 
         Map<String, Double> permParams = CipherUtils.buildPermParams(masterSeed, permutationName);
         Map<String, Double> diffParams = CipherUtils.buildDiffParams(masterSeed, diffusionName);
+        // КОНТЕКСТНЫЙ ПАРАЛЛЕЛИЗМ: для одного файла ВКЛЮЧАЕМ внутренний параллелизм
+        permParams.put("isParallel",1.0);
+        diffParams.put("isParallel",1.0);
 
         FractalChaosCipher cipher = new FractalChaosCipher(
                 "c1", permutationName + "+" + diffusionName,
@@ -135,11 +140,13 @@ public class CipherController {
         Arrays.sort(files);
 
         System.out.println("Найдено файлов для шифрования: " + files.length);
-        int ok = 0, failed = 0;
 
-        for (int i = 0; i < files.length; i++) {
-            File file = files[i];
-            String prefix = "[" + (i + 1) + "/" + files.length + "] " + file.getName() + ": ";
+        // Атомарные счетчики для потокобезопасности
+        AtomicInteger ok = new AtomicInteger(0);
+        AtomicInteger failed = new AtomicInteger(0);
+
+        Arrays.stream(files).parallel().forEach(file -> {
+            String prefix = file.getName() + ": ";
             try {
                 Image input = Image.loadFromFile(file.getName(), file.getName(), file);
                 long masterSeed = new SecureRandom().nextLong();
@@ -152,6 +159,10 @@ public class CipherController {
                 Map<String, Double> permParams = CipherUtils.buildPermParams(masterSeed, permutationName);
                 Map<String, Double> diffParams = CipherUtils.buildDiffParams(masterSeed, diffusionName);
 
+                // ВЫКЛЮЧАЕМ внутренний параллелизм для фракталов, чтобы не конфликтовать с параллелизмом файлов
+                permParams.put("isParallel", 0.0);
+                diffParams.put("isParallel", 0.0);
+
                 FractalChaosCipher cipher = new FractalChaosCipher(
                         "batch", permutationName + "+" + diffusionName,
                         permutationFactory.get(permutationName),
@@ -163,13 +174,13 @@ public class CipherController {
                 ImageIO.write(result.getImage(), "png", targetImage);
 
                 System.out.println(prefix + "OK -> " + targetImage.getName());
-                ok++;
+                ok.incrementAndGet();
             } catch (Throwable t) {
                 view.showError(prefix + ErrorHandler.handle(t));
-                failed++;
+                failed.incrementAndGet();
             }
-        }
-        System.out.println("Готово. Успешно: " + ok + ", с ошибкой: " + failed);
+        });
+        System.out.println("Готово. Успешно: " + ok.get() + ", с ошибкой: " + failed.get());
     }
 
     // === ПАКЕТНАЯ РАСШИФРОВКА ПАПКИ ===
@@ -184,11 +195,13 @@ public class CipherController {
         Arrays.sort(files);
 
         System.out.println("Найдено файлов для расшифровки: " + files.length);
-        int ok = 0, failed = 0;
 
-        for (int i = 0; i < files.length; i++) {
-            File file = files[i];
-            String prefix = "[" + (i + 1) + "/" + files.length + "] " + file.getName() + ": ";
+        AtomicInteger ok = new AtomicInteger(0);
+        AtomicInteger failed = new AtomicInteger(0);
+
+        // КОНТЕКСТНЫЙ ПАРАЛЛЕЛИЗМ: Параллелим обработку САМИХ ФАЙЛОВ
+        Arrays.stream(files).parallel().forEach(file -> {
+            String prefix = file.getName() + ": ";
             try {
                 File keyFile = KeyManager.getKeyFile(file);
                 if (!keyFile.exists()) {
@@ -198,6 +211,10 @@ public class CipherController {
 
                 Map<String, Double> permParams = CipherUtils.buildPermParams(key.masterSeed, key.permutationSourceName);
                 Map<String, Double> diffParams = CipherUtils.buildDiffParams(key.masterSeed, key.diffusionSourceName);
+
+                // ВЫКЛЮЧАЕМ внутренний параллелизм для фракталов
+                permParams.put("isParallel", 0.0);
+                diffParams.put("isParallel", 0.0);
 
                 FractalChaosCipher cipher = new FractalChaosCipher(
                         "batch", key.permutationSourceName + "+" + key.diffusionSourceName,
@@ -214,13 +231,13 @@ public class CipherController {
                 ImageIO.write(result.getImage(), "png", targetImage);
 
                 System.out.println(prefix + "OK -> " + targetImage.getName());
-                ok++;
+                ok.incrementAndGet();
             } catch (Throwable t) {
                 view.showError(prefix + ErrorHandler.handle(t));
-                failed++;
+                failed.incrementAndGet();
             }
-        }
-        System.out.println("Готово. Успешно: " + ok + ", с ошибкой: " + failed);
+        });
+        System.out.println("Готово. Успешно: " + ok.get() + ", с ошибкой: " + failed.get());
     }
 
     // === БЕНЧМАРК ===

@@ -3,6 +3,7 @@ package fractalcipher.model.permutation;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.IntStream;
+import java.util.Arrays;
 
 // Единственная НЕ-заглушка среди источников перестановки на момент
 // написания. Идея: каждому пикселю (row, col) ставим в соответствие
@@ -50,6 +51,8 @@ public class MandelbrotPermutation implements PermutationSource {
         int maxIter = params.getOrDefault("maxIter",
                 (double) (DEFAULT_MAX_ITERATIONS + rnd.nextInt(700))).intValue();
 
+        boolean isParallel = params.getOrDefault("isParallel",0.0) == 1.0;
+
         // Массив "оценок" по одной на пиксель — сюда положим escape-time.
         double[] values = new double[length];
 
@@ -59,7 +62,12 @@ public class MandelbrotPermutation implements PermutationSource {
         final double fReMin = reMin, fReMax = reMax, fImMin = imMin, fImMax = imMax;
         final int fMaxIter = maxIter;
 
-        IntStream.range(0,length).parallel().forEach(i -> {
+        IntStream stream = IntStream.range(1,length);
+        if(isParallel) {
+            stream = stream.parallel();
+        }
+
+        stream.forEach(i -> {
             // Разворачиваем линейный индекс пикселя i (0..length-1)
             // обратно в двумерные координаты (row, col), как если бы
             // пиксели шли построчно слева направо, сверху вниз.
@@ -78,7 +86,7 @@ public class MandelbrotPermutation implements PermutationSource {
         });
 
         // Превращаем массив оценок в перестановку индексов.
-        return sortIndicesByValue(values);
+        return sortIndicesByValue(values,isParallel);
     }
 
     // === ИЗМЕНЕНИЕ 3: Smooth iteration count вместо целого ===
@@ -145,7 +153,7 @@ public class MandelbrotPermutation implements PermutationSource {
     // permutation. Например, если values = [5.0, 1.0, 3.0], то индексы
     // после сортировки по значению — [1, 2, 0] (у индекса 1 самое
     // маленькое значение, у индекса 0 — самое большое).
-    private int[] sortIndicesByValue(double[] values) {
+    private int[] sortIndicesByValue(double[] values,boolean isParallel) {
         int n = values.length;
 
         // Упаковываем: старшие 32 бита — индекс, младшие — усечённое значение
@@ -161,8 +169,13 @@ public class MandelbrotPermutation implements PermutationSource {
             packed[i] = (bits & 0xFFFFFFFF00000000L) | (i & 0xFFFFFFFFL);
         }
 
-        java.util.Arrays.parallelSort(packed); // сортировка примитивов — в разы быстрее
-
+        if(isParallel) {
+            Arrays.parallelSort(packed);
+            // сортировка примитивов — в разы быстрее
+        }
+        else{
+            Arrays.sort(packed);
+        }
         int[] result = new int[n];
         for (int i = 0; i < n; i++) {
             result[i] = (int)(packed[i] & 0xFFFFFFFFL);
@@ -172,6 +185,6 @@ public class MandelbrotPermutation implements PermutationSource {
 
     @Override
     public String getName() {
-        return "Мандельброт";
+        return "mandelbrot";
     }
 }

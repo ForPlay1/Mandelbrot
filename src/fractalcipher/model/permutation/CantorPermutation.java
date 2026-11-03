@@ -22,8 +22,8 @@ public class CantorPermutation implements PermutationSource {
     public int[] generatePermutation(int length, Map<String, Double> params) {
         int width = params.getOrDefault("width",(double)length).intValue();
         int height = Math.max(1,length/width);
-
         long seed = params.getOrDefault("seed",0.0).longValue();
+        boolean isParallel = params.getOrDefault("isParallel",0.0) == 1.0;
         Random rnd = new Random(seed);
 
         // Хаотические сдвиги для строк и столбцов.
@@ -58,14 +58,14 @@ public class CantorPermutation implements PermutationSource {
 
         // Сортируем индексы по весам — тот же примитивный приём,
         // что и в MandelbrotPermutation.
-        return sortIndicesByValue(weights);
+        return sortIndicesByValue(weights,isParallel);
     }
 
     /**
      * Примитивная сортировка через long[] — без boxing.
      * Тот же приём, что в MandelbrotPermutation и JuliaPermutation.
      */
-    private int[] sortIndicesByValue(double[] values) {
+    private int[] sortIndicesByValue(double[] values,boolean isParallel) {
         int n = values.length;
 
         long[] packed = new long[n];
@@ -75,7 +75,12 @@ public class CantorPermutation implements PermutationSource {
             packed[i] = (bits & 0xFFFFFFFF00000000L) | (i & 0xFFFFFFFFL);
         }
 
-        Arrays.sort(packed);
+        if(isParallel) {
+            Arrays.parallelSort(packed);
+        }
+        else{
+            Arrays.sort(packed);
+        }
 
         int[] result = new int[n];
         for (int i = 0; i < n; i++) {
@@ -86,6 +91,6 @@ public class CantorPermutation implements PermutationSource {
 
     @Override
     public String getName() {
-        return "Кантор";
+        return "cantor";
     }
 }

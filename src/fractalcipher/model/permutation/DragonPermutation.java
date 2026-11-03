@@ -10,6 +10,7 @@ public class DragonPermutation implements PermutationSource {
         int width = params.getOrDefault("width", (double) length).intValue();
         int height = Math.max(1, length / width);
         long seed = params.getOrDefault("seed", 0.0).longValue();
+        boolean isParallel = params.getOrDefault("isParallel",0.0) == 1.0;
         Random rnd = new Random(seed);
 
         // Генерируем точки кривой Дракона (2^16 = 65536 точек)
@@ -91,10 +92,10 @@ public class DragonPermutation implements PermutationSource {
             values[i] = grid[i] + (i * 1e-9); // Микро-вариация
         }
 
-        return sortIndicesByValue(values);
+        return sortIndicesByValue(values,isParallel);
     }
 
-    private int[] sortIndicesByValue(double[] values) {
+    private int[] sortIndicesByValue(double[] values,boolean isParallel) {
         int n = values.length;
         long[] packed = new long[n];
         for (int i = 0; i < n; i++) {
@@ -102,7 +103,13 @@ public class DragonPermutation implements PermutationSource {
             if (bits < 0) bits ^= 0x7FFFFFFFFFFFFFFFL;
             packed[i] = (bits & 0xFFFFFFFF00000000L) | (i & 0xFFFFFFFFL);
         }
-        Arrays.parallelSort(packed);
+        if(isParallel) {
+            Arrays.parallelSort(packed);
+            // сортировка примитивов — в разы быстрее
+        }
+        else{
+            Arrays.sort(packed);
+        }
         int[] result = new int[n];
         for (int i = 0; i < n; i++) {
             result[i] = (int)(packed[i] & 0xFFFFFFFFL);
@@ -112,6 +119,6 @@ public class DragonPermutation implements PermutationSource {
 
     @Override
     public String getName() {
-        return "Дракон";
+        return "dragon";
     }
 }

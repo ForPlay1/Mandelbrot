@@ -12,6 +12,7 @@ public class SierpinskiPermutation implements PermutationSource {
         int height = Math.max(1, length / width);
         long seed = params.getOrDefault("seed", 0.0).longValue();
         Random rnd = new Random(seed);
+        boolean isParallel = params.getOrDefault("isParallel",0.0) == 1.0;
 
         // Случайный сдвиг для уникальности ключа
         int shiftX = rnd.nextInt(Math.max(1, width));
@@ -20,7 +21,12 @@ public class SierpinskiPermutation implements PermutationSource {
         double[] values = new double[length];
         final int fWidth = width, fHeight = height, fShiftX = shiftX, fShiftY = shiftY;
 
-        IntStream.range(0, length).parallel().forEach(i -> {
+        IntStream stream = IntStream.range(1,length);
+        if(isParallel) {
+            stream = stream.parallel();
+        }
+
+        stream.forEach(i -> {
             int row = i / fWidth;
             int col = i % fWidth;
 
@@ -38,10 +44,10 @@ public class SierpinskiPermutation implements PermutationSource {
             values[i] = distX + distY + (i * 1e-9);
         });
 
-        return sortIndicesByValue(values);
+        return sortIndicesByValue(values,isParallel);
     }
 
-    private int[] sortIndicesByValue(double[] values) {
+    private int[] sortIndicesByValue(double[] values,boolean isParallel) {
         int n = values.length;
         long[] packed = new long[n];
         for (int i = 0; i < n; i++) {
@@ -49,7 +55,13 @@ public class SierpinskiPermutation implements PermutationSource {
             if (bits < 0) bits ^= 0x7FFFFFFFFFFFFFFFL;
             packed[i] = (bits & 0xFFFFFFFF00000000L) | (i & 0xFFFFFFFFL);
         }
-        Arrays.parallelSort(packed);
+        if(isParallel) {
+            Arrays.parallelSort(packed);
+            // сортировка примитивов — в разы быстрее
+        }
+        else{
+            Arrays.sort(packed);
+        }
         int[] result = new int[n];
         for (int i = 0; i < n; i++) {
             result[i] = (int)(packed[i] & 0xFFFFFFFFL);
@@ -59,6 +71,6 @@ public class SierpinskiPermutation implements PermutationSource {
 
     @Override
     public String getName() {
-        return "Серпинский";
+        return "sierphinski";
     }
 }

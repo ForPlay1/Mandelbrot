@@ -50,6 +50,7 @@ public class BurningShipPermutation implements PermutationSource {
         // Хаотическое максимальное число итераций — как у Мандельброта.
         int maxIter = params.getOrDefault("maxIter",
                 (double) (DEFAULT_MAX_ITERATIONS + rnd.nextInt(700))).intValue();
+        boolean isParallel = params.getOrDefault("isParallel",0.0) == 1.0;
 
         // Массив "оценок" — по одной на пиксель.
         double[] values = new double[length];
@@ -60,7 +61,12 @@ public class BurningShipPermutation implements PermutationSource {
         final int fMaxIter = maxIter;
         final double fCRe = cRe, fCIm = cIm;
 
-        IntStream.range(0,length).parallel().forEach(i-> {
+        IntStream stream = IntStream.range(1,length);
+        if(isParallel) {
+            stream = stream.parallel();
+        }
+
+        stream.forEach(i-> {
             int row = i / fWidth;
             int col = i % fWidth;
 
@@ -70,7 +76,7 @@ public class BurningShipPermutation implements PermutationSource {
             values[i] = smoothEscapeTimeBurningShip(zRe0, zIm0, fCRe, fCIm, fMaxIter);
         });
 
-        return sortIndicesByValue(values);
+        return sortIndicesByValue(values,isParallel);
     }
 
     // === Smooth iteration count для Burning Ship ===
@@ -120,7 +126,7 @@ public class BurningShipPermutation implements PermutationSource {
     // Тот же приём, что у Мандельброта и Жюлиа: упаковка (bits, index)
     // в long[] и Arrays.sort(long[]) — без boxing, в разы быстрее
     // чем сортировка Integer[] с компаратором.
-    private int[] sortIndicesByValue(double[] values) {
+    private int[] sortIndicesByValue(double[] values,boolean isParallel) {
         int n = values.length;
 
         long[] packed = new long[n];
@@ -132,7 +138,12 @@ public class BurningShipPermutation implements PermutationSource {
             packed[i] = (bits & 0xFFFFFFFF00000000L) | (i & 0xFFFFFFFFL);
         }
 
-        Arrays.parallelSort(packed);
+        if(isParallel) {
+            Arrays.parallelSort(packed);
+        }
+        else{
+            Arrays.sort(packed);
+        }
 
         int[] result = new int[n];
         for (int i = 0; i < n; i++) {
@@ -143,6 +154,6 @@ public class BurningShipPermutation implements PermutationSource {
 
     @Override
     public String getName() {
-        return "Горящий корабль";
+        return "burning ship";
     }
 }

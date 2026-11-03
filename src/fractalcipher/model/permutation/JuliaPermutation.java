@@ -1,5 +1,6 @@
 package fractalcipher.model.permutation;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.IntStream;
@@ -42,13 +43,20 @@ public class JuliaPermutation implements PermutationSource {
         int maxIter = params.getOrDefault("maxIter",(double) (DEFAULT_MAX_ITERATIONS + rnd.nextInt(700))).intValue();
         double[] values = new double[length];
 
+        boolean isParallel = params.getOrDefault("isParallel",0.0) == 1.0;
+
         final int fWidth = width;
         final int fHeight = height;
         final double fReMin = reMin, fReMax = reMax, fImMin = imMin, fImMax = imMax;
         final int fMaxIter = maxIter;
         final double fCRe = cRe, fCIm = cIm;
 
-        IntStream.range(0,length).parallel().forEach(i -> {
+        IntStream stream = IntStream.range(1,length);
+        if(isParallel) {
+            stream = stream.parallel();
+        }
+
+        stream.forEach(i -> {
             int row = i / fWidth;
             int col = i % fWidth;
 
@@ -58,7 +66,7 @@ public class JuliaPermutation implements PermutationSource {
 
             values[i] = smoothEscapeTimeJulia(zRe0, zIm0, fCRe, fCIm, fMaxIter);
         });
-        return sortIndicesByValue(values);
+        return sortIndicesByValue(values,isParallel);
     }
 
     // === Smooth iteration count для Жюлиа ===
@@ -97,7 +105,7 @@ public class JuliaPermutation implements PermutationSource {
     }
 
 
-    private int[] sortIndicesByValue(double[] values) {
+    private int[] sortIndicesByValue(double[] values,boolean isParallel) {
         int n = values.length;
 
         // Упаковываем: старшие 32 бита — индекс, младшие — усечённое значение
@@ -113,7 +121,13 @@ public class JuliaPermutation implements PermutationSource {
             packed[i] = (bits & 0xFFFFFFFF00000000L) | (i & 0xFFFFFFFFL);
         }
 
-        java.util.Arrays.parallelSort(packed); // сортировка примитивов — в разы быстрее
+        if(isParallel) {
+            Arrays.parallelSort(packed);
+            // сортировка примитивов — в разы быстрее
+        }
+        else{
+            Arrays.sort(packed);
+        }
 
         int[] result = new int[n];
         for (int i = 0; i < n; i++) {
@@ -124,6 +138,6 @@ public class JuliaPermutation implements PermutationSource {
 
     @Override
     public String getName() {
-        return "Жюлиа";
+        return "julia";
     }
 }

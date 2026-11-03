@@ -1,13 +1,13 @@
 package fractalcipher.domain;
 
 public enum DiffusionMode {
-    LOGISTIC("Логистический"),
-    HENON("Хенон"),
-    TENT("Тент"),
-    LORENZ("Лоренц"),
-    ROSSLER("Рёсслер"),
-    ARNOLD("Арнольд"),
-    NULL("Нет");
+    LOGISTIC("logistic"),
+    HENON("henon"),
+    TENT("tent"),
+    LORENZ("lorenz"),
+    ROSSLER("rossler"),
+    ARNOLD("arnold"),
+    NULL("null");
 
     private final String name;
 
