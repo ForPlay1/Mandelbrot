@@ -29,29 +29,40 @@ public class TentMapDiffusion implements DiffusionSource {
 
         // x0 — часть ключа. Если не передан — случайный
         // (в реальном шифровании x0 ВСЕГДА должен приходить из ключа).
-        // Состояние в массиве, чтобы его можно было менять внутри лямбды.
-        final double[] x = {params.getOrDefault("x0", DiffusionUtils.randomCord(rnd))};
-        if (!(x[0] >= 0.0 && x[0] <= 1.0)) {
+        final double x0 = params.getOrDefault("x0", DiffusionUtils.randomCord(rnd));
+        if (!(x0 >= 0.0 && x0 <= 1.0)) {
             throw new InvalidConfigurationException(
-                    "Начальное значение x0 тент-карты должно быть в интервале (0; 1), получено: " + x[0]);
+                    "Начальное значение x0 тент-карты должно быть в интервале (0; 1), получено: " + x0);
         }
 
         final long sboxSeed = params.getOrDefault("sboxSeed", 0.0).longValue();
 
-        // Прогрев
-        for (int i = 0; i < BURN_IN; i++) {
-            x[0] = step(x[0], mu);
-        }
+        // Прогрев (для блока №0)
+        final double burned = burnIn(x0, mu);
+        final long keyBits = DiffusionUtils.keyBits(x0, mu);
 
-        // Два прохода со сцеплением (вперёд и назад)
-        final byte[] stream = DiffusionUtils.chainTwoPass(length, () -> {
-            x[0] = step(x[0], mu);
-            return DiffusionUtils.fracByte(x[0]);
+        // Траектория считается блоками параллельно: блок №0 идёт с прогретой x0,
+        // остальные — с собственных ключезависимых стартовых точек (тоже с прогревом).
+        final byte[] stream = DiffusionUtils.chainTwoPassParallel(length, chunk -> {
+            final double[] x = {chunk == 0
+                    ? burned
+                    : burnIn(DiffusionUtils.randomCord(DiffusionUtils.chunkRandom(keyBits, chunk)), mu)};
+            return () -> {
+                x[0] = step(x[0], mu);
+                return DiffusionUtils.fracByte(x[0]);
+            };
         });
 
-        // S-бокс (опционально)
         DiffusionUtils.applySBox(stream, sboxSeed);
         return stream;
+    }
+
+    private static double burnIn(final double start, final double mu) {
+        double x = start;
+        for (int i = 0; i < BURN_IN; i++) {
+            x = step(x, mu);
+        }
+        return x;
     }
 
     private static double step(final double x, final double mu) {
@@ -63,6 +74,6 @@ public class TentMapDiffusion implements DiffusionSource {
 
     @Override
     public String getName() {
-        return "Тент";
+        return "tent";
     }
 }

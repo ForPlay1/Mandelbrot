@@ -16,6 +16,11 @@ import fractalcipher.exception.InvalidConfigurationException;
 // Так карта остаётся точной биекцией. Байт берём из СТАРШИХ бит:
 // младшие биты в такой арифметике эволюционируют независимо от старших
 // и имеют короткий период.
+//
+// Параллельность: карта линейная, поэтому состояние через n шагов равно
+// M^n * s0 (mod 2^64), и M^n считается быстрым возведением в степень.
+// Каждый блок стартует с точного места своей части траектории, так что
+// результат ТОЧНО совпадает с последовательным расчётом.
 public class ArnoldMapDiffusion implements DiffusionSource {
 
     private static final int BURN_IN = 1000;
@@ -45,22 +50,28 @@ public class ArnoldMapDiffusion implements DiffusionSource {
 
         // Точка на решётке 2^64 (double даёт 53 значащих бита, остальные нули —
         // после прогрева старшие биты всё равно зависят от всех младших)
-        final long[] s = {
+        final long[] s0 = {
                 ((long) (x0 * 0x1p62)) << 1,
                 ((long) (y0 * 0x1p62)) << 1
         };
-        if (s[0] == 0 && s[1] == 0) {
+        if (s0[0] == 0 && s0[1] == 0) {
             throw new InvalidConfigurationException(
                     "Начальная точка (0, 0) — неподвижная точка карты, выберите другие x0, y0");
         }
 
-        for (int i = 0; i < BURN_IN; i++) {
-            step(s, a, b);
-        }
-
-        final byte[] stream = DiffusionUtils.chainTwoPass(length, () -> {
-            step(s, a, b);
-            return (int) (s[0] >>> 56) ^ (int) (s[1] >>> 56);
+        // Блок №chunk начинается после BURN_IN + chunk*CHUNK шагов от s0:
+        // перескакиваем туда матрицей M^n, а не шагаем по одному.
+        final byte[] stream = DiffusionUtils.chainTwoPassParallel(length, chunk -> {
+            final long steps = BURN_IN + (long) chunk * DiffusionUtils.CHUNK;
+            final long[] m = matPow(a, b, steps);
+            final long[] s = {
+                    m[0] * s0[0] + m[1] * s0[1],
+                    m[2] * s0[0] + m[3] * s0[1]
+            };
+            return () -> {
+                step(s, a, b);
+                return (int) (s[0] >>> 56) ^ (int) (s[1] >>> 56);
+            };
         });
 
         DiffusionUtils.applySBox(stream, sboxSeed);
@@ -75,8 +86,33 @@ public class ArnoldMapDiffusion implements DiffusionSource {
         s[1] = b * x + (a * b + 1) * y;
     }
 
+    // Произведение матриц 2x2 (хранятся строками: {m00, m01, m10, m11}) mod 2^64
+    private static long[] mul(final long[] p, final long[] q) {
+        return new long[]{
+                p[0] * q[0] + p[1] * q[2],
+                p[0] * q[1] + p[1] * q[3],
+                p[2] * q[0] + p[3] * q[2],
+                p[2] * q[1] + p[3] * q[3]
+        };
+    }
+
+    // M^exp для M = [[1, a], [b, a*b + 1]] mod 2^64
+    private static long[] matPow(final long a, final long b, final long exp) {
+        long[] result = {1, 0, 0, 1};
+        long[] base = {1, a, b, a * b + 1};
+        long n = exp;
+        while (n > 0) {
+            if ((n & 1) == 1) {
+                result = mul(result, base);
+            }
+            base = mul(base, base);
+            n >>= 1;
+        }
+        return result;
+    }
+
     @Override
     public String getName() {
-        return "Арнольд";
+        return "arnold";
     }
 }

@@ -30,8 +30,6 @@ public class RosslerDiffusion implements DiffusionSource {
         final double y0 = params.containsKey("y0") ? params.get("y0") : DiffusionUtils.randomCord(rnd) * 2 - 1;
         final double z0 = params.containsKey("z0") ? params.get("z0") : DiffusionUtils.randomCord(rnd) * 2;
 
-        final double[] s = {x0, y0, z0};
-
         final DiffusionUtils.Deriv f = (final double[] st, final double[] out) -> {
             out[0] = -st[1] - st[2];
             out[1] = st[0] + a * st[1];
@@ -40,18 +38,42 @@ public class RosslerDiffusion implements DiffusionSource {
 
         final long sboxSeed = params.getOrDefault("sboxSeed", 0.0).longValue();
 
-        // Прогрев — выходим на аттрактор
+        // Прогрев (для блока №0) — выходим на аттрактор
+        final double[] burned = {x0, y0, z0};
+        final double[][] burnWork = DiffusionUtils.newRk4Work(3);
         for (int i = 0; i < BURN_IN_STEPS; i++) {
-            DiffusionUtils.rk4(s, DT, f);
+            DiffusionUtils.rk4(burned, DT, f, burnWork);
         }
 
-        final byte[] stream = DiffusionUtils.chainTwoPass(length, () -> {
-            for (int k = 0; k < STEPS_PER_SAMPLE; k++) {
-                DiffusionUtils.rk4(s, DT, f);
+        final long keyBits = DiffusionUtils.keyBits(x0, y0, z0, a, b, c);
+
+        // Траектория считается блоками параллельно: блок №0 продолжает прогретое
+        // состояние, остальные стартуют со своих ключезависимых точек (с прогревом).
+        // У каждого блока свои рабочие массивы RK4.
+        final byte[] stream = DiffusionUtils.chainTwoPassParallel(length, chunk -> {
+            final double[][] work = DiffusionUtils.newRk4Work(3);
+            final double[] s;
+            if (chunk == 0) {
+                s = burned.clone();
+            } else {
+                final Random cr = DiffusionUtils.chunkRandom(keyBits, chunk);
+                s = new double[]{
+                        DiffusionUtils.randomCord(cr) * 2 - 1,
+                        DiffusionUtils.randomCord(cr) * 2 - 1,
+                        DiffusionUtils.randomCord(cr) * 2
+                };
+                for (int i = 0; i < BURN_IN_STEPS; i++) {
+                    DiffusionUtils.rk4(s, DT, f, work);
+                }
             }
-            return DiffusionUtils.fracByte(s[0])
-                    ^ DiffusionUtils.fracByte(s[1])
-                    ^ DiffusionUtils.fracByte(s[2]);
+            return () -> {
+                for (int j = 0; j < STEPS_PER_SAMPLE; j++) {
+                    DiffusionUtils.rk4(s, DT, f, work);
+                }
+                return DiffusionUtils.fracByte(s[0])
+                        ^ DiffusionUtils.fracByte(s[1])
+                        ^ DiffusionUtils.fracByte(s[2]);
+            };
         });
 
         DiffusionUtils.applySBox(stream, sboxSeed);
@@ -60,6 +82,6 @@ public class RosslerDiffusion implements DiffusionSource {
 
     @Override
     public String getName() {
-        return "Рёсслер";
+        return "rossler";
     }
 }

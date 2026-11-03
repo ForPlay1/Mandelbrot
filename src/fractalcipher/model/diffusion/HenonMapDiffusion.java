@@ -20,6 +20,9 @@ public class HenonMapDiffusion implements DiffusionSource {
     // Сколько первых итераций отбрасываем, чтобы траектория вышла на аттрактор
     private static final int BURN_IN = 1000;
 
+    // Сколько раз пробуем подобрать стартовую точку блока
+    private static final int MAX_START_ATTEMPTS = 100;
+
     @Override
     public byte[] generateStream(final int length, final Map<String, Double> params) {
         final long seed = params.getOrDefault("seed", 0.0).longValue();
@@ -36,22 +39,53 @@ public class HenonMapDiffusion implements DiffusionSource {
 
         final long sboxSeed = params.getOrDefault("sboxSeed", 0.0).longValue();
 
-        final double[] state = {x0, y0};
-
-        // Прогрев
+        // Прогрев (для блока №0)
+        final double[] burned = {x0, y0};
         for (int i = 0; i < BURN_IN; i++) {
-            step(state, a, b);
+            step(burned, a, b);
         }
 
-        // Два прохода со сцеплением (вперёд и назад)
-        final byte[] stream = DiffusionUtils.chainTwoPass(length, () -> {
-            step(state, a, b);
-            return DiffusionUtils.fracByte(state[0]) ^ DiffusionUtils.fracByte(state[1]);
+        final long keyBits = DiffusionUtils.keyBits(x0, y0, a, b);
+
+        // Траектория считается блоками параллельно: блок №0 продолжает прогретое
+        // состояние, остальные стартуют со своих ключезависимых точек (с прогревом).
+        final byte[] stream = DiffusionUtils.chainTwoPassParallel(length, chunk -> {
+            final double[] state = (chunk == 0)
+                    ? burned.clone()
+                    : chunkStart(keyBits, chunk, a, b);
+            return () -> {
+                step(state, a, b);
+                return DiffusionUtils.fracByte(state[0]) ^ DiffusionUtils.fracByte(state[1]);
+            };
         });
 
-        // S-бокс (опционально)
         DiffusionUtils.applySBox(stream, sboxSeed);
         return stream;
+    }
+
+    // Стартовое (уже прогретое) состояние для блока chunk > 0. Не всякая точка
+    // квадрата лежит в области притяжения аттрактора Хенона — часть траекторий
+    // уходит в бесконечность. Поэтому при расхождении берём следующую точку из
+    // того же детерминированного генератора (результат остаётся воспроизводимым).
+    private static double[] chunkStart(final long keyBits, final int chunk,
+                                       final double a, final double b) {
+        final Random cr = DiffusionUtils.chunkRandom(keyBits, chunk);
+        for (int attempt = 0; attempt < MAX_START_ATTEMPTS; attempt++) {
+            final double[] st = {
+                    DiffusionUtils.randomCord(cr) - 0.5,
+                    DiffusionUtils.randomCord(cr) - 0.5
+            };
+            try {
+                for (int i = 0; i < BURN_IN; i++) {
+                    step(st, a, b);
+                }
+                return st;
+            } catch (EncryptionFailedException e) {
+                // эта стартовая точка разошлась — пробуем следующую
+            }
+        }
+        throw new EncryptionFailedException(
+                "Не удалось подобрать стартовую точку блока для карты Хенона — проверьте параметры a, b");
     }
 
     // Один шаг карты Хенона (state[0] = x, state[1] = y)
@@ -72,6 +106,6 @@ public class HenonMapDiffusion implements DiffusionSource {
 
     @Override
     public String getName() {
-        return "Хенон";
+        return "henon";
     }
 }
