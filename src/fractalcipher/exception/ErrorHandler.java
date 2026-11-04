@@ -1,5 +1,7 @@
 package fractalcipher.exception;
 
+import fractalcipher.utils.AppLogger;
+
 import java.io.PrintStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -8,7 +10,7 @@ import java.time.format.DateTimeFormatter;
  * Централизованная обработка ошибок.
  * Все исключения приложения проходят через этот класс:
  *  - классификация;
- *  - логирование;
+ *  - логирование (через AppLogger или System.err, если логгер недоступен);
  *  - безопасное сообщение для пользователя.
  */
 public final class ErrorHandler {
@@ -53,10 +55,23 @@ public final class ErrorHandler {
     }
 
     private static void log(Throwable t, ErrorCategory category) {
-        String timestamp = LocalDateTime.now().format(TIMESTAMP);
-        logStream.println("[" + timestamp + "] [" + category.name() + "] "
-                + t.getClass().getSimpleName() + ": " + t.getMessage());
-        if (verbose) t.printStackTrace(logStream);
+        String message = "[" + category.name() + "] " + t.getClass().getSimpleName() + ": " + t.getMessage();
+
+        // Проверяем, удалось ли инициализировать AppLogger
+        if (AppLogger.isInitialized()) {
+            // Логируем через AppLogger
+            if (category == ErrorCategory.INTERNAL || category == ErrorCategory.ENCRYPTION) {
+                AppLogger.error(message, t);
+            } else {
+                AppLogger.warning(message);
+            }
+        } else {
+            // Если AppLogger не инициализирован (например, нет прав на запись),
+            // пишем напрямую в консоль, чтобы ошибка не потерялась.
+            String timestamp = LocalDateTime.now().format(TIMESTAMP);
+            System.err.println("[" + timestamp + "] " + message);
+            if (verbose) t.printStackTrace(System.err);
+        }
     }
 
     private static String safeMessage(Throwable t, ErrorCategory category) {

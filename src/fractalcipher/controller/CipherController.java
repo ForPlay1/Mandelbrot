@@ -11,6 +11,7 @@ import fractalcipher.model.KeyManager;
 import fractalcipher.model.diffusion.DiffusionSourceFactory;
 import fractalcipher.model.permutation.PermutationSourceFactory;
 import fractalcipher.utils.CipherUtils;
+import fractalcipher.utils.AppLogger;
 import fractalcipher.view.ConsoleView;
 import fractalcipher.view.ImageView;
 
@@ -42,8 +43,16 @@ public class CipherController {
         File output = (out != null) ? out.toFile() : null;
 
         if (mode == null || input == null) {
+            AppLogger.warning("Запуск отменен: не выбран режим или входной файл.");
             System.out.println("Режим или входной файл не выбраны — выходим.");
             return;
+        }
+
+        // Логируем старт операции
+        AppLogger.info("--- Запуск операции ---");
+        AppLogger.info("Режим: " + mode.name() + ", Вход: " + input.getAbsolutePath());
+        if (output != null) {
+            AppLogger.info("Выходная папка: " + output.getAbsolutePath());
         }
 
         try {
@@ -53,10 +62,16 @@ public class CipherController {
                 case BENCHMARK -> runBenchmark(input);
                 case ENCRYPT, DECRYPT -> {
                     Image image = Image.loadFromFile(input.getName(), input.getName(), input);
-                    runSingle(mode, (perm != null ? perm.getName() : null), (diff != null ? diff.getName() : null), input, image, output);                }
+                    // Передаем output в runSingle
+                    runSingle(mode, (perm != null ? perm.getName() : null), (diff != null ? diff.getName() : null), input, image, output);
+                }
             }
+            AppLogger.info("--- Операция успешно завершена ---");
         } catch (Throwable t) {
-            view.showError(ErrorHandler.handle(t));
+            // ErrorHandler.handle() внутри себя вызовет AppLogger.error(), если логгер инициализирован
+            String safeMsg = ErrorHandler.handle(t);
+            AppLogger.error("--- Операция аварийно завершена ---", t);
+            view.showError(safeMsg);
         }
     }
 
@@ -64,11 +79,15 @@ public class CipherController {
     private void runSingle(CipherMode mode, String permutationName, String diffusionName,
                            File inputFile, Image image, File outputDir) {
         boolean isDecrypt = (mode == CipherMode.DECRYPT);
+        String operation = isDecrypt ? "Расшифровка" : "Шифрование";
+        AppLogger.info(operation + " файла: " + inputFile.getName() + " [" + permutationName + " + " + diffusionName + "]");
+
         File targetFile;
         File keyFile;
-
         long masterSeed;
 
+        // Определяем папку для сохранения (если не выбрана, берем папку исходника)
+        File saveDir = (outputDir != null) ? outputDir : inputFile.getParentFile();
 
         if (isDecrypt) {
             targetFile = inputFile;
@@ -81,29 +100,36 @@ public class CipherController {
                 masterSeed = key.masterSeed;
                 permutationName = key.permutationSourceName;
                 diffusionName = key.diffusionSourceName;
+                AppLogger.info("Ключ успешно загружен из: " + keyFile.getName());
             } catch (Exception e) {
+                AppLogger.error("Ошибка чтения ключа: " + keyFile.getName(), e);
                 throw new RuntimeException("Ошибка чтения ключа: " + e.getMessage());
             }
         } else {
             String originalName = inputFile.getName();
             String baseNameStr = CipherUtils.baseName(originalName);
-            targetFile = new File(inputFile.getParentFile(), baseNameStr + CipherUtils.ENCRYPTED_SUFFIX + ".png");
+
+            // Сохраняем зашифрованный файл в выбранную папку saveDir
+            targetFile = new File(saveDir, baseNameStr + CipherUtils.ENCRYPTED_SUFFIX + ".png");
             keyFile = KeyManager.getKeyFile(targetFile);
 
             masterSeed = new SecureRandom().nextLong();
             EncryptionKey newKey = new EncryptionKey(masterSeed, permutationName, diffusionName);
             try {
                 KeyManager.saveKey(newKey, keyFile);
+                AppLogger.info("Сгенерирован и сохранен новый ключ: " + keyFile.getName());
             } catch (IOException e) {
+                AppLogger.error("Не удалось сохранить ключ: " + keyFile.getName(), e);
                 throw new RuntimeException("Не удалось сохранить ключ: " + e.getMessage());
             }
         }
 
         Map<String, Double> permParams = CipherUtils.buildPermParams(masterSeed, permutationName);
         Map<String, Double> diffParams = CipherUtils.buildDiffParams(masterSeed, diffusionName);
+
         // КОНТЕКСТНЫЙ ПАРАЛЛЕЛИЗМ: для одного файла ВКЛЮЧАЕМ внутренний параллелизм
-        permParams.put("isParallel",1.0);
-        diffParams.put("isParallel",1.0);
+        permParams.put("isParallel", 1.0);
+        diffParams.put("isParallel", 1.0);
 
         FractalChaosCipher cipher = new FractalChaosCipher(
                 "c1", permutationName + "+" + diffusionName,
@@ -116,14 +142,23 @@ public class CipherController {
                 ? handleDecrypt(cipher, image)
                 : handleEncrypt(cipher, image);
 
-        if (!isDecrypt) {
-            try {
+        // СОХРАНЕНИЕ РЕЗУЛЬТАТА
+        try {
+            if (isDecrypt) {
+                // Формируем имя для расшифрованного файла
+                String decName = CipherUtils.baseName(inputFile.getName()).replace(CipherUtils.ENCRYPTED_SUFFIX, "") + "_decrypted.png";
+                File decFile = new File(saveDir, decName);
+                ImageIO.write(result.getImage(), "png", decFile);
+                AppLogger.info("Расшифровано: " + decFile.getName() + " (" + permutationName + " + " + diffusionName + ")");
+            } else {
+                // Сохраняем зашифрованный файл
                 ImageIO.write(result.getImage(), "png", targetFile);
-                System.out.println("Зашифровано в: " + targetFile.getAbsolutePath());
-            } catch (IOException e) {
-                throw new RuntimeException("Ошибка сохранения: " + e.getMessage());
+                AppLogger.info("Зашифровано: " + targetFile.getName() + " (" + permutationName + " + " + diffusionName + ")");
             }
+        } catch (IOException e) {
+            throw new RuntimeException("Ошибка сохранения: " + e.getMessage());
         }
+
         view.showResult(result);
     }
 
@@ -134,17 +169,19 @@ public class CipherController {
 
         File[] files = inputDir.listFiles(f -> f.isFile() && CipherUtils.isImageToEncrypt(f.getName()));
         if (files == null || files.length == 0) {
+            AppLogger.warning("Пакетное шифрование отменено: в папке нет изображений.");
             view.showError("В папке нет изображений для шифрования.");
             return;
         }
         Arrays.sort(files);
 
-        System.out.println("Найдено файлов для шифрования: " + files.length);
+        AppLogger.info("Начало пакетного шифрования. Файлов: " + files.length + " [" + permutationName + " + " + diffusionName + "]");
+        long startTime = System.currentTimeMillis();
 
-        // Атомарные счетчики для потокобезопасности
         AtomicInteger ok = new AtomicInteger(0);
         AtomicInteger failed = new AtomicInteger(0);
 
+        // КОНТЕКСТНЫЙ ПАРАЛЛЕЛИЗМ: Параллелим обработку САМИХ ФАЙЛОВ
         Arrays.stream(files).parallel().forEach(file -> {
             String prefix = file.getName() + ": ";
             try {
@@ -173,14 +210,15 @@ public class CipherController {
                 Image result = handleEncrypt(cipher, input);
                 ImageIO.write(result.getImage(), "png", targetImage);
 
-                System.out.println(prefix + "OK -> " + targetImage.getName());
+                AppLogger.info("Пакетное шифрование [OK]: " + targetImage.getName());
                 ok.incrementAndGet();
             } catch (Throwable t) {
-                view.showError(prefix + ErrorHandler.handle(t));
+                AppLogger.error("Пакетное шифрование [FAIL]: " + file.getName(), t);
                 failed.incrementAndGet();
             }
         });
-        System.out.println("Готово. Успешно: " + ok.get() + ", с ошибкой: " + failed.get());
+        long duration = System.currentTimeMillis() - startTime;
+        AppLogger.info("Пакетное шифрование завершено за " + duration + " мс. Успешно: " + ok.get() + ", Ошибок: " + failed.get());
     }
 
     // === ПАКЕТНАЯ РАСШИФРОВКА ПАПКИ ===
@@ -189,12 +227,15 @@ public class CipherController {
 
         File[] files = inputDir.listFiles(f -> f.isFile() && f.getName().endsWith(CipherUtils.ENCRYPTED_SUFFIX + ".png"));
         if (files == null || files.length == 0) {
+            AppLogger.warning("Пакетная расшифровка отменена: в папке нет зашифрованных изображений.");
             view.showError("В папке нет зашифрованных изображений (*_encrypted.png).");
             return;
         }
         Arrays.sort(files);
 
-        System.out.println("Найдено файлов для расшифровки: " + files.length);
+        AppLogger.info("Начало пакетной расшифровки. Файлов: " + files.length);
+        long startTime = System.currentTimeMillis();
+
 
         AtomicInteger ok = new AtomicInteger(0);
         AtomicInteger failed = new AtomicInteger(0);
@@ -230,14 +271,15 @@ public class CipherController {
                 File targetImage = new File(outputDir, decName);
                 ImageIO.write(result.getImage(), "png", targetImage);
 
-                System.out.println(prefix + "OK -> " + targetImage.getName());
+                AppLogger.info("Пакетная расшифровка [OK]: " + targetImage.getName());
                 ok.incrementAndGet();
             } catch (Throwable t) {
-                view.showError(prefix + ErrorHandler.handle(t));
+                AppLogger.error("Пакетная расшифровка [FAIL]: " + file.getName(), t);
                 failed.incrementAndGet();
             }
         });
-        System.out.println("Готово. Успешно: " + ok.get() + ", с ошибкой: " + failed.get());
+        long duration = System.currentTimeMillis() - startTime;
+        AppLogger.info("Пакетная расшифровка завершена за " + duration + " мс. Успешно: " + ok.get() + ", Ошибок: " + failed.get());
     }
 
     // === БЕНЧМАРК ===
@@ -254,14 +296,16 @@ public class CipherController {
         }
 
         if (imagesToProcess.isEmpty()) {
+            AppLogger.warning("Бенчмарк отменен: не найдено изображений.");
             view.showError("Не найдено изображений для бенчмарка.");
             return;
         }
 
         System.out.println("\n=== БЕНЧМАРК: Найдено изображений: " + imagesToProcess.size() + " ===");
+        AppLogger.info("Запуск бенчмарка. Изображений: " + imagesToProcess.size());
         List<BenchmarkResult> allResults = Collections.synchronizedList(new ArrayList<>());
 
-        // УБРАЛИ parallelStream ЗДЕСЬ. Теперь это обычный цикл.
+        // Здесь последовательно по файлам, а параллелизм уже внутри BenchmarkRunner
         for (File file : imagesToProcess) {
             System.out.println("Анализ изображения: " + file.getName());
             try {
@@ -271,7 +315,9 @@ public class CipherController {
                 localResults.addAll(handleBenchmarkDiffusionOnly(image));
                 localResults.addAll(handleBenchmarkFull(image));
                 allResults.addAll(localResults);
+                AppLogger.info("Бенчмарк для файла " + file.getName() + " успешно завершен.");
             } catch (Throwable t) {
+                AppLogger.error("Ошибка при бенчмарке файла: " + file.getName(), t);
                 System.err.println("Ошибка при бенчмарке файла " + file.getName() + ": " + t.getMessage());
             }
         }
@@ -279,8 +325,9 @@ public class CipherController {
         try {
             String csvBaseName = inputFile.isDirectory() ? inputFile.getName() : "single_image";
             CsvExporter.export(allResults, "benchmark_" + csvBaseName);
+            AppLogger.info("Бенчмарк завершен. Результаты сохранены в CSV.");
         } catch (IOException e) {
-            view.showError("Не удалось сохранить CSV: " + e.getMessage());
+            AppLogger.error("Не удалось сохранить CSV", e);
         }
 
         view.showBenchmarkResults(allResults);

@@ -1,0 +1,7 @@
+[2026-11-04 13:37:04] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-04 13:37:04] [INFO   ] [AppLogger] Режим: ENCRYPT, Вход: C:\Users\Samoslon\Documents\для проекта\7378023241.jpg
+[2026-11-04 13:37:04] [INFO   ] [AppLogger] Выходная папка: C:\Users\Samoslon\Documents\для проекта 2
+[2026-11-04 13:37:04] [INFO   ] [AppLogger] Шифрование файла: 7378023241.jpg [sierphinski + arnold]
+[2026-11-04 13:37:04] [INFO   ] [AppLogger] Сгенерирован и сохранен новый ключ: 7378023241_encrypted.key
+[2026-11-04 13:37:04] [INFO   ] [AppLogger] Зашифровано: 7378023241_encrypted.png (sierphinski + arnold)
+[2026-11-04 13:37:04] [INFO   ] [AppLogger] --- Операция успешно завершена ---
