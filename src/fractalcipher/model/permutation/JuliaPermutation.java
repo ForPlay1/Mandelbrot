@@ -5,21 +5,32 @@ import java.util.Map;
 import java.util.Random;
 import java.util.stream.IntStream;
 
-// Множество Жюлиа считается той же формулой z = z^2+c,
-// что и Мандельброт, но с точностью до наоборот: c — фиксированный
-// параметр ключа (одно и то же для всех пикселей), а по изображению
-// "бегает" именно z0 (стартовая точка), а не c.
+/**
+ * Источник перестановки на основе множества Жюлиа.
+ * <p>
+ * Формула та же, что у Мандельброта ({@code z = z^2 + c}), но логика
+ * обратная: {@code c} — фиксированный параметр ключа (одно число для всего изображения),
+ * а по изображению "бегает" именно {@code z_0} (стартовая точка), а не {@code c}.
+ * </p>
+ * @see PermutationSource
+ * @see MandelbrotPermutation
+ * @see BurningShipPermutation
+ */
 public class JuliaPermutation implements PermutationSource {
 
-    // Сколько максимум итераций делаем, прежде чем считать точку
-    // "не убегающей" (то есть предположительно внутри множества).
-    // Чем больше — тем точнее, но и медленнее.
+    /** Максимальное количество итераций по умолчанию. */
     private static final int DEFAULT_MAX_ITERATIONS = 300;
 
-    // Радиус, при превышении которого считаем, что z гарантированно
-    // улетит в бесконечность (стандартное значение для Жюлиа — 2).
+    /** Радиус убегания. */
     private static final double ESCAPE_RADIUS = 2.0;
 
+    /**
+     * Генерирует перестановку на основе множества Жюлиа.
+     *
+     * @param length Количество пикселей.
+     * @param params Параметры (width, seed, границы области, cRe, cIm, maxIter, isParallel).
+     * @return Массив перестановок индексов.
+     */
     @Override
     public int[] generatePermutation(int length, Map<String, Double> params) {
         int width = params.getOrDefault("width", (double)length).intValue();
@@ -34,9 +45,7 @@ public class JuliaPermutation implements PermutationSource {
         double imMin = params.getOrDefault("imMin", -1.5 - rnd.nextDouble() * 0.5);
         double imMax = params.getOrDefault("imMax", 1.5 + rnd.nextDouble() * 0.5);
 
-        // === КЛЮЧЕВОЕ ОТЛИЧИЕ: параметр c для Жюлиа ===
-        // c — фиксированное комплексное число для всего изображения.
-        // Оно генерируется из seed и определяет "форму" фрактала.
+        // КЛЮЧЕВОЕ ОТЛИЧИЕ: c — фиксированное комплексное число для всего изображения.
         double cRe = params.getOrDefault("cRe", -0.8 + rnd.nextDouble() * 1.6);
         double cIm = params.getOrDefault("cIm", -0.8 + rnd.nextDouble() * 1.6);
 
@@ -51,7 +60,7 @@ public class JuliaPermutation implements PermutationSource {
         final int fMaxIter = maxIter;
         final double fCRe = cRe, fCIm = cIm;
 
-        IntStream stream = IntStream.range(1,length);
+        IntStream stream = IntStream.range(0,length);
         if(isParallel) {
             stream = stream.parallel();
         }
@@ -69,8 +78,12 @@ public class JuliaPermutation implements PermutationSource {
         return sortIndicesByValue(values,isParallel);
     }
 
-    // === Smooth iteration count для Жюлиа ===
-    // Отличие от Мандельброта: z_0 — входная точка, c — фиксирован.
+    /**
+     * Вычисляет smooth iteration count для Жюлиа.
+     * <p>
+     * Отличие от Мандельброта: {@code z_0} — входная точка, {@code c} — фиксирован.
+     * </p>
+     */
     private double smoothEscapeTimeJulia(double zRe, double zIm, double cRe, double cIm, int maxIter) {
         int iterations = 0;
         double radiusSquared = ESCAPE_RADIUS * ESCAPE_RADIUS;
@@ -104,13 +117,13 @@ public class JuliaPermutation implements PermutationSource {
         return iterations;
     }
 
-
+    /**
+     * Превращает массив весов в массив перестановок индексов.
+     * Использует упаковку {@code double} в {@code long} для быстрой сортировки.
+     */
     private int[] sortIndicesByValue(double[] values,boolean isParallel) {
         int n = values.length;
 
-        // Упаковываем: старшие 32 бита — индекс, младшие — усечённое значение
-        // (достаточно точности для сравнения, т.к. значения smooth iteration
-        // не различаются на уровне 2^-32).
         long[] packed = new long[n];
         for (int i = 0; i < n; i++) {
             // Превращаем double в сортируемый long через битовое представление
@@ -123,7 +136,6 @@ public class JuliaPermutation implements PermutationSource {
 
         if(isParallel) {
             Arrays.parallelSort(packed);
-            // сортировка примитивов — в разы быстрее
         }
         else{
             Arrays.sort(packed);
@@ -136,6 +148,9 @@ public class JuliaPermutation implements PermutationSource {
         return result;
     }
 
+    /**
+     * @return Строка "julia".
+     */
     @Override
     public String getName() {
         return "julia";

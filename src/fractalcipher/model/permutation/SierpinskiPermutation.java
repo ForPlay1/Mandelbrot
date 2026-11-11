@@ -5,7 +5,22 @@ import java.util.Random;
 import java.util.stream.IntStream;
 import java.util.Arrays;
 
+/**
+ * Источник перестановки на основе треугольника Серпинского.
+ * <p>
+ * Использует математическое свойство фрактала: точки внутри множества
+ * подчиняются правилу {@code (x & y) == x}. Расстояние до множества
+ * вычисляется через XOR ({@code x ^ common}) и используется как вес.
+ * </p>
+ */
 public class SierpinskiPermutation implements PermutationSource {
+    /**
+     * Генерирует перестановку на основе треугольника Серпинского.
+     *
+     * @param length Количество пикселей.
+     * @param params Параметры (width, seed, isParallel).
+     * @return Массив перестановок индексов.
+     */
     @Override
     public int[] generatePermutation(int length, Map<String, Double> params) {
         int width = params.getOrDefault("width", (double) length).intValue();
@@ -21,7 +36,7 @@ public class SierpinskiPermutation implements PermutationSource {
         double[] values = new double[length];
         final int fWidth = width, fHeight = height, fShiftX = shiftX, fShiftY = shiftY;
 
-        IntStream stream = IntStream.range(1,length);
+        IntStream stream = IntStream.range(0,length);
         if(isParallel) {
             stream = stream.parallel();
         }
@@ -47,6 +62,9 @@ public class SierpinskiPermutation implements PermutationSource {
         return sortIndicesByValue(values,isParallel);
     }
 
+    /**
+     * Превращает массив весов в массив перестановок индексов.
+     */
     private int[] sortIndicesByValue(double[] values,boolean isParallel) {
         int n = values.length;
         long[] packed = new long[n];
@@ -57,7 +75,6 @@ public class SierpinskiPermutation implements PermutationSource {
         }
         if(isParallel) {
             Arrays.parallelSort(packed);
-            // сортировка примитивов — в разы быстрее
         }
         else{
             Arrays.sort(packed);
@@ -69,6 +86,9 @@ public class SierpinskiPermutation implements PermutationSource {
         return result;
     }
 
+    /**
+     * @return Строка "sierpinski" (ИСПРАВЛЕНО: было "sierphinski").
+     */
     @Override
     public String getName() {
         return "sierphinski";

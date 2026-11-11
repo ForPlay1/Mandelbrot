@@ -6,18 +6,25 @@ import java.util.Arrays;
 
 /**
  * Перестановка на основе канторовой диагональной матрицы.
- *
- * Идея: функция спаривания Кантора C(x, y) = (x+y)(x+y+1)/2 + y
- * задаёт биекцию N² → N. Мы используем её как "вес" пикселя:
- * чем больше C(row, col), тем позже пиксель в перестановке.
- *
- * Чтобы перестановка зависела от ключа, строки и столбцы
- * предварительно сдвигаются на хаотические величины, полученные
- * из seed. Это аналог "ordered rotation scrambling" из литературы
- * по канторовой диагональной перестановке [citation:4][citation:14].
+ * <p>
+ * Идея: функция спаривания Кантора {@code C(x, y) = (x+y)(x+y+1)/2 + y}
+ * задаёт биекцию {@code N² → N}. Мы используем её как "вес" пикселя:
+ * чем больше {@code C(row, col)}, тем позже пиксель в перестановке.
+ * </p>
+ * <p>
+ * Чтобы перестановка зависела от ключа, строки и столбцы предварительно
+ * сдвигаются на хаотические величины, полученные из {@code seed}.
+ * Это аналог "ordered rotation scrambling" из литературы по канторовой перестановке.
+ * </p>
  */
 public class CantorPermutation implements PermutationSource {
-
+    /**
+     * Генерирует перестановку на основе канторовой диагональной матрицы.
+     *
+     * @param length Количество пикселей.
+     * @param params Параметры (width, seed, isParallel).
+     * @return Массив перестановок индексов.
+     */
     @Override
     public int[] generatePermutation(int length, Map<String, Double> params) {
         int width = params.getOrDefault("width",(double)length).intValue();
@@ -38,21 +45,15 @@ public class CantorPermutation implements PermutationSource {
             int row = i / width;
             int col = i % width;
 
-            // Сдвигаем индексы по кругу, чтобы получить хаотический
-            // порядок обхода. Это ключевая идея "ordered rotation scrambling"
+            // Сдвигаем индексы по кругу для хаотического порядка обхода
             int shiftedRow = (row + rowShift) % height;
             int shiftedCol = (col + colShift) % width;
 
-            // Вычисляем функцию спаривания Кантора.
-            // Используем long, чтобы избежать переполнения:
-            // для 1024×1024 (x+y) может достигать 2046,
-            // (x+y)² ≈ 4.2 млн — помещается в long.
+            // Функция спаривания Кантора
             long sum = shiftedRow + shiftedCol;
             long cantor = (sum * (sum + 1)) / 2 + shiftedCol;
 
-            // Приводим к double и добавляем микро-вариацию,
-            // чтобы избежать одинаковых значений (маловероятно,
-            // но возможно при больших изображениях).
+            // Микро-вариация для избежания коллизий
             weights[i] = cantor + (i * 1e-9);
         }
 
@@ -62,8 +63,11 @@ public class CantorPermutation implements PermutationSource {
     }
 
     /**
-     * Примитивная сортировка через long[] — без boxing.
-     * Тот же приём, что в MandelbrotPermutation и JuliaPermutation.
+     * Примитивная сортировка через {@code long[]} без boxing.
+     *
+     * @param values Массив весов.
+     * @param isParallel Флаг параллельной сортировки.
+     * @return Массив индексов.
      */
     private int[] sortIndicesByValue(double[] values,boolean isParallel) {
         int n = values.length;
@@ -89,6 +93,9 @@ public class CantorPermutation implements PermutationSource {
         return result;
     }
 
+    /**
+     * @return Строка "cantor".
+     */
     @Override
     public String getName() {
         return "cantor";

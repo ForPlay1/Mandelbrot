@@ -4,7 +4,22 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 
+/**
+ * Источник перестановки на основе кривой Дракона (Dragon Curve).
+ * <p>
+ * Генерирует точки кривой Хейуэя, накладывает их на сетку изображения
+ * и с помощью двухпроходного алгоритма Distance Transform (поиск
+ * расстояния до ближайшей точки кривой) создает веса для перестановки.
+ * </p>
+ */
 public class DragonPermutation implements PermutationSource {
+    /**
+     * Генерирует перестановку на основе кривой Дракона.
+     *
+     * @param length Количество пикселей.
+     * @param params Параметры (width, seed, isParallel).
+     * @return Массив перестановок индексов.
+     */
     @Override
     public int[] generatePermutation(int length, Map<String, Double> params) {
         int width = params.getOrDefault("width", (double) length).intValue();
@@ -22,6 +37,8 @@ public class DragonPermutation implements PermutationSource {
         px[0] = 0; py[0] = 0;
 
         for (int i = 1; i < pathLen; i++) {
+            // Битовый трюк для определения поворота:
+            // если в битовом представлении i есть младший установленный бит...
             int turn = ((i & -i) << 1) & i;
             if (turn != 0) dir = (dir + 1) % 4; // Налево
             else dir = (dir + 3) % 4;           // Направо
@@ -35,7 +52,7 @@ public class DragonPermutation implements PermutationSource {
             py[i] = y;
         }
 
-        // Находим границы кривой
+        // Находим границы кривой для масштабирования под размеры картинки
         int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE;
         int minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
         for (int i = 0; i < pathLen; i++) {
@@ -52,11 +69,11 @@ public class DragonPermutation implements PermutationSource {
         int shiftX = rnd.nextInt(Math.max(1, width));
         int shiftY = rnd.nextInt(Math.max(1, height));
 
-        // Создаем карту расстояний до кривой
+        // Создаем карту расстояний до кривой (все изначально бесконечно далеко)
         double[] grid = new double[length];
         Arrays.fill(grid, Double.MAX_VALUE);
 
-        // Отмечаем точки кривой на сетке
+        // Отмечаем точки кривой на сетке (вес = 0)
         for (int j = 0; j < pathLen; j++) {
             int rx = (int)((px[j] - minX) * scaleX);
             int ry = (int)((py[j] - minY) * scaleY);
@@ -70,7 +87,7 @@ public class DragonPermutation implements PermutationSource {
         }
 
         // Двухпроходный алгоритм Distance Transform (поиск расстояния)
-        // Прямой проход
+        // Прямой проход (сверху-слева направо)
         for (int r = 0; r < height; r++) {
             for (int c = 0; c < width; c++) {
                 int i = r * width + c;
@@ -78,7 +95,7 @@ public class DragonPermutation implements PermutationSource {
                 if (c > 0) grid[i] = Math.min(grid[i], grid[i - 1] + 1);
             }
         }
-        // Обратный проход
+        // Обратный проход (снизу-справа налево)
         for (int r = height - 1; r >= 0; r--) {
             for (int c = width - 1; c >= 0; c--) {
                 int i = r * width + c;
@@ -95,6 +112,9 @@ public class DragonPermutation implements PermutationSource {
         return sortIndicesByValue(values,isParallel);
     }
 
+    /**
+     * Превращает массив весов в массив перестановок индексов.
+     */
     private int[] sortIndicesByValue(double[] values,boolean isParallel) {
         int n = values.length;
         long[] packed = new long[n];
@@ -105,7 +125,6 @@ public class DragonPermutation implements PermutationSource {
         }
         if(isParallel) {
             Arrays.parallelSort(packed);
-            // сортировка примитивов — в разы быстрее
         }
         else{
             Arrays.sort(packed);
@@ -117,6 +136,9 @@ public class DragonPermutation implements PermutationSource {
         return result;
     }
 
+    /**
+     * @return Строка "dragon".
+     */
     @Override
     public String getName() {
         return "dragon";

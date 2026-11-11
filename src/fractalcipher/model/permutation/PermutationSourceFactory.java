@@ -5,19 +5,26 @@ import java.util.Map;
 import java.util.Set;
 import fractalcipher.exception.UnsupportedSourceException;
 
-// Реестр всех источников перестановки. Смысл существования этого
-// класса: Controller и View обращаются только к нему по имени
-// ("mandelbrot", "julia", ...), и вообще не импортируют конкретные
-// классы фракталов. Чтобы добавить новый фрактал, достаточно
-// реализовать PermutationSource и зарегистрировать его в конструкторе
-// ниже — больше нигде в проекте ничего менять не нужно.
+/**
+ * Реестр всех источников перестановки.
+ * <p>
+ * Смысл существования этого класса: Controller и View обращаются только к нему
+ * по имени (например, "mandelbrot"), и не импортируют конкретные классы фракталов.
+ * Чтобы добавить новый фрактал, достаточно реализовать {@link PermutationSource}
+ * и зарегистрировать его в конструкторе ниже.
+ * </p>
+ */
 public class PermutationSourceFactory {
 
-    // Ключ — имя источника (source.getName()), значение — сам объект.
+    /**
+     * Внутренний реестр: ключ — имя источника, значение — сам объект.
+     */
     private final Map<String, PermutationSource> sources = new HashMap<>();
 
+    /**
+     * Конструктор регистрирует все известные на сегодня источники.
+     */
     public PermutationSourceFactory() {
-        // Регистрируем все известные на сегодня источники.
         register(new MandelbrotPermutation());
         register(new JuliaPermutation());
         register(new CantorPermutation());
@@ -28,19 +35,31 @@ public class PermutationSourceFactory {
         register(new IdentityPermutation());
     }
 
-    // === НОВОЕ: очистка реестра ===
-    // Нужна для создания "фабрики только с identity" в бенчмарке.
+    /**
+     * Очищает реестр. Используется в бенчмарке для создания
+     * "фабрики только с identity" или "только с null".
+     */
     public void clear() {
         sources.clear();
     }
 
+    /**
+     * Регистрирует новый источник перестановки.
+     *
+     * @param source Экземпляр реализации {@link PermutationSource}.
+     */
     public void register(PermutationSource source) {
         sources.put(source.getName(), source);
     }
 
-    // Достаём источник по имени. Кидаем понятную ошибку, если имя
-    // не зарегистрировано — так опечатка в EncryptionKey.permutationSourceName
-    // не превратится в NullPointerException где-то дальше по коду.
+    /**
+     * Достает источник по имени.
+     *
+     * @param name Имя источника.
+     * @return Найденный объект.
+     * @throws UnsupportedSourceException если имя не зарегистрировано.
+     *         Это защищает от опечаток в ключах шифрования.
+     */
     public PermutationSource get(String name) {
         PermutationSource source = sources.get(name);
         if (source == null) {
@@ -49,9 +68,12 @@ public class PermutationSourceFactory {
         return source;
     }
 
-    // Список всех зарегистрированных имён — нужен, например,
-    // BenchmarkRunner'у, чтобы перебрать все варианты автоматически,
-    // не перечисляя их вручную в Main.
+    /**
+     * Возвращает список всех зарегистрированных имен.
+     * Нужен бенчмарку, чтобы перебрать все варианты автоматически.
+     *
+     * @return Множество уникальных имен.
+     */
     public Set<String> availableNames() {
         return sources.keySet();
     }
