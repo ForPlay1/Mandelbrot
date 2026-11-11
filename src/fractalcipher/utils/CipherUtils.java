@@ -16,22 +16,22 @@ public class CipherUtils {
     /**
      * Генерирует параметры для перестановки на основе мастер-сида.
      */
-    public static Map<String, Double> buildPermParams(long masterSeed, String permName) {
+    public static Map<String, Double> buildPermParams(byte[] masterKey, String permName) {
         Map<String, Double> map = new HashMap<>();
-        map.put("seed", (double) KeyDerivation.deriveLong(masterSeed, "perm:" + permName));
+        map.put("seed", (double) KeyDerivation.deriveLong(masterKey, "perm:" + permName));
         return map;
     }
 
     /**
      * Генерирует параметры для диффузии (включая S-боксы) на основе мастер-сида.
      */
-    public static Map<String, Double> buildDiffParams(long masterSeed, String diffName) {
+    public static Map<String, Double> buildDiffParams(byte[] masterKey, String diffName) {
         Map<String, Double> map = new HashMap<>();
-        map.put("seed", (double) KeyDerivation.deriveLong(masterSeed, "diff:" + diffName));
-        map.put("x0", KeyDerivation.deriveDouble(masterSeed, "x0:" + diffName));
-        map.put("sboxSeed", (double) KeyDerivation.deriveLong(masterSeed, "sbox:" + diffName));
-        map.put("sboxCbc1", (double) KeyDerivation.deriveLong(masterSeed, "cbc1:" + diffName));
-        map.put("sboxCbc2", (double) KeyDerivation.deriveLong(masterSeed, "cbc2:" + diffName));
+        map.put("seed", (double) KeyDerivation.deriveLong(masterKey, "diff:" + diffName));
+        map.put("x0", KeyDerivation.deriveDouble(masterKey, "x0:" + diffName));
+        map.put("sboxSeed", (double) KeyDerivation.deriveLong(masterKey, "sbox:" + diffName));
+        map.put("sboxCbc1", (double) KeyDerivation.deriveLong(masterKey, "cbc1:" + diffName));
+        map.put("sboxCbc2", (double) KeyDerivation.deriveLong(masterKey, "cbc2:" + diffName));
         return map;
     }
 

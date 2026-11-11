@@ -27,15 +27,15 @@ public class HenonMapDiffusion implements DiffusionSource {
     public byte[] generateStream(final int length, final Map<String, Double> params) {
         final long seed = params.getOrDefault("seed", 0.0).longValue();
         final Random rnd = new Random(seed);
-        final double a = params.getOrDefault("a", (1.0 + 2.3) * DiffusionUtils.randomCord(rnd) - 2.3);
-        final double b = params.getOrDefault("b", (1.5 + 0.5) * DiffusionUtils.randomCord(rnd) - 1.5);
+        final double a = params.getOrDefault("a", 1.3 + DiffusionUtils.randomCord(rnd) * 0.1);
+        final double b = params.getOrDefault("b", 0.2 + DiffusionUtils.randomCord(rnd) * 0.2);
 
         // x0, y0 — часть ключа. Если не переданы — случайные
         // (в реальном шифровании они ВСЕГДА должны приходить из ключа).
         // Диапазон (-0.5; 0.5) лежит внутри области притяжения аттрактора
         // при классических a=1.4, b=0.3.
-        final double x0 = params.getOrDefault("x0", DiffusionUtils.randomCord(rnd) - 0.5);
-        final double y0 = params.getOrDefault("y0", DiffusionUtils.randomCord(rnd) - 0.5);
+        final double x0 = params.getOrDefault("x0", -1.0 + DiffusionUtils.randomCord(rnd) * 2.0);
+        final double y0 = params.getOrDefault("y0", -0.3 + DiffusionUtils.randomCord(rnd) * 0.6);
 
         final long sboxSeed = params.getOrDefault("sboxSeed", 0.0).longValue();
 

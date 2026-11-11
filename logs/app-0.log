@@ -5,3 +5,37 @@
 [2026-11-04 13:37:04] [INFO   ] [AppLogger] Сгенерирован и сохранен новый ключ: 7378023241_encrypted.key
 [2026-11-04 13:37:04] [INFO   ] [AppLogger] Зашифровано: 7378023241_encrypted.png (sierphinski + arnold)
 [2026-11-04 13:37:04] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-11 23:31:43] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-11 23:31:43] [INFO   ] [AppLogger] Режим: ENCRYPT, Вход: C:\Users\Samoslon\Documents\для проекта\7378023241.jpg
+[2026-11-11 23:31:43] [INFO   ] [AppLogger] Выходная папка: C:\Users\Samoslon\Documents\для проекта 2
+[2026-11-11 23:31:43] [INFO   ] [AppLogger] Шифрование файла: 7378023241.jpg [burning ship + henon]
+[2026-11-11 23:31:43] [INFO   ] [AppLogger] Сгенерирован и сохранен новый ключ: 7378023241_encrypted.key
+[2026-11-11 23:31:43] [SEVERE ] [AppLogger] [ENCRYPTION] EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:396)
+	at fractalcipher.controller.CipherController.runSingle(CipherController.java:173)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:78)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:37)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+[2026-11-11 23:31:43] [SEVERE ] [AppLogger] --- Операция аварийно завершена ---
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:396)
+	at fractalcipher.controller.CipherController.runSingle(CipherController.java:173)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:78)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:37)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+[2026-11-11 23:32:29] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-11 23:32:29] [INFO   ] [AppLogger] Режим: ENCRYPT, Вход: C:\Users\Samoslon\Documents\для проекта\7378023241.jpg
+[2026-11-11 23:32:29] [INFO   ] [AppLogger] Выходная папка: C:\Users\Samoslon\Documents\для проекта 2
+[2026-11-11 23:32:29] [INFO   ] [AppLogger] Шифрование файла: 7378023241.jpg [burning ship + logistic]
+[2026-11-11 23:32:29] [INFO   ] [AppLogger] Сгенерирован и сохранен новый ключ: 7378023241_encrypted.key
+[2026-11-11 23:32:30] [INFO   ] [AppLogger] Зашифровано: 7378023241_encrypted.png (burning ship + logistic)
+[2026-11-11 23:32:30] [INFO   ] [AppLogger] --- Операция успешно завершена ---

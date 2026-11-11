@@ -19,7 +19,14 @@ import java.util.Map;
 
 public class BenchmarkRunner {
 
-    private static final long MASTER_SEED = 12345L;
+    // Фиксированный 256-битный ключ для бенчмарка (для воспроизводимости)
+    private static final byte[] MASTER_KEY = new byte[32];
+    static {
+        // Заполняем массив предсказуемыми значениями (0, 1, 2...31)
+        for (int i = 0; i < 32; i++) {
+            MASTER_KEY[i] = (byte) i;
+        }
+    }
 
     /**
      * СЕРИЯ 1: только перестановка.
@@ -113,15 +120,15 @@ public class BenchmarkRunner {
             String diffusionName = pair[1];
             try {
                 long permSeed = KeyDerivation.deriveLong(
-                        MASTER_SEED, "permutation:" + permutationName);
+                        MASTER_KEY, "permutation:" + permutationName);
                 double x0 = KeyDerivation.deriveDouble(
-                        MASTER_SEED, "diffusion:" + diffusionName + ":x0");
+                        MASTER_KEY, "diffusion:" + diffusionName + ":x0");
                 long sboxSeed = KeyDerivation.deriveLong(
-                        MASTER_SEED, "diffusion:" + diffusionName + ":sbox");
+                        MASTER_KEY, "diffusion:" + diffusionName + ":sbox");
                 long sboxCbc1 = KeyDerivation.deriveLong(
-                        MASTER_SEED, "diffusion:" + diffusionName + ":cbc1");
+                        MASTER_KEY, "diffusion:" + diffusionName + ":cbc1");
                 long sboxCbc2 = KeyDerivation.deriveLong(
-                        MASTER_SEED, "diffusion:" + diffusionName + ":cbc2");
+                        MASTER_KEY, "diffusion:" + diffusionName + ":cbc2");
 
                 Map<String, Double> permParams = new HashMap<>();
                 permParams.put("seed", (double) permSeed);

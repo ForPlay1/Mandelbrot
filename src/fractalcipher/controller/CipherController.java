@@ -23,6 +23,14 @@ import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Контроллер, управляющий бизнес-логикой шифрования, расшифровки и бенчмарка.
+ * <p>
+ * Это связующее звено между View (интерфейсом) и Model (шифрами).
+ * Контроллер принимает выбор пользователя из интерфейса, выполняет чтение/запись файлов,
+ * управляет генерацией ключей и распределяет задачи по потокам (контекстный параллелизм).
+ * </p>
+ */
 public class CipherController {
 
     private final PermutationSourceFactory permutationFactory = new PermutationSourceFactory();
@@ -31,7 +39,9 @@ public class CipherController {
 
     /**
      * Главная точка входа для бизнес-логики.
-     * Вызывается из Main после того, как пользователь нажал "Запустить".
+     * Вызывается из Main после того, как пользователь нажал кнопку "Запустить".
+     *
+     * @param selection Словарь, содержащий выбор пользователя: режим, методы, файлы и пути.
      */
     public void processSelection(Map<Class<?>, Object> selection) {
         CipherMode mode = (CipherMode) selection.get(CipherMode.class);
@@ -42,6 +52,7 @@ public class CipherController {
 
         File output = (out != null) ? out.toFile() : null;
 
+        // Защита от некорректного вызова
         if (mode == null || input == null) {
             AppLogger.warning("Запуск отменен: не выбран режим или входной файл.");
             System.out.println("Режим или входной файл не выбраны — выходим.");
@@ -56,6 +67,7 @@ public class CipherController {
         }
 
         try {
+            // Маршрутизация задачи в зависимости от выбранного режима
             switch (mode) {
                 case BENCRYPT -> runBatchEncrypt(perm.getName(), diff.getName(), input, output);
                 case BENDECRYPT -> runBatchDecrypt(input, output);
@@ -68,14 +80,27 @@ public class CipherController {
             }
             AppLogger.info("--- Операция успешно завершена ---");
         } catch (Throwable t) {
-            // ErrorHandler.handle() внутри себя вызовет AppLogger.error(), если логгер инициализирован
+            // Централизованная обработка ошибок
             String safeMsg = ErrorHandler.handle(t);
             AppLogger.error("--- Операция аварийно завершена ---", t);
             view.showError(safeMsg);
         }
     }
 
-    // === ОДИНОЧНОЕ ШИФРОВАНИЕ / РАСШИФРОВКА ===
+    /**
+     * Шифрует или расшифровывает одно изображение.
+     * <p>
+     * Для одиночного файла включается <b>внутренний параллелизм</b> (isParallel = 1.0),
+     * чтобы фрактал и хаотическая карта считались на всех ядрах процессора.
+     * </p>
+     *
+     * @param mode            Режим (ENCRYPT или DECRYPT).
+     * @param permutationName Имя источника перестановки (например, "mandelbrot").
+     * @param diffusionName   Имя источника диффузии (например, "logistic").
+     * @param inputFile       Исходный файл изображения.
+     * @param image           Загруженное изображение.
+     * @param outputDir       Папка для сохранения (если null, сохраняется рядом с исходным).
+     */
     private void runSingle(CipherMode mode, String permutationName, String diffusionName,
                            File inputFile, Image image, File outputDir) {
         boolean isDecrypt = (mode == CipherMode.DECRYPT);
@@ -84,12 +109,13 @@ public class CipherController {
 
         File targetFile;
         File keyFile;
-        long masterSeed;
+        byte[] masterKey; // 256-битный ключ (32 байта)
 
         // Определяем папку для сохранения (если не выбрана, берем папку исходника)
         File saveDir = (outputDir != null) ? outputDir : inputFile.getParentFile();
 
         if (isDecrypt) {
+            // --- РЕЖИМ РАСШИФРОВКИ ---
             targetFile = inputFile;
             keyFile = KeyManager.getKeyFile(targetFile);
             if (!keyFile.exists()) {
@@ -97,7 +123,7 @@ public class CipherController {
             }
             try {
                 EncryptionKey key = KeyManager.loadKey(keyFile);
-                masterSeed = key.masterSeed;
+                masterKey = key.masterKey;
                 permutationName = key.permutationSourceName;
                 diffusionName = key.diffusionSourceName;
                 AppLogger.info("Ключ успешно загружен из: " + keyFile.getName());
@@ -106,6 +132,7 @@ public class CipherController {
                 throw new RuntimeException("Ошибка чтения ключа: " + e.getMessage());
             }
         } else {
+            // --- РЕЖИМ ШИФРОВАНИЯ ---
             String originalName = inputFile.getName();
             String baseNameStr = CipherUtils.baseName(originalName);
 
@@ -113,8 +140,10 @@ public class CipherController {
             targetFile = new File(saveDir, baseNameStr + CipherUtils.ENCRYPTED_SUFFIX + ".png");
             keyFile = KeyManager.getKeyFile(targetFile);
 
-            masterSeed = new SecureRandom().nextLong();
-            EncryptionKey newKey = new EncryptionKey(masterSeed, permutationName, diffusionName);
+            // Генерация 256-битного случайного ключа (32 байта)
+            masterKey = new byte[32];
+            new SecureRandom().nextBytes(masterKey);
+            EncryptionKey newKey = new EncryptionKey(masterKey, permutationName, diffusionName);
             try {
                 KeyManager.saveKey(newKey, keyFile);
                 AppLogger.info("Сгенерирован и сохранен новый ключ: " + keyFile.getName());
@@ -124,8 +153,9 @@ public class CipherController {
             }
         }
 
-        Map<String, Double> permParams = CipherUtils.buildPermParams(masterSeed, permutationName);
-        Map<String, Double> diffParams = CipherUtils.buildDiffParams(masterSeed, diffusionName);
+        // Генерируем параметры из мастер-ключа (byte[])
+        Map<String, Double> permParams = CipherUtils.buildPermParams(masterKey, permutationName);
+        Map<String, Double> diffParams = CipherUtils.buildDiffParams(masterKey, diffusionName);
 
         // КОНТЕКСТНЫЙ ПАРАЛЛЕЛИЗМ: для одного файла ВКЛЮЧАЕМ внутренний параллелизм
         permParams.put("isParallel", 1.0);
@@ -158,11 +188,17 @@ public class CipherController {
         } catch (IOException e) {
             throw new RuntimeException("Ошибка сохранения: " + e.getMessage());
         }
-
-        view.showResult(result);
     }
 
     // === ПАКЕТНОЕ ШИФРОВАНИЕ ПАПКИ ===
+    /**
+     * Шифрует все изображения в папке.
+     * <p>
+     * Использует <b>внешний параллелизм</b> (parallelStream по файлам).
+     * Внутренний параллелизм фракталов принудительно отключен (isParallel = 0.0),
+     * чтобы избежать конфликта потоков (Thread Starvation).
+     * </p>
+     */
     private void runBatchEncrypt(String permutationName, String diffusionName,
                                  File inputDir, File outputDir) {
         if (inputDir == null || outputDir == null) return;
@@ -178,25 +214,27 @@ public class CipherController {
         AppLogger.info("Начало пакетного шифрования. Файлов: " + files.length + " [" + permutationName + " + " + diffusionName + "]");
         long startTime = System.currentTimeMillis();
 
+        // Атомарные счетчики для потокобезопасного подсчета
         AtomicInteger ok = new AtomicInteger(0);
         AtomicInteger failed = new AtomicInteger(0);
 
         // КОНТЕКСТНЫЙ ПАРАЛЛЕЛИЗМ: Параллелим обработку САМИХ ФАЙЛОВ
         Arrays.stream(files).parallel().forEach(file -> {
-            String prefix = file.getName() + ": ";
             try {
                 Image input = Image.loadFromFile(file.getName(), file.getName(), file);
-                long masterSeed = new SecureRandom().nextLong();
+                // Генерация уникального 256-битного ключа для каждого файла
+                byte[] masterKey = new byte[32];
+                new SecureRandom().nextBytes(masterKey);
 
-                EncryptionKey key = new EncryptionKey(masterSeed, permutationName, diffusionName);
+                EncryptionKey key = new EncryptionKey(masterKey, permutationName, diffusionName);
                 File targetImage = new File(outputDir, CipherUtils.baseName(file.getName()) + CipherUtils.ENCRYPTED_SUFFIX + ".png");
                 File targetKey = KeyManager.getKeyFile(targetImage);
                 KeyManager.saveKey(key, targetKey);
 
-                Map<String, Double> permParams = CipherUtils.buildPermParams(masterSeed, permutationName);
-                Map<String, Double> diffParams = CipherUtils.buildDiffParams(masterSeed, diffusionName);
+                Map<String, Double> permParams = CipherUtils.buildPermParams(masterKey, permutationName);
+                Map<String, Double> diffParams = CipherUtils.buildDiffParams(masterKey, diffusionName);
 
-                // ВЫКЛЮЧАЕМ внутренний параллелизм для фракталов, чтобы не конфликтовать с параллелизмом файлов
+                // ВЫКЛЮЧАЕМ внутренний параллелизм для фракталов
                 permParams.put("isParallel", 0.0);
                 diffParams.put("isParallel", 0.0);
 
@@ -222,6 +260,13 @@ public class CipherController {
     }
 
     // === ПАКЕТНАЯ РАСШИФРОВКА ПАПКИ ===
+    /**
+     * Расшифровывает все файлы {@code *_encrypted.png} в папке.
+     * <p>
+     * Аналогично пакетному шифрованию, использует параллелизм на уровне файлов.
+     * Ключи (256-битные) загружаются из соответствующих файлов {@code .key}.
+     * </p>
+     */
     private void runBatchDecrypt(File inputDir, File outputDir) {
         if (inputDir == null || outputDir == null) return;
 
@@ -242,7 +287,6 @@ public class CipherController {
 
         // КОНТЕКСТНЫЙ ПАРАЛЛЕЛИЗМ: Параллелим обработку САМИХ ФАЙЛОВ
         Arrays.stream(files).parallel().forEach(file -> {
-            String prefix = file.getName() + ": ";
             try {
                 File keyFile = KeyManager.getKeyFile(file);
                 if (!keyFile.exists()) {
@@ -250,8 +294,8 @@ public class CipherController {
                 }
                 EncryptionKey key = KeyManager.loadKey(keyFile);
 
-                Map<String, Double> permParams = CipherUtils.buildPermParams(key.masterSeed, key.permutationSourceName);
-                Map<String, Double> diffParams = CipherUtils.buildDiffParams(key.masterSeed, key.diffusionSourceName);
+                Map<String, Double> permParams = CipherUtils.buildPermParams(key.masterKey, key.permutationSourceName);
+                Map<String, Double> diffParams = CipherUtils.buildDiffParams(key.masterKey, key.diffusionSourceName);
 
                 // ВЫКЛЮЧАЕМ внутренний параллелизм для фракталов
                 permParams.put("isParallel", 0.0);
@@ -283,6 +327,14 @@ public class CipherController {
     }
 
     // === БЕНЧМАРК ===
+    /**
+     * Запускает исследовательский бенчмарк для оценки метрик шифрования.
+     * <p>
+     * Бенчмарк последовательно перебирает файлы (если выбрана папка),
+     * но внутри каждого файла {@link BenchmarkRunner} уже использует
+     * параллельный перебор комбинаций алгоритмов.
+     * </p>
+     */
     private void runBenchmark(File inputFile) {
         List<File> imagesToProcess = new ArrayList<>();
 
@@ -305,7 +357,7 @@ public class CipherController {
         AppLogger.info("Запуск бенчмарка. Изображений: " + imagesToProcess.size());
         List<BenchmarkResult> allResults = Collections.synchronizedList(new ArrayList<>());
 
-        // Здесь последовательно по файлам, а параллелизм уже внутри BenchmarkRunner
+        // Последовательно по файлам, параллелизм уже внутри BenchmarkRunner
         for (File file : imagesToProcess) {
             System.out.println("Анализ изображения: " + file.getName());
             try {
@@ -322,6 +374,7 @@ public class CipherController {
             }
         }
 
+        // Сохранение результатов в CSV
         try {
             String csvBaseName = inputFile.isDirectory() ? inputFile.getName() : "single_image";
             CsvExporter.export(allResults, "benchmark_" + csvBaseName);
@@ -333,7 +386,9 @@ public class CipherController {
         view.showBenchmarkResults(allResults);
     }
 
-    // --- Старые методы делегирования (без изменений) ---
+    // --- Методы делегирования ---
+    // Эти методы просто вызывают соответствующие методы у переданного объекта Cipher.
+
     public Image handleEncrypt(Cipher cipher, Image input) {
         cipher.setImageInput(input);
         cipher.encrypt();

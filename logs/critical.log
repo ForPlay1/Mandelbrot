@@ -1,0 +1,22 @@
+[2026-11-11 23:31:43] [SEVERE ] [AppLogger] [ENCRYPTION] EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:396)
+	at fractalcipher.controller.CipherController.runSingle(CipherController.java:173)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:78)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:37)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+[2026-11-11 23:31:43] [SEVERE ] [AppLogger] --- Операция аварийно завершена ---
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:396)
+	at fractalcipher.controller.CipherController.runSingle(CipherController.java:173)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:78)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:37)
+	at java.base/java.lang.Thread.run(Thread.java:1527)

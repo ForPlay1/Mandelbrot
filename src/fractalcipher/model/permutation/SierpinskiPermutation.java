@@ -87,7 +87,7 @@ public class SierpinskiPermutation implements PermutationSource {
     }
 
     /**
-     * @return Строка "sierpinski" (ИСПРАВЛЕНО: было "sierphinski").
+     * @return Строка "sierpinski"
      */
     @Override
     public String getName() {
