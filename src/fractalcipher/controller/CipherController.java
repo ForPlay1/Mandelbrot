@@ -46,6 +46,9 @@ public class CipherController {
     private final DiffusionSourceFactory diffusionFactory = new DiffusionSourceFactory();
     private final ImageView view = new ConsoleView();
 
+    /** Количество разных ключей для проверки стабильности. */
+    private static final int BENCHMARK_KEYS = 5;
+
     /**
      * Главная точка входа для бизнес-логики.
      * Вызывается из Main после того, как пользователь нажал кнопку "Запустить".
@@ -394,18 +397,20 @@ public class CipherController {
     // ==================================================================
 
     /**
-     * Запускает исследовательский бенчмарк для оценки метрик шифрования.
+     * Запускает исследовательский бенчмарк.
      * <p>
-     * Бенчмарк последовательно перебирает файлы (если выбрана папка),
-     * но внутри каждого файла {@link BenchmarkRunner} уже использует
-     * параллельный перебор комбинаций алгоритмов.
+     * <b>Проверка стабильности.</b> Бенчмарк прогоняется
+     * {@value #BENCHMARK_KEYS} раз с разными мастер-ключами. Ключи
+     * генерируются детерминированно от seed-а (0..N-1), чтобы результаты
+     * были воспроизводимы, а seed записывается в CSV для анализа разброса.
      * </p>
      */
     private void runBenchmark(File inputFile) {
         List<File> imagesToProcess = new ArrayList<>();
 
         if (inputFile.isDirectory()) {
-            File[] files = inputFile.listFiles(f -> f.isFile() && CipherUtils.isImageToEncrypt(f.getName()));
+            File[] files = inputFile.listFiles(
+                    f -> f.isFile() && CipherUtils.isImageToEncrypt(f.getName()));
             if (files != null) {
                 imagesToProcess.addAll(Arrays.asList(files));
             }
@@ -419,28 +424,41 @@ public class CipherController {
             return;
         }
 
-        System.out.println("\n=== БЕНЧМАРК: Найдено изображений: " + imagesToProcess.size() + " ===");
-        AppLogger.info("Запуск бенчмарка. Изображений: " + imagesToProcess.size());
+        System.out.println("\n=== БЕНЧМАРК: изображений: " + imagesToProcess.size()
+                + ", ключей: " + BENCHMARK_KEYS + " ===");
+        AppLogger.info("Запуск бенчмарка. Изображений: " + imagesToProcess.size()
+                + ", ключей: " + BENCHMARK_KEYS);
+
         List<BenchmarkResult> allResults = Collections.synchronizedList(new ArrayList<>());
 
-        for (File file : imagesToProcess) {
-            System.out.println("Анализ изображения: " + file.getName());
-            try {
-                Image image = Image.loadFromFile(file.getName(), file.getName(), file);
-                List<BenchmarkResult> localResults = new ArrayList<>();
-                localResults.addAll(handleBenchmarkPermutationOnly(image));
-                localResults.addAll(handleBenchmarkDiffusionOnly(image));
-                localResults.addAll(handleBenchmarkFull(image));
-                allResults.addAll(localResults);
-                AppLogger.info("Бенчмарк для файла " + file.getName() + " успешно завершен.");
-            } catch (Throwable t) {
-                AppLogger.error("Ошибка при бенчмарке файла: " + file.getName(), t);
-                System.err.println("Ошибка при бенчмарке файла " + file.getName() + ": " + t.getMessage());
+        for (int seed = 0; seed < BENCHMARK_KEYS; seed++) {
+            byte[] masterKey = makeKey(seed);
+            AppLogger.info("Бенчмарк: используется ключ seed=" + seed);
+            System.out.println("--- Ключ seed=" + seed + " ---");
+
+            for (File file : imagesToProcess) {
+                System.out.println("  Анализ: " + file.getName());
+                try {
+                    Image image = Image.loadFromFile(file.getName(), file.getName(), file);
+                    List<BenchmarkResult> localResults = new ArrayList<>();
+                    localResults.addAll(handleBenchmarkPermutationOnly(image, masterKey, seed));
+                    localResults.addAll(handleBenchmarkDiffusionOnly(image, masterKey, seed));
+                    localResults.addAll(handleBenchmarkFull(image, masterKey, seed));
+                    allResults.addAll(localResults);
+                    AppLogger.info("Бенчмарк для файла " + file.getName()
+                            + " (seed=" + seed + ") успешно завершен.");
+                } catch (Throwable t) {
+                    AppLogger.error("Ошибка при бенчмарке файла: " + file.getName()
+                            + " (seed=" + seed + ")", t);
+                    System.err.println("Ошибка при бенчмарке файла " + file.getName()
+                            + ": " + t.getMessage());
+                }
             }
         }
 
         try {
-            String csvBaseName = inputFile.isDirectory() ? inputFile.getName() : "single_image";
+            String csvBaseName = inputFile.isDirectory()
+                    ? inputFile.getName() : "single_image";
             CsvExporter.export(allResults, "benchmark_" + csvBaseName);
             AppLogger.info("Бенчмарк завершен. Результаты сохранены в CSV.");
         } catch (IOException e) {
@@ -450,7 +468,20 @@ public class CipherController {
         view.showBenchmarkResults(allResults);
     }
 
-    // --- Методы делегирования ---
+    /**
+     * Генерирует детерминированный 256-битный мастер-ключ по seed-у.
+     * <p>
+     * Одинаковый seed всегда даёт одинаковый ключ — это нужно для
+     * воспроизводимости бенчмарка.
+     * </p>
+     */
+    private static byte[] makeKey(int seed) {
+        byte[] key = new byte[32];
+        new java.util.Random(seed).nextBytes(key);
+        return key;
+    }
+
+    // --- Методы делегирования (сигнатуры обновлены) ---
 
     public Image handleEncrypt(Cipher cipher, Image input) {
         cipher.setImageInput(input);
@@ -464,15 +495,21 @@ public class CipherController {
         return cipher.getImageOutput();
     }
 
-    public List<BenchmarkResult> handleBenchmarkPermutationOnly(Image image) {
-        return BenchmarkRunner.runPermutationOnly(permutationFactory, image);
+    public List<BenchmarkResult> handleBenchmarkPermutationOnly(Image image,
+                                                                byte[] masterKey,
+                                                                int keySeed) {
+        return BenchmarkRunner.runPermutationOnly(permutationFactory, image, masterKey, keySeed);
     }
 
-    public List<BenchmarkResult> handleBenchmarkDiffusionOnly(Image image) {
-        return BenchmarkRunner.runDiffusionOnly(diffusionFactory, image);
+    public List<BenchmarkResult> handleBenchmarkDiffusionOnly(Image image,
+                                                              byte[] masterKey,
+                                                              int keySeed) {
+        return BenchmarkRunner.runDiffusionOnly(diffusionFactory, image, masterKey, keySeed);
     }
 
-    public List<BenchmarkResult> handleBenchmarkFull(Image image) {
-        return BenchmarkRunner.runFull(permutationFactory, diffusionFactory, image);
+    public List<BenchmarkResult> handleBenchmarkFull(Image image,
+                                                     byte[] masterKey,
+                                                     int keySeed) {
+        return BenchmarkRunner.runFull(permutationFactory, diffusionFactory, image, masterKey, keySeed);
     }
 }

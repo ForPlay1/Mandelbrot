@@ -48,6 +48,16 @@ public class BenchmarkResult {
      */
     public final String resolution;
 
+    /**
+     * Seed, из которого был сгенерирован мастер-ключ.
+     * <p>
+     * Используется для проверки стабильности: по одному и тому же
+     * изображению и паре алгоритмов можно сравнить метрики при разных
+     * {@code keySeed} и оценить разброс (дисперсию).
+     * </p>
+     */
+    public final int keySeed;
+
     /** Имя источника перестановки (например, {@code "mandelbrot"}). */
     public final String permutationName;
 
@@ -78,6 +88,7 @@ public class BenchmarkResult {
      * @param imageName         имя изображения
      * @param blackAndWhite     {@code true}, если изображение в оттенках серого
      * @param resolution        разрешение в формате {@code "WxH"}
+     * @param keySeed           seed, из которого сгенерирован ключ
      * @param permutationName   имя источника перестановки
      * @param diffusionName     имя источника диффузии
      * @param encryptionTimeMs  время шифрования, мс
@@ -87,11 +98,12 @@ public class BenchmarkResult {
      * @param uaci              UACI, % (0..100)
      * @param mse               MSE (0 — идеальное восстановление)
      */
-    public BenchmarkResult(String imageName,boolean blackAndWhite,String resolution,String permutationName, String diffusionName, long encryptionTimeMs,
+    public BenchmarkResult(String imageName,boolean blackAndWhite,String resolution,int keySeed,String permutationName, String diffusionName, long encryptionTimeMs,
                            double correlation, double entropy, double npcr, double uaci, double mse) {
         this.imageName = imageName;
         this.blackAndWhite = blackAndWhite;
         this.resolution = resolution;
+        this.keySeed = keySeed;
         this.permutationName = permutationName;
         this.diffusionName = diffusionName;
         this.encryptionTimeMs = encryptionTimeMs;
@@ -106,34 +118,28 @@ public class BenchmarkResult {
      * Формирует строку CSV.
      * <p>
      * Колонки строго в порядке заголовка
-     * ({@code ImageName,BlackAndWhite,Resolution,Permutation,Diffusion,
-     * TimeMs,Correlation,Entropy,NPCR,UACI,MSE}) — менять порядок можно
-     * только синхронно с {@link CsvExporter#export}.
+     * ({@code ImageName,BlackAndWhite,Resolution,KeySeed,Permutation,Diffusion,
+     * TimeMs,Correlation,Entropy,NPCR,UACI,MSE}).
      * </p>
      *
      * @return строка без завершающего перевода строки
      */
     public String toCsvRow() {
         return String.format(java.util.Locale.US,
-                "%s,%s,%s,%s,%s,%d,%.4f,%.4f,%.2f,%.2f,%.4f",
+                "%s,%s,%s,%d,%s,%s,%d,%.4f,%.4f,%.2f,%.2f,%.4f",
                 imageName,
                 blackAndWhite,
                 resolution,
+                keySeed,
                 permutationName, diffusionName,
                 encryptionTimeMs, correlation, entropy, npcr, uaci, mse);
     }
 
-
-    /**
-     * Человекочитаемое представление для консоли.
-     * <p>
-     * Пример: {@code mandelbrot + logistic | RGB 1920x1080 | 1234 ms | ...}.
-     * </p>
-     */
     @Override
     public String toString() {
-        return String.format(
-                "%-12s + %-10s | %-3s %-9s | %6d ms | corr=%7.4f | entropy=%.4f | NPCR=%6.2f%% | UACI=%6.2f%% | MSE=%.4f",
+        return String.format(java.util.Locale.US,
+                "key=%-2d | %-12s + %-10s | %-3s %-9s | %6d ms | corr=%7.4f | entropy=%.4f | NPCR=%6.2f%% | UACI=%6.2f%% | MSE=%.4f",
+                keySeed,
                 permutationName, diffusionName,
                 blackAndWhite ? "B/W" : "RGB",
                 resolution,
