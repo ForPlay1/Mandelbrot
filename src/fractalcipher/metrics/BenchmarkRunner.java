@@ -277,6 +277,7 @@ public class BenchmarkRunner {
                 results.add(new BenchmarkResult(
                         originalImage.getName(),
                         originalImage.isBlackAndWhite(),
+                        originalImage.getResolution(),
                         permutationName, diffusionName, elapsed,
                         ImageMetrics.correlationCoefficient(encrypted.getImage()),
                         ImageMetrics.entropy(encrypted.getImage()),

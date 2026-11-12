@@ -41,11 +41,11 @@ public class CsvExporter {
 
     /**
      * Заголовок CSV. <b>Должен совпадать по количеству и порядку колонок
-     * с</b> {@link BenchmarkResult#toCsvRow()}, иначе данные «съедут»
-     * относительно подписей.
+     * с</b> {@link BenchmarkResult#toCsvRow()}.
      */
     private static final String HEADER =
-            "ImageName,BlackAndWhite,Permutation,Diffusion,TimeMs,Correlation,Entropy,NPCR,UACI,MSE";
+            "ImageName,BlackAndWhite,Resolution,Permutation,Diffusion,"
+                    + "TimeMs,Correlation,Entropy,NPCR,UACI,MSE";
 
 
     /**

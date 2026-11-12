@@ -39,6 +39,15 @@ public class BenchmarkResult {
      */
     public final boolean blackAndWhite;
 
+    /**
+     * Разрешение изображения в формате {@code "ШИРИНАxВЫСОТА"}.
+     * <p>
+     * Берётся из {@link fractalcipher.domain.Image#getResolution()} у
+     * оригинального изображения. Например, {@code "1920x1080"}.
+     * </p>
+     */
+    public final String resolution;
+
     /** Имя источника перестановки (например, {@code "mandelbrot"}). */
     public final String permutationName;
 
@@ -68,6 +77,7 @@ public class BenchmarkResult {
      *
      * @param imageName         имя изображения
      * @param blackAndWhite     {@code true}, если изображение в оттенках серого
+     * @param resolution        разрешение в формате {@code "WxH"}
      * @param permutationName   имя источника перестановки
      * @param diffusionName     имя источника диффузии
      * @param encryptionTimeMs  время шифрования, мс
@@ -77,10 +87,11 @@ public class BenchmarkResult {
      * @param uaci              UACI, % (0..100)
      * @param mse               MSE (0 — идеальное восстановление)
      */
-    public BenchmarkResult(String imageName,boolean blackAndWhite,String permutationName, String diffusionName, long encryptionTimeMs,
+    public BenchmarkResult(String imageName,boolean blackAndWhite,String resolution,String permutationName, String diffusionName, long encryptionTimeMs,
                            double correlation, double entropy, double npcr, double uaci, double mse) {
         this.imageName = imageName;
         this.blackAndWhite = blackAndWhite;
+        this.resolution = resolution;
         this.permutationName = permutationName;
         this.diffusionName = diffusionName;
         this.encryptionTimeMs = encryptionTimeMs;
@@ -95,45 +106,37 @@ public class BenchmarkResult {
      * Формирует строку CSV.
      * <p>
      * Колонки строго в порядке заголовка
-     * ({@code ImageName,BlackAndWhite,Permutation,Diffusion,TimeMs,
-     * Correlation,Entropy,NPCR,UACI,MSE}) — менять порядок можно только
-     * синхронно с {@link CsvExporter#export}.
-     * </p>
-     * <p>
-     * {@link java.util.Locale#US} гарантирует, что дробные числа будут
-     * с точкой, а не с запятой (иначе в русской локали CSV распадётся
-     * на лишние колонки). Флаг ч/б пишется как {@code true}/{@code false} —
-     * Excel понимает его без настройки.
+     * ({@code ImageName,BlackAndWhite,Resolution,Permutation,Diffusion,
+     * TimeMs,Correlation,Entropy,NPCR,UACI,MSE}) — менять порядок можно
+     * только синхронно с {@link CsvExporter#export}.
      * </p>
      *
      * @return строка без завершающего перевода строки
      */
     public String toCsvRow() {
-        // ВАЖНО: Locale.US гарантирует, что дробные числа будут с точкой, а не с запятой
         return String.format(java.util.Locale.US,
-                "%s,%s,%s,%s,%d,%.4f,%.4f,%.2f,%.2f,%.4f",
+                "%s,%s,%s,%s,%s,%d,%.4f,%.4f,%.2f,%.2f,%.4f",
                 imageName,
                 blackAndWhite,
+                resolution,
                 permutationName, diffusionName,
                 encryptionTimeMs, correlation, entropy, npcr, uaci, mse);
     }
 
 
     /**
-     * Читаемое представление для вывода в консоль / на экран.
+     * Человекочитаемое представление для консоли.
      * <p>
-     * Формат: {@code permutation + diffusion | B/W | время | corr | entropy | NPCR | UACI | MSE}.
-     * Флаг ч/б сокращён до {@code "B/W"} / {@code "RGB"} — компактно и наглядно.
+     * Пример: {@code mandelbrot + logistic | RGB 1920x1080 | 1234 ms | ...}.
      * </p>
-     *
-     * @return строка для логов и {@code ConsoleView.showBenchmarkResults}
      */
     @Override
     public String toString() {
         return String.format(
-                "%-12s + %-10s | %-5s | %6d ms | corr=%7.4f | entropy=%.4f | NPCR=%6.2f%% | UACI=%6.2f%% | MSE=%.4f",
+                "%-12s + %-10s | %-3s %-9s | %6d ms | corr=%7.4f | entropy=%.4f | NPCR=%6.2f%% | UACI=%6.2f%% | MSE=%.4f",
                 permutationName, diffusionName,
                 blackAndWhite ? "B/W" : "RGB",
+                resolution,
                 encryptionTimeMs, correlation, entropy, npcr, uaci, mse);
     }
 }
