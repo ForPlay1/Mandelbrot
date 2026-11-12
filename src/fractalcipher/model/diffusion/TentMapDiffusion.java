@@ -4,19 +4,51 @@ import java.util.Map;
 import java.util.Random;
 import fractalcipher.exception.InvalidConfigurationException;
 
-// Диффузия на основе тент-карты:
-//   x_{n+1} = mu * x_n         , если x_n < 0.5
-//   x_{n+1} = mu * (1 - x_n)   , если x_n >= 0.5
-// Параметр mu должен лежать в (1; 2). При mu = 2 в double карта вырождается:
-// умножение на 2 — это просто сдвиг мантиссы, и через ~53 шага x обнуляется.
-// Поэтому по умолчанию берём mu чуть меньше 2.
-//
-// Структура такая же, как у LogisticMapDiffusion и HenonMapDiffusion:
-// прогрев, два прохода (вперёд и назад) со сцеплением, опциональный S-бокс.
+/**
+ * Диффузия на основе тент-карты (кусочно-линейной).
+ * <p>
+ * Формула:
+ * </p>
+ * <pre>
+ *   x_{n+1} = mu · x_n            , если x_n &lt; 0.5
+ *   x_{n+1} = mu · (1 − x_n)      , если x_n ≥ 0.5
+ * </pre>
+ * <p>
+ * Параметр {@code mu} должен лежать в {@code (1; 2]}. При {@code mu = 2}
+ * карта в {@code double} вырождается: умножение на 2 — это просто сдвиг
+ * мантиссы, и через ~53 шага {@code x} обнуляется. Поэтому по умолчанию
+ * берём {@code mu} чуть меньше 2 (в {@code [1; 2]} с небольшим запасом
+ * от верхней границы).
+ * </p>
+ * <p>
+ * Структура та же, что у {@link LogisticMapDiffusion} и
+ * {@link HenonMapDiffusion}: прогрев, два прохода со сцеплением,
+ * опциональный S-бокс.
+ * </p>
+ *
+ * @author FractalCipher Team
+ * @see DiffusionSource
+ * @see LogisticMapDiffusion
+ */
 public class TentMapDiffusion implements DiffusionSource {
 
+    /** Сколько первых итераций отбрасываем, чтобы уйти от начальной точки. */
     private static final int BURN_IN = 1000;
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Ожидаемые параметры:
+     * </p>
+     * <ul>
+     *   <li>{@code "mu"} — параметр карты в {@code [1; 2]};</li>
+     *   <li>{@code "x0"} — начальное значение в {@code [0; 1]};</li>
+     *   <li>{@code "sboxSeed"} — seed S-бокса (0 — отключён).</li>
+     * </ul>
+     *
+     * @throws InvalidConfigurationException если {@code mu} вне
+     *         {@code [1; 2]} или {@code x0} вне {@code [0; 1]}
+     */
     @Override
     public byte[] generateStream(final int length, final Map<String, Double> params) {
         final long seed = params.getOrDefault("seed", 0.0).longValue();
@@ -57,6 +89,13 @@ public class TentMapDiffusion implements DiffusionSource {
         return stream;
     }
 
+    /**
+     * Выполняет {@link #BURN_IN} шагов карты от точки {@code start}.
+     *
+     * @param start начальное значение
+     * @param mu    параметр карты
+     * @return состояние после прогрева
+     */
     private static double burnIn(final double start, final double mu) {
         double x = start;
         for (int i = 0; i < BURN_IN; i++) {
@@ -65,6 +104,18 @@ public class TentMapDiffusion implements DiffusionSource {
         return x;
     }
 
+    /**
+     * Один шаг тент-карты.
+     * <p>
+     * Защита от вырождения в 0: если из-за ошибок округления значение
+     * стало ≤ {@code 1e-12}, детерминированно подставляем константу,
+     * чтобы поток не «залип» в нуле.
+     * </p>
+     *
+     * @param x  текущее значение
+     * @param mu параметр карты
+     * @return новое значение
+     */
     private static double step(final double x, final double mu) {
         final double nx = (x < 0.5) ? mu * x : mu * (1.0 - x);
         // Защита от вырождения в 0 (фиксированная точка) из-за ошибок округления:
@@ -72,6 +123,7 @@ public class TentMapDiffusion implements DiffusionSource {
         return (nx <= 1e-12) ? 0.123456789 : nx;
     }
 
+    /** @return строковое имя источника — {@code "tent"} */
     @Override
     public String getName() {
         return "tent";

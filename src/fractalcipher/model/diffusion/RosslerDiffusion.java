@@ -3,19 +3,57 @@ package fractalcipher.model.diffusion;
 import java.util.Map;
 import java.util.Random;
 
-// Диффузия на основе системы Рёсслера:
-//   dx/dt = -y - z
-//   dy/dt = x + a * y
-//   dz/dt = b + z * (x - c)
-// Классические параметры: a = 0.2, b = 0.2, c = 5.7.
-// Интегрируем методом Рунге–Кутты 4-го порядка, на каждый байт —
-// несколько шагов, байты из x, y и z объединяются через XOR.
+/**
+ * Диффузия на основе системы Рёсслера.
+ * <p>
+ * Уравнения:
+ * </p>
+ * <pre>
+ *   dx/dt = −y − z
+ *   dy/dt = x + a · y
+ *   dz/dt = b + z · (x − c)
+ * </pre>
+ * <p>
+ * Классические параметры: {@code a = 0.2}, {@code b = 0.2},
+ * {@code c = 5.7}. Интегрируется методом Рунге–Кутты 4-го порядка;
+ * на каждый выходной байт делается несколько шагов, затем байты из
+ * {@code x}, {@code y}, {@code z} XOR-ятся. Устроен так же, как
+ * {@link LorenzDiffusion}, но с другими уравнениями и шагом
+ * интегрирования ({@code DT = 0.02} вместо {@code 0.01}).
+ * </p>
+ * <p>
+ * Прогрев длиннее, чем у Лоренца (3000 шагов против 2000): аттрактор
+ * Рёсслера «устанавливается» медленнее.
+ * </p>
+ *
+ * @author FractalCipher Team
+ * @see DiffusionSource
+ * @see LorenzDiffusion
+ */
 public class RosslerDiffusion implements DiffusionSource {
 
+    /** Шаг интегрирования RK4 (крупнее, чем у Лоренца, из-за более «медленной» динамики). */
     private static final double DT = 0.02;
+    /** Сколько шагов делать на один выходной байт. */
     private static final int STEPS_PER_SAMPLE = 3;
+    /** Сколько шагов прогрева, чтобы выйти на аттрактор. */
     private static final int BURN_IN_STEPS = 3000;
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Ожидаемые параметры:
+     * </p>
+     * <ul>
+     *   <li>{@code "a"}, {@code "b"}, {@code "c"} — параметры системы
+     *       (по умолчанию классические);</li>
+     *   <li>{@code "x0"}, {@code "y0"}, {@code "z0"} — начальное состояние;</li>
+     *   <li>{@code "sboxSeed"} — seed S-бокса (0 — отключён).</li>
+     * </ul>
+     *
+     * @throws fractalcipher.exception.EncryptionFailedException если
+     *         траектория разошлась (см. {@link DiffusionUtils#rk4})
+     */
     @Override
     public byte[] generateStream(final int length, final Map<String, Double> params) {
         final double a = params.getOrDefault("a", 0.2);
@@ -80,6 +118,7 @@ public class RosslerDiffusion implements DiffusionSource {
         return stream;
     }
 
+    /** @return строковое имя источника — {@code "rossler"} */
     @Override
     public String getName() {
         return "rossler";

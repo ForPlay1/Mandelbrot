@@ -3,8 +3,40 @@ package fractalcipher.model.diffusion;
 import java.util.Map;
 import java.util.Random;
 
+/**
+ * Диффузия на основе логистической карты.
+ * <p>
+ * Формула: {@code x_{n+1} = r · x_n · (1 − x_n)}.
+ * </p>
+ * <p>
+ * При {@code r ≈ 3.99} карта находится в хаотическом режиме: малые
+ * изменения {@code x0} приводят к совершенно разным траекториям, что
+ * даёт хороший лавинный эффект. Значение по умолчанию {@code r = 3.99}
+ * выбрано специально — в окрестности 4.0 карта в {@code double} может
+ * вырождаться из-за округления.
+ * </p>
+ * <p>
+ * Структура: два прохода со сцеплением, опциональный S-бокс. Это
+ * простейшая из всех реализаций — используется как эталон при
+ * сравнении в бенчмарке.
+ * </p>
+ *
+ * @author FractalCipher Team
+ * @see DiffusionSource
+ */
 public class LogisticMapDiffusion implements DiffusionSource {
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Ожидаемые параметры:
+     * </p>
+     * <ul>
+     *   <li>{@code "r"} — параметр карты (по умолчанию {@code 3.99});</li>
+     *   <li>{@code "x0"} — начальное значение в {@code (0; 1)};</li>
+     *   <li>{@code "sboxSeed"} — seed S-бокса (0 — отключён).</li>
+     * </ul>
+     */
     @Override
     public byte[] generateStream(final int length, final Map<String, Double> params) {
         final double r = params.getOrDefault("r", 3.99);
@@ -36,6 +68,7 @@ public class LogisticMapDiffusion implements DiffusionSource {
         return stream;
     }
 
+    /** @return строковое имя источника — {@code "logistic"} */
     @Override
     public String getName() {
         return "logistic";

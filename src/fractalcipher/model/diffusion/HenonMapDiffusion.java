@@ -4,25 +4,62 @@ import java.util.Map;
 import java.util.Random;
 import fractalcipher.exception.EncryptionFailedException;
 
-// Диффузия на основе карты Хенона:
-//   x_{n+1} = 1 - a*x_n^2 + y_n
-//   y_{n+1} = b*x_n
-//
-// Как свели две величины (x, y) в один байт: на каждом шаге из x и из y
-// берётся по байту (из дробной части после умножения на 1e6, чтобы
-// отбросить старшие, предсказуемые разряды), и эти байты XOR-ятся.
-// Так в поток попадают обе координаты аттрактора.
-//
-// Структура такая же, как у LogisticMapDiffusion: два прохода (вперёд и
-// назад) со сцеплением и опциональный S-бокс.
+/**
+ * Диффузия на основе карты Хенона.
+ * <p>
+ * Формула:
+ * </p>
+ * <pre>
+ *   x_{n+1} = 1 − a · x_n² + y_n
+ *   y_{n+1} = b · x_n
+ * </pre>
+ * <p>
+ * <b>Как две координаты сворачиваются в один байт.</b> На каждом шаге
+ * из {@code x} и из {@code y} берётся по байту (из дробной части после
+ * умножения на {@code 1e6}, чтобы отбросить предсказуемые старшие
+ * разряды) — эти байты XOR-ятся. Так в поток попадают обе координаты
+ * аттрактора, а не только {@code x}.
+ * </p>
+ * <p>
+ * Структура та же, что у {@link LogisticMapDiffusion}: прогрев, два
+ * прохода со сцеплением, опциональный S-бокс.
+ * </p>
+ *
+ * @author FractalCipher Team
+ * @see DiffusionSource
+ * @see LogisticMapDiffusion
+ */
 public class HenonMapDiffusion implements DiffusionSource {
 
-    // Сколько первых итераций отбрасываем, чтобы траектория вышла на аттрактор
+    /** Сколько первых итераций отбрасываем, чтобы траектория вышла на аттрактор. */
     private static final int BURN_IN = 1000;
 
-    // Сколько раз пробуем подобрать стартовую точку блока
+    /**
+     * Сколько раз пробуем подобрать стартовую точку блока.
+     * <p>
+     * Не всякая точка квадрата лежит в области притяжения аттрактора
+     * Хенона — часть траекторий уходит в бесконечность. Поэтому при
+     * расхождении берём следующую точку из того же детерминированного
+     * генератора.
+     * </p>
+     */
     private static final int MAX_START_ATTEMPTS = 100;
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Ожидаемые параметры:
+     * </p>
+     * <ul>
+     *   <li>{@code "a"}, {@code "b"} — параметры карты
+     *       (по умолчанию в окрестности классических {@code 1.4} и {@code 0.3});</li>
+     *   <li>{@code "x0"}, {@code "y0"} — начальная точка;</li>
+     *   <li>{@code "sboxSeed"} — seed S-бокса (0 — отключён).</li>
+     * </ul>
+     *
+     * @throws EncryptionFailedException если стартовую точку блока
+     *         не удалось подобрать за {@link #MAX_START_ATTEMPTS} попыток
+     */
     @Override
     public byte[] generateStream(final int length, final Map<String, Double> params) {
         final long seed = params.getOrDefault("seed", 0.0).longValue();
@@ -63,10 +100,21 @@ public class HenonMapDiffusion implements DiffusionSource {
         return stream;
     }
 
-    // Стартовое (уже прогретое) состояние для блока chunk > 0. Не всякая точка
-    // квадрата лежит в области притяжения аттрактора Хенона — часть траекторий
-    // уходит в бесконечность. Поэтому при расхождении берём следующую точку из
-    // того же детерминированного генератора (результат остаётся воспроизводимым).
+    /**
+     * Подбирает прогретое стартовое состояние для блока {@code chunk > 0}.
+     * <p>
+     * Пытается до {@link #MAX_START_ATTEMPTS} раз: если траектория от
+     * очередной точки разошлась — берёт следующую из того же
+     * детерминированного генератора. Результат воспроизводим.
+     * </p>
+     *
+     * @param keyBits хеш ключа
+     * @param chunk   номер блока (&gt; 0)
+     * @param a       параметр {@code a}
+     * @param b       параметр {@code b}
+     * @return прогретое состояние {@code [x, y]}
+     * @throws EncryptionFailedException если все попытки разошлись
+     */
     private static double[] chunkStart(final long keyBits, final int chunk,
                                        final double a, final double b) {
         final Random cr = DiffusionUtils.chunkRandom(keyBits, chunk);
@@ -88,7 +136,14 @@ public class HenonMapDiffusion implements DiffusionSource {
                 "Не удалось подобрать стартовую точку блока для карты Хенона — проверьте параметры a, b");
     }
 
-    // Один шаг карты Хенона (state[0] = x, state[1] = y)
+    /**
+     * Один шаг карты Хенона.
+     *
+     * @param state {@code [x, y]} (обновляется на месте)
+     * @param a     параметр {@code a}
+     * @param b     параметр {@code b}
+     * @throws EncryptionFailedException если траектория разошлась
+     */
     private static void step(final double[] state, final double a, final double b) {
         final double x = state[0];
         final double y = state[1];
@@ -104,6 +159,7 @@ public class HenonMapDiffusion implements DiffusionSource {
         state[1] = ny;
     }
 
+    /** @return строковое имя источника — {@code "henon"} */
     @Override
     public String getName() {
         return "henon";

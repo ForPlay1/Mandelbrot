@@ -4,27 +4,62 @@ import java.util.Map;
 import java.util.Random;
 import fractalcipher.exception.InvalidConfigurationException;
 
-// Диффузия на основе кошачьей карты Арнольда на торе:
-//   x_{n+1} = (x_n + a * y_n)          mod 1
-//   y_{n+1} = (b * x_n + (a*b + 1) * y_n) mod 1
-// При a = b = 1 это классическая карта (x + y, x + 2y) mod 1.
-// Определитель матрицы равен 1, поэтому карта сохраняет площадь.
-//
-// Важно: в double эта карта быстро деградирует (умножение на целые
-// матрицы + округление), поэтому считаем в целых числах: тор — это
-// решётка 2^64 x 2^64, а mod 2^64 даёт обычное переполнение long.
-// Так карта остаётся точной биекцией. Байт берём из СТАРШИХ бит:
-// младшие биты в такой арифметике эволюционируют независимо от старших
-// и имеют короткий период.
-//
-// Параллельность: карта линейная, поэтому состояние через n шагов равно
-// M^n * s0 (mod 2^64), и M^n считается быстрым возведением в степень.
-// Каждый блок стартует с точного места своей части траектории, так что
-// результат ТОЧНО совпадает с последовательным расчётом.
+/**
+ * Диффузия на основе кошачьей карты Арнольда на торе.
+ * <p>
+ * Формула:
+ * </p>
+ * <pre>
+ *   x_{n+1} = (x_n + a · y_n)                 mod 1
+ *   y_{n+1} = (b · x_n + (a·b + 1) · y_n)     mod 1
+ * </pre>
+ * <p>
+ * При {@code a = b = 1} это классическая карта {@code (x + y, x + 2y) mod 1}.
+ * Определитель матрицы равен 1 — карта сохраняет площадь и является
+ * биекцией тора в себя.
+ * </p>
+ * <p>
+ * <b>Почему целочисленная арифметика.</b> В {@code double} карта быстро
+ * деградирует: умножение на целые и округление «съедают» точность.
+ * Поэтому считаем на решётке {@code 2^64 × 2^64}: переполнение
+ * {@code long} само даёт {@code mod 2^64}, а карта остаётся точной
+ * биекцией. Байт берём из <b>старших</b> бит — младшие в такой
+ * арифметике эволюционируют независимо от старших и имеют короткий
+ * период.
+ * </p>
+ * <p>
+ * <b>Параллелизм.</b> Карта линейная, поэтому состояние через {@code n}
+ * шагов равно {@code M^n · s0 (mod 2^64)}, где {@code M^n} считается
+ * быстрым возведением в степень. Каждый блок стартует с точного места
+ * своей части траектории — результат <b>точно</b> совпадает с
+ * последовательным расчётом (в отличие от карт с прогревами, где
+ * блоки стартуют с новых точек).
+ * </p>
+ *
+ * @author FractalCipher Team
+ * @see DiffusionSource
+ * @see DiffusionUtils#chainTwoPassParallel
+ */
 public class ArnoldMapDiffusion implements DiffusionSource {
 
+    /** Сколько первых итераций отбрасываем, чтобы уйти от начальной точки. */
     private static final int BURN_IN = 1000;
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Ожидаемые параметры:
+     * </p>
+     * <ul>
+     *   <li>{@code "a"}, {@code "b"} — целые ≥ 1 (по умолчанию случайные);</li>
+     *   <li>{@code "x0"}, {@code "y0"} — начальная точка в {@code (0; 1)}
+     *       (по умолчанию случайные);</li>
+     *   <li>{@code "sboxSeed"} — seed S-бокса (0 — отключён).</li>
+     * </ul>
+     *
+     * @throws InvalidConfigurationException если {@code a < 1} или
+     *         {@code b < 1}, либо начальная точка совпала с {@code (0, 0)}
+     */
     @Override
     public byte[] generateStream(final int length, final Map<String, Double> params) {
         final long seed = params.getOrDefault("seed", 0.0).longValue();
@@ -78,7 +113,14 @@ public class ArnoldMapDiffusion implements DiffusionSource {
         return stream;
     }
 
-    // Переполнение long == mod 2^64
+    /**
+     * Один шаг карты Арнольда. Переполнение {@code long} эквивалентно
+     * {@code mod 2^64}.
+     *
+     * @param s состояние {@code [x, y]} (обновляется на месте)
+     * @param a параметр {@code a}
+     * @param b параметр {@code b}
+     */
     private static void step(final long[] s, final long a, final long b) {
         final long x = s[0];
         final long y = s[1];
@@ -86,7 +128,16 @@ public class ArnoldMapDiffusion implements DiffusionSource {
         s[1] = b * x + (a * b + 1) * y;
     }
 
-    // Произведение матриц 2x2 (хранятся строками: {m00, m01, m10, m11}) mod 2^64
+    /**
+     * Умножение матриц 2×2 по модулю {@code 2^64}.
+     * <p>
+     * Матрицы хранятся построчно: {@code {m00, m01, m10, m11}}.
+     * </p>
+     *
+     * @param p первая матрица
+     * @param q вторая матрица
+     * @return {@code p · q mod 2^64}
+     */
     private static long[] mul(final long[] p, final long[] q) {
         return new long[]{
                 p[0] * q[0] + p[1] * q[2],
@@ -96,7 +147,15 @@ public class ArnoldMapDiffusion implements DiffusionSource {
         };
     }
 
-    // M^exp для M = [[1, a], [b, a*b + 1]] mod 2^64
+    /**
+     * Быстрое возведение матрицы {@code [[1, a], [b, a·b+1]]} в степень
+     * {@code exp} по модулю {@code 2^64}.
+     *
+     * @param a   параметр {@code a}
+     * @param b   параметр {@code b}
+     * @param exp показатель (неотрицательный)
+     * @return {@code M^exp mod 2^64} в развёрнутом виде
+     */
     private static long[] matPow(final long a, final long b, final long exp) {
         long[] result = {1, 0, 0, 1};
         long[] base = {1, a, b, a * b + 1};
@@ -111,6 +170,7 @@ public class ArnoldMapDiffusion implements DiffusionSource {
         return result;
     }
 
+    /** @return строковое имя источника — {@code "arnold"} */
     @Override
     public String getName() {
         return "arnold";
