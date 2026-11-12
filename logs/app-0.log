@@ -39,3 +39,51 @@ fractalcipher.exception.EncryptionFailedException: Траектория карт
 [2026-11-11 23:32:29] [INFO   ] [AppLogger] Сгенерирован и сохранен новый ключ: 7378023241_encrypted.key
 [2026-11-11 23:32:30] [INFO   ] [AppLogger] Зашифровано: 7378023241_encrypted.png (burning ship + logistic)
 [2026-11-11 23:32:30] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-12 18:52:15] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-12 18:52:15] [INFO   ] [AppLogger] Режим: ENCRYPT, Вход: C:\Users\Samoslon\Documents\для проекта\7378023241.jpg
+[2026-11-12 18:52:15] [INFO   ] [AppLogger] Выходная папка: C:\Users\Samoslon\Documents\для проекта 2
+[2026-11-12 18:52:15] [INFO   ] [AppLogger] Шифрование файла: 7378023241.jpg [cantor + arnold]
+[2026-11-12 18:52:15] [INFO   ] [AppLogger] Сгенерирован и сохранен новый ключ: 7378023241_jpg_encrypted.key
+[2026-11-12 18:52:15] [INFO   ] [AppLogger] Зашифровано: 7378023241_jpg_encrypted.png (cantor + arnold)
+[2026-11-12 18:52:15] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-12 18:53:14] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-12 18:53:14] [INFO   ] [AppLogger] Режим: ENCRYPT, Вход: C:\Users\Samoslon\Documents\для проекта\7378023241.jpg
+[2026-11-12 18:53:14] [INFO   ] [AppLogger] Выходная папка: C:\Users\Samoslon\Documents\для проекта 2
+[2026-11-12 18:53:14] [INFO   ] [AppLogger] Шифрование файла: 7378023241.jpg [cantor + arnold]
+[2026-11-12 18:53:14] [INFO   ] [AppLogger] Сгенерирован и сохранен новый ключ: 7378023241_jpg_encrypted.key
+[2026-11-12 18:53:14] [INFO   ] [AppLogger] Зашифровано: 7378023241_jpg_encrypted.png (cantor + arnold)
+[2026-11-12 18:53:14] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-12 19:02:30] [INFO   ] [AppLogger] Конфликтов имён не обнаружено (режим DECRYPT, папка: C:\Users\Samoslon\Documents\для проекта 3).
+[2026-11-12 19:02:30] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-12 19:02:30] [INFO   ] [AppLogger] Режим: DECRYPT, Вход: C:\Users\Samoslon\Documents\для проекта 2\7378023241_jpg_encrypted.png
+[2026-11-12 19:02:30] [INFO   ] [AppLogger] Выходная папка: C:\Users\Samoslon\Documents\для проекта 3
+[2026-11-12 19:02:30] [INFO   ] [AppLogger] Расшифровка файла: 7378023241_jpg_encrypted.png [null + null]
+[2026-11-12 19:02:30] [INFO   ] [AppLogger] Ключ успешно загружен из: 7378023241_jpg_encrypted.key
+[2026-11-12 19:02:30] [INFO   ] [AppLogger] Расшифровано: 7378023241_jpg_decrypted.png (cantor + arnold)
+[2026-11-12 19:02:30] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-12 19:03:35] [INFO   ] [AppLogger] Конфликтов имён не обнаружено (режим ENCRYPT, папка: C:\Users\Samoslon\Documents\для проекта 2).
+[2026-11-12 19:03:35] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-12 19:03:35] [INFO   ] [AppLogger] Режим: ENCRYPT, Вход: C:\Users\Samoslon\Documents\для проекта\maxresdefault.jpg
+[2026-11-12 19:03:35] [INFO   ] [AppLogger] Выходная папка: C:\Users\Samoslon\Documents\для проекта 2
+[2026-11-12 19:03:35] [INFO   ] [AppLogger] Шифрование файла: maxresdefault.jpg [burning ship + rossler]
+[2026-11-12 19:03:35] [INFO   ] [AppLogger] Сгенерирован и сохранен новый ключ: maxresdefault_jpg_encrypted.key
+[2026-11-12 19:03:35] [INFO   ] [AppLogger] Зашифровано: maxresdefault_jpg_encrypted.png (burning ship + rossler)
+[2026-11-12 19:03:35] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-12 19:04:00] [WARNING] [AppLogger] Обнаружено конфликтов: 2 из 6 исходных файлов (режим BENCRYPT, папка C:\Users\Samoslon\Documents\для проекта 2)
+[2026-11-12 19:04:00] [INFO   ] [AppLogger] Конфликт 1/2: 7378023241.jpg → 7378023241_jpg_encrypted.png (цель уже существует)
+[2026-11-12 19:04:07] [INFO   ] [AppLogger] Конфликт 1/2 [7378023241.jpg]: выбор — Заменить
+[2026-11-12 19:04:07] [INFO   ] [AppLogger] Конфликт 2/2: maxresdefault.jpg → maxresdefault_jpg_encrypted.png (цель уже существует)
+[2026-11-12 19:04:09] [INFO   ] [AppLogger] Конфликт 2/2 [maxresdefault.jpg]: выбор — Пропустить
+[2026-11-12 19:04:09] [INFO   ] [AppLogger] Разрешение конфликтов завершено: заменено=1, пропущено=1.
+[2026-11-12 19:04:09] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-12 19:04:09] [INFO   ] [AppLogger] Режим: BENCRYPT, Вход: C:\Users\Samoslon\Documents\для проекта
+[2026-11-12 19:04:09] [INFO   ] [AppLogger] Выходная папка: C:\Users\Samoslon\Documents\для проекта 2
+[2026-11-12 19:04:09] [INFO   ] [AppLogger] Начало пакетного шифрования. Файлов: 6 [sierphinski + tent]
+[2026-11-12 19:04:09] [INFO   ] [AppLogger] Пропущено (по выбору пользователя): maxresdefault.jpg
+[2026-11-12 19:04:09] [INFO   ] [AppLogger] Пакетное шифрование [OK]: 7378023241_jpg_encrypted.png
+[2026-11-12 19:04:10] [INFO   ] [AppLogger] Пакетное шифрование [OK]: 1234_png_encrypted.png
+[2026-11-12 19:04:10] [INFO   ] [AppLogger] Пакетное шифрование [OK]: 1_png_encrypted.png
+[2026-11-12 19:04:10] [INFO   ] [AppLogger] Пакетное шифрование [OK]: Warframe0000_jpg_encrypted.png
+[2026-11-12 19:04:10] [INFO   ] [AppLogger] Пакетное шифрование [OK]: 123_png_encrypted.png
+[2026-11-12 19:04:10] [INFO   ] [AppLogger] Пакетное шифрование завершено за 1129 мс. Успешно: 5, Пропущено: 1, Ошибок: 0
+[2026-11-12 19:04:10] [INFO   ] [AppLogger] --- Операция успешно завершена ---

@@ -30,6 +30,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Контроллер принимает выбор пользователя из интерфейса, выполняет чтение/запись файлов,
  * управляет генерацией ключей и распределяет задачи по потокам (контекстный параллелизм).
  * </p>
+ *
+ * <p><b>Политика перезаписи.</b> В словаре {@code selection} может присутствовать ключ
+ * {@code Boolean.class}:
+ * <ul>
+ *   <li>{@code Boolean.TRUE} или отсутствие ключа — перезаписывать существующие файлы;</li>
+ *   <li>{@code Boolean.FALSE} — пропускать файлы, чьи целевые имена уже существуют.</li>
+ * </ul>
+ * Отмена операции обрабатывается во View — до контроллера словарь в этом случае не доходит.
+ * </p>
  */
 public class CipherController {
 
@@ -42,6 +51,7 @@ public class CipherController {
      * Вызывается из Main после того, как пользователь нажал кнопку "Запустить".
      *
      * @param selection Словарь, содержащий выбор пользователя: режим, методы, файлы и пути.
+     *                  Опционально {@code Boolean.class} — политика перезаписи.
      */
     public void processSelection(Map<Class<?>, Object> selection) {
         CipherMode mode = (CipherMode) selection.get(CipherMode.class);
@@ -49,6 +59,12 @@ public class CipherController {
         DiffusionMode diff = (DiffusionMode) selection.get(DiffusionMode.class);
         File input = (File) selection.get(File.class);
         Path out = (Path) selection.get(Path.class);
+
+        // Набор исходных файлов, которые нужно ПРОПУСТИТЬ (решение пользователя)
+        Set<File> skipFiles = new HashSet<>();
+        if (selection.get(File[].class) instanceof File[] arr) {
+            skipFiles.addAll(Arrays.asList(arr));
+        }
 
         File output = (out != null) ? out.toFile() : null;
 
@@ -59,33 +75,38 @@ public class CipherController {
             return;
         }
 
-        // Логируем старт операции
         AppLogger.info("--- Запуск операции ---");
         AppLogger.info("Режим: " + mode.name() + ", Вход: " + input.getAbsolutePath());
         if (output != null) {
             AppLogger.info("Выходная папка: " + output.getAbsolutePath());
         }
-
         try {
-            // Маршрутизация задачи в зависимости от выбранного режима
             switch (mode) {
-                case BENCRYPT -> runBatchEncrypt(perm.getName(), diff.getName(), input, output);
-                case BENDECRYPT -> runBatchDecrypt(input, output);
-                case BENCHMARK -> runBenchmark(input);
+                case BENCRYPT ->
+                        runBatchEncrypt(perm.getName(), diff.getName(), input, output, skipFiles);
+                case BENDECRYPT ->
+                        runBatchDecrypt(input, output, skipFiles);
+                case BENCHMARK ->
+                        runBenchmark(input);
                 case ENCRYPT, DECRYPT -> {
                     Image image = Image.loadFromFile(input.getName(), input.getName(), input);
-                    // Передаем output в runSingle
-                    runSingle(mode, (perm != null ? perm.getName() : null), (diff != null ? diff.getName() : null), input, image, output);
+                    runSingle(mode,
+                            perm != null ? perm.getName() : null,
+                            diff != null ? diff.getName() : null,
+                            input, image, output, skipFiles);
                 }
             }
             AppLogger.info("--- Операция успешно завершена ---");
         } catch (Throwable t) {
-            // Централизованная обработка ошибок
             String safeMsg = ErrorHandler.handle(t);
             AppLogger.error("--- Операция аварийно завершена ---", t);
             view.showError(safeMsg);
         }
     }
+
+    // ==================================================================
+    //  ОДИНОЧНЫЙ ФАЙЛ
+    // ==================================================================
 
     /**
      * Шифрует или расшифровывает одно изображение.
@@ -94,30 +115,47 @@ public class CipherController {
      * чтобы фрактал и хаотическая карта считались на всех ядрах процессора.
      * </p>
      *
-     * @param mode            Режим (ENCRYPT или DECRYPT).
-     * @param permutationName Имя источника перестановки (например, "mandelbrot").
-     * @param diffusionName   Имя источника диффузии (например, "logistic").
-     * @param inputFile       Исходный файл изображения.
-     * @param image           Загруженное изображение.
-     * @param outputDir       Папка для сохранения (если null, сохраняется рядом с исходным).
+     * <p><b>Имена файлов.</b>
+     * <ul>
+     *   <li>Шифрование: {@code "photo.png"} → {@code "photo_png_encrypted.png"} + {@code "photo_png_encrypted.key"}.
+     *       Расширение входит в имя — файлы {@code photo.png} и {@code photo.jpg} больше не конфликтуют.</li>
+     *   <li>Расшифровка: {@code "photo_png_encrypted.png"} → {@code "photo_png_decrypted.png"},
+     *       ключ ищется рядом с входным (зашифрованным) файлом.</li>
+     * </ul>
+     * </p>
      */
     private void runSingle(CipherMode mode, String permutationName, String diffusionName,
-                           File inputFile, Image image, File outputDir) {
+                           File inputFile, Image image, File outputDir, Set<File> skipFiles) {
         boolean isDecrypt = (mode == CipherMode.DECRYPT);
         String operation = isDecrypt ? "Расшифровка" : "Шифрование";
-        AppLogger.info(operation + " файла: " + inputFile.getName() + " [" + permutationName + " + " + diffusionName + "]");
+        AppLogger.info(operation + " файла: " + inputFile.getName()
+                + " [" + permutationName + " + " + diffusionName + "]");
 
-        File targetFile;
-        File keyFile;
-        byte[] masterKey; // 256-битный ключ (32 байта)
-
-        // Определяем папку для сохранения (если не выбрана, берем папку исходника)
+        // Определяем папку для сохранения (если не выбрана — папка исходника)
         File saveDir = (outputDir != null) ? outputDir : inputFile.getParentFile();
 
+        // === 1. Считаем имя цели одинаково для обоих режимов ===
+        File targetFile;
         if (isDecrypt) {
-            // --- РЕЖИМ РАСШИФРОВКИ ---
-            targetFile = inputFile;
-            keyFile = KeyManager.getKeyFile(targetFile);
+            String base = CipherUtils.baseName(inputFile.getName()).replace(CipherUtils.ENCRYPTED_SUFFIX, "");
+            targetFile = new File(saveDir, base + "_decrypted.png");
+        } else {
+            targetFile = new File(saveDir, CipherUtils.safeStem(inputFile.getName()) + CipherUtils.ENCRYPTED_SUFFIX + ".png");
+        }
+
+        // 2. Пользователь нажал «Пропустить» для этого файла
+        if (skipFiles.contains(inputFile)) {
+            AppLogger.info("Пропущено (по выбору пользователя): " + inputFile.getName());
+            System.out.println("Пропущено: " + targetFile.getName());
+            return;
+        }
+
+        // === 3. Ключ: для decrypt — от входного (зашифрованного), для encrypt — от цели ===
+        File keyFile;
+        byte[] masterKey;
+
+        if (isDecrypt) {
+            keyFile = KeyManager.getKeyFile(inputFile);
             if (!keyFile.exists()) {
                 throw new InvalidInputException("Файл ключа не найден: " + keyFile.getAbsolutePath());
             }
@@ -132,15 +170,7 @@ public class CipherController {
                 throw new RuntimeException("Ошибка чтения ключа: " + e.getMessage());
             }
         } else {
-            // --- РЕЖИМ ШИФРОВАНИЯ ---
-            String originalName = inputFile.getName();
-            String baseNameStr = CipherUtils.baseName(originalName);
-
-            // Сохраняем зашифрованный файл в выбранную папку saveDir
-            targetFile = new File(saveDir, baseNameStr + CipherUtils.ENCRYPTED_SUFFIX + ".png");
             keyFile = KeyManager.getKeyFile(targetFile);
-
-            // Генерация 256-битного случайного ключа (32 байта)
             masterKey = new byte[32];
             new SecureRandom().nextBytes(masterKey);
             EncryptionKey newKey = new EncryptionKey(masterKey, permutationName, diffusionName);
@@ -153,11 +183,11 @@ public class CipherController {
             }
         }
 
-        // Генерируем параметры из мастер-ключа (byte[])
+        // === 4. Шифрование / расшифровка ===
         Map<String, Double> permParams = CipherUtils.buildPermParams(masterKey, permutationName);
         Map<String, Double> diffParams = CipherUtils.buildDiffParams(masterKey, diffusionName);
 
-        // КОНТЕКСТНЫЙ ПАРАЛЛЕЛИЗМ: для одного файла ВКЛЮЧАЕМ внутренний параллелизм
+        // Внутренний параллелизм — для одного файла имеет смысл
         permParams.put("isParallel", 1.0);
         diffParams.put("isParallel", 1.0);
 
@@ -172,25 +202,20 @@ public class CipherController {
                 ? handleDecrypt(cipher, image)
                 : handleEncrypt(cipher, image);
 
-        // СОХРАНЕНИЕ РЕЗУЛЬТАТА
+        // === 5. Запись в targetFile (имя уже посчитано выше) ===
         try {
-            if (isDecrypt) {
-                // Формируем имя для расшифрованного файла
-                String decName = CipherUtils.baseName(inputFile.getName()).replace(CipherUtils.ENCRYPTED_SUFFIX, "") + "_decrypted.png";
-                File decFile = new File(saveDir, decName);
-                ImageIO.write(result.getImage(), "png", decFile);
-                AppLogger.info("Расшифровано: " + decFile.getName() + " (" + permutationName + " + " + diffusionName + ")");
-            } else {
-                // Сохраняем зашифрованный файл
-                ImageIO.write(result.getImage(), "png", targetFile);
-                AppLogger.info("Зашифровано: " + targetFile.getName() + " (" + permutationName + " + " + diffusionName + ")");
-            }
+            ImageIO.write(result.getImage(), "png", targetFile);
+            AppLogger.info((isDecrypt ? "Расшифровано: " : "Зашифровано: ")
+                    + targetFile.getName() + " (" + permutationName + " + " + diffusionName + ")");
         } catch (IOException e) {
             throw new RuntimeException("Ошибка сохранения: " + e.getMessage());
         }
     }
 
-    // === ПАКЕТНОЕ ШИФРОВАНИЕ ПАПКИ ===
+    // ==================================================================
+    //  ПАКЕТНОЕ ШИФРОВАНИЕ ПАПКИ
+    // ==================================================================
+
     /**
      * Шифрует все изображения в папке.
      * <p>
@@ -198,9 +223,14 @@ public class CipherController {
      * Внутренний параллелизм фракталов принудительно отключен (isParallel = 0.0),
      * чтобы избежать конфликта потоков (Thread Starvation).
      * </p>
+     * <p>
+     * Целевое имя строится через {@link CipherUtils#safeStem(String)}, поэтому
+     * {@code photo.png} и {@code photo.jpg} из одной папки дают разные
+     * {@code photo_png_encrypted.png} и {@code photo_jpg_encrypted.png}.
+     * </p>
      */
     private void runBatchEncrypt(String permutationName, String diffusionName,
-                                 File inputDir, File outputDir) {
+                                 File inputDir, File outputDir, Set<File> skipFiles) {
         if (inputDir == null || outputDir == null) return;
 
         File[] files = inputDir.listFiles(f -> f.isFile() && CipherUtils.isImageToEncrypt(f.getName()));
@@ -211,30 +241,41 @@ public class CipherController {
         }
         Arrays.sort(files);
 
-        AppLogger.info("Начало пакетного шифрования. Файлов: " + files.length + " [" + permutationName + " + " + diffusionName + "]");
+        AppLogger.info("Начало пакетного шифрования. Файлов: " + files.length
+                + " [" + permutationName + " + " + diffusionName + "]");
         long startTime = System.currentTimeMillis();
 
-        // Атомарные счетчики для потокобезопасного подсчета
-        AtomicInteger ok = new AtomicInteger(0);
-        AtomicInteger failed = new AtomicInteger(0);
+        AtomicInteger ok      = new AtomicInteger(0);
+        AtomicInteger skipped = new AtomicInteger(0);
+        AtomicInteger failed  = new AtomicInteger(0);
 
-        // КОНТЕКСТНЫЙ ПАРАЛЛЕЛИЗМ: Параллелим обработку САМИХ ФАЙЛОВ
+        final Set<File> skipFinal = skipFiles; // для лямбды
+
+        // Внешний параллелизм: параллелим обработку САМИХ ФАЙЛОВ
         Arrays.stream(files).parallel().forEach(file -> {
+            File targetImage = new File(outputDir,
+                    CipherUtils.safeStem(file.getName()) + CipherUtils.ENCRYPTED_SUFFIX + ".png");
+
+            if (skipFinal.contains(file)) {
+                skipped.incrementAndGet();
+                AppLogger.info("Пропущено (по выбору пользователя): " + file.getName());
+                return;
+            }
+
             try {
                 Image input = Image.loadFromFile(file.getName(), file.getName(), file);
-                // Генерация уникального 256-битного ключа для каждого файла
+
                 byte[] masterKey = new byte[32];
                 new SecureRandom().nextBytes(masterKey);
 
                 EncryptionKey key = new EncryptionKey(masterKey, permutationName, diffusionName);
-                File targetImage = new File(outputDir, CipherUtils.baseName(file.getName()) + CipherUtils.ENCRYPTED_SUFFIX + ".png");
                 File targetKey = KeyManager.getKeyFile(targetImage);
                 KeyManager.saveKey(key, targetKey);
 
                 Map<String, Double> permParams = CipherUtils.buildPermParams(masterKey, permutationName);
                 Map<String, Double> diffParams = CipherUtils.buildDiffParams(masterKey, diffusionName);
 
-                // ВЫКЛЮЧАЕМ внутренний параллелизм для фракталов
+                // Внутренний параллелизм выключен — параллелизм уже на уровне файлов
                 permParams.put("isParallel", 0.0);
                 diffParams.put("isParallel", 0.0);
 
@@ -255,22 +296,31 @@ public class CipherController {
                 failed.incrementAndGet();
             }
         });
+
         long duration = System.currentTimeMillis() - startTime;
-        AppLogger.info("Пакетное шифрование завершено за " + duration + " мс. Успешно: " + ok.get() + ", Ошибок: " + failed.get());
+        AppLogger.info(String.format(
+                "Пакетное шифрование завершено за %d мс. Успешно: %d, Пропущено: %d, Ошибок: %d",
+                duration, ok.get(), skipped.get(), failed.get()));
+
     }
 
-    // === ПАКЕТНАЯ РАСШИФРОВКА ПАПКИ ===
+    // ==================================================================
+    //  ПАКЕТНАЯ РАСШИФРОВКА ПАПКИ
+    // ==================================================================
+
     /**
      * Расшифровывает все файлы {@code *_encrypted.png} в папке.
      * <p>
      * Аналогично пакетному шифрованию, использует параллелизм на уровне файлов.
-     * Ключи (256-битные) загружаются из соответствующих файлов {@code .key}.
+     * Ключи загружаются из соответствующих файлов {@code .key}, лежащих рядом
+     * с входным (зашифрованным) изображением.
      * </p>
      */
-    private void runBatchDecrypt(File inputDir, File outputDir) {
+    private void runBatchDecrypt(File inputDir, File outputDir, Set<File> skipFiles) {
         if (inputDir == null || outputDir == null) return;
 
-        File[] files = inputDir.listFiles(f -> f.isFile() && f.getName().endsWith(CipherUtils.ENCRYPTED_SUFFIX + ".png"));
+        File[] files = inputDir.listFiles(
+                f -> f.isFile() && f.getName().endsWith(CipherUtils.ENCRYPTED_SUFFIX + ".png"));
         if (files == null || files.length == 0) {
             AppLogger.warning("Пакетная расшифровка отменена: в папке нет зашифрованных изображений.");
             view.showError("В папке нет зашифрованных изображений (*_encrypted.png).");
@@ -281,12 +331,23 @@ public class CipherController {
         AppLogger.info("Начало пакетной расшифровки. Файлов: " + files.length);
         long startTime = System.currentTimeMillis();
 
+        AtomicInteger ok      = new AtomicInteger(0);
+        AtomicInteger skipped = new AtomicInteger(0);
+        AtomicInteger failed  = new AtomicInteger(0);
 
-        AtomicInteger ok = new AtomicInteger(0);
-        AtomicInteger failed = new AtomicInteger(0);
+        final Set<File> skipFinal= skipFiles;
 
-        // КОНТЕКСТНЫЙ ПАРАЛЛЕЛИЗМ: Параллелим обработку САМИХ ФАЙЛОВ
         Arrays.stream(files).parallel().forEach(file -> {
+            String decName = CipherUtils.baseName(file.getName())
+                    .replace(CipherUtils.ENCRYPTED_SUFFIX, "") + "_decrypted.png";
+            File targetImage = new File(outputDir, decName);
+
+            if (skipFinal.contains(file)) {
+                skipped.incrementAndGet();
+                AppLogger.info("Пропущено (по выбору пользователя): " + file.getName());
+                return;
+            }
+
             try {
                 File keyFile = KeyManager.getKeyFile(file);
                 if (!keyFile.exists()) {
@@ -294,10 +355,11 @@ public class CipherController {
                 }
                 EncryptionKey key = KeyManager.loadKey(keyFile);
 
-                Map<String, Double> permParams = CipherUtils.buildPermParams(key.masterKey, key.permutationSourceName);
-                Map<String, Double> diffParams = CipherUtils.buildDiffParams(key.masterKey, key.diffusionSourceName);
+                Map<String, Double> permParams =
+                        CipherUtils.buildPermParams(key.masterKey, key.permutationSourceName);
+                Map<String, Double> diffParams =
+                        CipherUtils.buildDiffParams(key.masterKey, key.diffusionSourceName);
 
-                // ВЫКЛЮЧАЕМ внутренний параллелизм для фракталов
                 permParams.put("isParallel", 0.0);
                 diffParams.put("isParallel", 0.0);
 
@@ -311,8 +373,6 @@ public class CipherController {
                 Image input = Image.loadFromFile(file.getName(), file.getName(), file);
                 Image result = handleDecrypt(cipher, input);
 
-                String decName = CipherUtils.baseName(file.getName()).replace(CipherUtils.ENCRYPTED_SUFFIX, "") + "_decrypted.png";
-                File targetImage = new File(outputDir, decName);
                 ImageIO.write(result.getImage(), "png", targetImage);
 
                 AppLogger.info("Пакетная расшифровка [OK]: " + targetImage.getName());
@@ -322,11 +382,17 @@ public class CipherController {
                 failed.incrementAndGet();
             }
         });
+
         long duration = System.currentTimeMillis() - startTime;
-        AppLogger.info("Пакетная расшифровка завершена за " + duration + " мс. Успешно: " + ok.get() + ", Ошибок: " + failed.get());
+        AppLogger.info(String.format(
+                "Пакетная расшифровка завершена за %d мс. Успешно: %d, Пропущено: %d, Ошибок: %d",
+                duration, ok.get(), skipped.get(), failed.get()));
     }
 
-    // === БЕНЧМАРК ===
+    // ==================================================================
+    //  БЕНЧМАРК
+    // ==================================================================
+
     /**
      * Запускает исследовательский бенчмарк для оценки метрик шифрования.
      * <p>
@@ -357,7 +423,6 @@ public class CipherController {
         AppLogger.info("Запуск бенчмарка. Изображений: " + imagesToProcess.size());
         List<BenchmarkResult> allResults = Collections.synchronizedList(new ArrayList<>());
 
-        // Последовательно по файлам, параллелизм уже внутри BenchmarkRunner
         for (File file : imagesToProcess) {
             System.out.println("Анализ изображения: " + file.getName());
             try {
@@ -374,7 +439,6 @@ public class CipherController {
             }
         }
 
-        // Сохранение результатов в CSV
         try {
             String csvBaseName = inputFile.isDirectory() ? inputFile.getName() : "single_image";
             CsvExporter.export(allResults, "benchmark_" + csvBaseName);
@@ -387,7 +451,6 @@ public class CipherController {
     }
 
     // --- Методы делегирования ---
-    // Эти методы просто вызывают соответствующие методы у переданного объекта Cipher.
 
     public Image handleEncrypt(Cipher cipher, Image input) {
         cipher.setImageInput(input);

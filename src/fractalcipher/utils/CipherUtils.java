@@ -53,4 +53,13 @@ public class CipherUtils {
         int dot = fileName.lastIndexOf('.');
         return dot == -1 ? fileName : fileName.substring(0, dot);
     }
+
+    /**
+     * Безопасное «ядро» имени: точка расширения заменяется на подчёркивание.
+     * Разные расширения → разные имена → нет коллизий.
+     * Пример: "photo.png" → "photo_png", "photo.jpg" → "photo_jpg".
+     */
+    public static String safeStem(String fileName) {
+        return fileName.replace('.', '_');
+    }
 }

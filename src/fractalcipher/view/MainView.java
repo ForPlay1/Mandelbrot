@@ -3,6 +3,8 @@ package fractalcipher.view;
 import fractalcipher.domain.CipherMode;
 import fractalcipher.domain.DiffusionMode;
 import fractalcipher.domain.PermutationMode;
+import fractalcipher.utils.CipherUtils;
+import fractalcipher.utils.AppLogger;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -23,9 +25,7 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class MainView {
@@ -562,9 +562,23 @@ public class MainView {
             }
         }
 
+        // === РАЗРЕШЕНИЕ КОНФЛИКТОВ ===
+        Set<File> skipFiles = Collections.emptySet();
+        if (mode != CipherMode.BENCHMARK) {
+            Set<File> result = resolveConflicts(mode);
+            if (result == null){
+                AppLogger.warning("Запуск режима " + mode + " отменён пользователем "
+                        + "из-за конфликтов имён.");
+                System.out.println("Запуск отменён.");
+                return;                       // Отмена — не запускаем
+            }
+            skipFiles = result;
+        }
+
         // === СТРОИМ СЛОВАРЬ ===
         userParams = new HashMap<>();
         userParams.put(CipherMode.class, mode);
+        userParams.put(File[].class, skipFiles.toArray(new File[0]));
 
         // Добавляем выбранные методы (если они есть)
         if (permGroup.getSelectedToggle() instanceof ToggleButton permBtn) {
@@ -598,6 +612,194 @@ public class MainView {
 
         showAlert("Запуск: " + mode + ". Проверьте консоль.");
     }
+
+    // ==========================================================
+    //  РАЗРЕШЕНИЕ КОНФЛИКТОВ (диалог в стиле Windows)
+    // ==========================================================
+
+    /** Результат одного диалога: заменить ли файл + применить ко всем оставшимся. */
+    private record ConflictChoice(boolean replace, boolean applyToAll) {}
+
+    /**
+     * Проходит по всем исходным файлам, находит конфликты (цель уже существует)
+     * и спрашивает пользователя по каждому — как в проводнике Windows.
+     *
+     * @return null — пользователь отменил всю операцию;
+     *         Set<File> — исходные файлы, которые нужно ПРОПУСТИТЬ.
+     *         Пустой набор = заменять всё.
+     */
+    private Set<File> resolveConflicts(CipherMode mode) {
+        // 1. Собираем источники (как в старом askOverwritePolicy)
+        List<File> sources = new ArrayList<>();
+        if (mode == CipherMode.BENCRYPT || mode == CipherMode.BENDECRYPT) {
+            File[] arr = selectedFile.listFiles(f -> f.isFile() && (
+                    mode == CipherMode.BENCRYPT
+                            ? CipherUtils.isImageToEncrypt(f.getName())
+                            : f.getName().endsWith(CipherUtils.ENCRYPTED_SUFFIX + ".png")));
+            if (arr != null) Collections.addAll(sources, arr);
+        } else {
+            sources.add(selectedFile);
+        }
+
+        // 2. Находим конфликты (цель уже существует) — в порядке обхода
+        List<File> conflictSources = new ArrayList<>();
+        Map<File, File> srcToTarget = new HashMap<>();
+        for (File src : sources) {
+            String targetName = computeTargetName(mode, src);
+            File target = new File(outputDir, targetName);
+            if (target.exists()) {
+                conflictSources.add(src);
+                srcToTarget.put(src, target);
+            }
+        }
+
+        Set<File> toSkip = new HashSet<>();
+        if (conflictSources.isEmpty()) {
+            AppLogger.info("Конфликтов имён не обнаружено (режим " + mode
+                    + ", папка: " + outputDir.getAbsolutePath() + ").");
+            return toSkip;
+        }
+
+        AppLogger.warning(String.format(
+                "Обнаружено конфликтов: %d из %d исходных файлов (режим %s, папка %s)",
+                conflictSources.size(), sources.size(), mode, outputDir.getAbsolutePath()));
+
+        // 3. По одному диалогу на каждый конфликт, пока не нажали «применить ко всем»
+        Boolean applyToAllReplace = null;   // null — ещё не спрашивали
+        for (int i = 0; i < conflictSources.size(); i++) {
+            File src    = conflictSources.get(i);
+            File target = srcToTarget.get(src);
+
+            if (applyToAllReplace != null) {
+                if (!applyToAllReplace) toSkip.add(src);
+                String action = applyToAllReplace ? "Заменить" : "Пропустить";
+                AppLogger.info(String.format(
+                        "Конфликт %d/%d [%s]: авто-выбор — %s (по «применить ко всем»)",
+                        i + 1, conflictSources.size(), src.getName(), action));
+                continue;
+            }
+
+            AppLogger.info(String.format(
+                    "Конфликт %d/%d: %s → %s (цель уже существует)",
+                    i + 1, conflictSources.size(), src.getName(), target.getName()));
+
+            ConflictChoice choice = showReplaceDialog(src, target, i + 1, conflictSources.size());
+            if (choice == null){
+                AppLogger.warning(String.format(
+                        "Выбрана «Отмена» на конфликте %d/%d [%s] — операция отменена.",
+                        i + 1, conflictSources.size(), src.getName()));
+                return null;               // Отмена — прерываем всё
+            }
+
+            String action = choice.replace() ? "Заменить" : "Пропустить";
+            AppLogger.info(String.format(
+                    "Конфликт %d/%d [%s]: выбор — %s%s",
+                    i + 1, conflictSources.size(), src.getName(), action,
+                    choice.applyToAll() ? " (применить ко всем оставшимся)" : ""));
+
+            if (!choice.replace()) toSkip.add(src);
+            if (choice.applyToAll()){
+                AppLogger.info(String.format(
+                        "Дальнейшие конфликты (%d шт.) будут разрешены автоматически: «%s».",
+                        conflictSources.size() - i - 1, action));
+                applyToAllReplace = choice.replace();
+            }
+        }
+        AppLogger.info(String.format(
+                "Разрешение конфликтов завершено: заменено=%d, пропущено=%d.",
+                conflictSources.size() - toSkip.size(), toSkip.size()));
+
+        return toSkip;
+    }
+
+    /** Имя целевого файла — то же правило, что и в CipherController. */
+    private String computeTargetName(CipherMode mode, File src) {
+        boolean decryptMode = (mode == CipherMode.DECRYPT || mode == CipherMode.BENDECRYPT);
+        return decryptMode
+                ? CipherUtils.baseName(src.getName()).replace(CipherUtils.ENCRYPTED_SUFFIX, "") + "_decrypted.png"
+                : CipherUtils.safeStem(src.getName()) + CipherUtils.ENCRYPTED_SUFFIX + ".png";
+    }
+
+    /**
+     * Окно в стиле Windows: «Файл уже существует».
+     * Возвращает выбор пользователя или null, если нажали «Отмена».
+     */
+    private ConflictChoice showReplaceDialog(File source, File target, int index, int total) {
+        Dialog<ConflictChoice> dialog = new Dialog<>();
+        dialog.setTitle("Файл уже существует");
+        dialog.setHeaderText(null);
+
+        // Иконка-предупреждение
+        Label icon = new Label("⚠");
+        icon.setStyle("-fx-font-size: 36px; -fx-text-fill: #f0a500; -fx-padding: 0 10 0 0;");
+        dialog.getDialogPane().setGraphic(icon);
+
+        ButtonType btnReplace = new ButtonType("Заменить", ButtonBar.ButtonData.YES);
+        ButtonType btnSkip    = new ButtonType("Пропустить", ButtonBar.ButtonData.NO);
+        ButtonType btnCancel  = new ButtonType("Отмена", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().setAll(btnReplace, btnSkip, btnCancel);
+
+        Label header = new Label(
+                "В этой папке уже есть файл с именем \"" + target.getName() + "\".");
+        header.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+
+        Label existingTitle = new Label("Существующий файл:");
+        existingTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #0078d4;");
+        Label existingInfo = new Label(
+                "  " + formatSize(target.length())
+                        + "   " + formatDate(target.lastModified())
+                        + "\n  " + target.getAbsolutePath());
+        existingInfo.setStyle("-fx-font-size: 12px; -fx-text-fill: #555;");
+
+        Label newTitle = new Label("Исходный файл:");
+        newTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #0078d4;");
+        Label newInfo = new Label(
+                "  " + formatSize(source.length())
+                        + "   " + formatDate(source.lastModified())
+                        + "\n  " + source.getAbsolutePath());
+        newInfo.setStyle("-fx-font-size: 12px; -fx-text-fill: #555;");
+
+        CheckBox applyToAll = new CheckBox();
+        if (total <= 1) {
+            applyToAll.setVisible(false);
+            applyToAll.setManaged(false);
+        } else {
+            applyToAll.setText("Применить ко всем оставшимся файлам ("
+                    + (total - index) + " из " + total + ")");
+        }
+
+        VBox content = new VBox(8,
+                header,
+                new Separator(),
+                existingTitle, existingInfo,
+                new Separator(),
+                newTitle, newInfo,
+                new Separator(),
+                applyToAll
+        );
+        content.setPadding(new Insets(10));
+        content.setPrefWidth(560);
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(bt -> {
+            if (bt == null || bt == btnCancel) return null;
+            return new ConflictChoice(bt == btnReplace, applyToAll.isSelected());
+        });
+
+        return dialog.showAndWait().orElse(null);
+    }
+
+    private static String formatSize(long bytes) {
+        if (bytes < 1024) return bytes + " Б";
+        if (bytes < 1024 * 1024) return String.format("%.1f КБ", bytes / 1024.0);
+        return String.format("%.1f МБ", bytes / (1024.0 * 1024.0));
+    }
+
+    private static String formatDate(long millis) {
+        return new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm")
+                .format(new java.util.Date(millis));
+    }
+
     private void showAlert(String msg) {
         new Alert(Alert.AlertType.INFORMATION, msg).showAndWait();
     }
