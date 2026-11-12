@@ -1,34 +1,42 @@
 package fractalcipher.domain;
 
+/**
+ * Режим работы приложения.
+ * <p>
+ * Определяет, какую операцию выполнить над входными данными:
+ * одиночное шифрование/расшифровку, пакетную обработку папки
+ * или исследовательский бенчмарк.
+ * </p>
+ *
+ * @author FractalCipher Team
+ */
 public enum CipherMode {
+    /** Шифрование одного изображения. Требует выбора источника перестановки и диффузии. */
     ENCRYPT("Шифрование"),
-    DECRYPT("Дешифровка"),
-    BENCHMARK("Бенчмарк"),
-    BENCRYPT("Шифрование папки"),
-    BENDECRYPT("Расшифровка папки"); // <-- ДОБАВЛЕНО
 
+    /** Расшифровка одного изображения. Методы берутся из файла ключа. */
+    DECRYPT("Дешифровка"),
+
+    /** Исследовательский бенчмарк: перебор всех комбинаций алгоритмов и замер метрик. */
+    BENCHMARK("Бенчмарк"),
+
+    /** Пакетное шифрование всех изображений в папке. */
+    BENCRYPT("Шифрование папки"),
+
+    /** Пакетная расшифровка всех файлов {@code *_encrypted.png} в папке. */
+    BENDECRYPT("Расшифровка папки");
+
+    /** Читаемое название режима для отображения в UI. */
     private final String name;
 
     CipherMode(String translation) {
         this.name = translation;
     }
 
+    /**
+     * @return человекочитаемое название режима
+     */
     public String getName() {
         return name;
     }
-
-//    // Словарь: ключ -> функция-обработчик
-//    private static final Map<CipherMode, Consumer<CipherMode>> HANDLERS;
-//
-//    static {
-//        EnumMap<CipherMode, Consumer<CipherMode>> map = new EnumMap<>(CipherMode.class);
-//        for (CipherMode m : values()) {
-//            map.put(m, CipherHandlers::onMode);
-//        }
-//        HANDLERS = Collections.unmodifiableMap(map);
-//    }
-//
-//    public static Map<CipherMode, Consumer<CipherMode>> handlers() {
-//        return HANDLERS;
-//    }
 }

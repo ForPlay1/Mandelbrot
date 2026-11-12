@@ -7,24 +7,52 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Ровно те поля, которые вы обсудили с преподавателем:
- * id, название, сама картинка, размер, тип файла, разрешение,
- * метка "чёрно-белое или нет".
+ * Иммутабельное изображение с метаданными.
+ * <p>
+ * Все поля {@code final}: если нужно «изменить» изображение (например,
+ * после шифрования), создаётся новый объект {@code Image}, а не правится
+ * существующий. Это безопаснее — нет риска, что {@code imageInput}
+ * изменится прямо во время шифрования.
+ * </p>
+ * <p>
+ * Поля {@link #resolution} и {@link #blackAndWhite} не передаются снаружи,
+ * а вычисляются из самого изображения — нельзя случайно указать
+ * неверное разрешение, не совпадающее с реальным.
+ * </p>
  *
- * Класс иммутабельный (все поля final) — если нужно "изменить"
- * изображение (например, после шифрования), создаётся новый объект
- * Image, а не правится существующий. Это безопаснее: нет риска,
- * что imageInput случайно изменится прямо во время шифрования.
+ * @author FractalCipher Team
  */
 public class Image {
+    /** Уникальный идентификатор изображения (например, имя файла). */
     private final String id;
+
+    /** Человекочитаемое имя (например, имя файла с расширением). */
     private final String name;
+
+    /** Сами пиксельные данные. */
     private final BufferedImage image;
-    private final long size;          // в байтах
-    private final String fileType;    // "png", "jpg" и т.д.
-    private final String resolution;  // "ШИРИНАxВЫСОТА"
+
+    /** Размер файла в байтах. */
+    private final long size;
+
+    /** Расширение файла без точки ({@code "png"}, {@code "jpg"} и т.д.). */
+    private final String fileType;
+
+    /** Разрешение в формате {@code "ШИРИНАxВЫСОТА"}. */
+    private final String resolution;
+
+    /** Флаг «изображение в оттенках серого / чёрно-белое». */
     private final boolean blackAndWhite;
 
+    /**
+     * Создаёт изображение с полными метаданными.
+     *
+     * @param id       идентификатор
+     * @param name     имя
+     * @param image    пиксельные данные
+     * @param size     размер в байтах
+     * @param fileType тип файла (расширение без точки)
+     */
     public Image(String id, String name, BufferedImage image, long size, String fileType) {
         this.id = id;
         this.name = name;
@@ -39,11 +67,16 @@ public class Image {
     }
 
     /**
-     * Фабричный метод: читает файл с диска и сам заполняет все
-     * метаданные (size — из file.length(), fileType — из расширения,
-     * resolution/blackAndWhite — из самого изображения). Избавляет
-     * от необходимости собирать Image вручную в каждом месте, где
-     * нужно загрузить картинку из файла.
+     * Фабричный метод: читает файл с диска и заполняет все метаданные
+     * ({@code size} — из {@link File#length()}, {@code fileType} — из
+     * расширения, {@code resolution} и {@code blackAndWhite} — из
+     * самого изображения).
+     *
+     * @param id   идентификатор
+     * @param name имя
+     * @param file файл с изображением
+     * @return загруженное изображение
+     * @throws IOException если файл не найден или не распознан как изображение
      */
     public static Image loadFromFile(String id, String name, File file) throws IOException {
         BufferedImage bufferedImage = ImageIO.read(file);
@@ -53,31 +86,40 @@ public class Image {
         return new Image(id, name, bufferedImage, file.length(), detectFileType(file.getName()));
     }
 
+    /**
+     * Извлекает расширение файла без точки.
+     *
+     * @param fileName имя файла
+     * @return расширение в нижнем регистре или {@code "unknown"}
+     */
     private static String detectFileType(String fileName) {
         int dot = fileName.lastIndexOf('.');
         return dot == -1 ? "unknown" : fileName.substring(dot + 1).toLowerCase();
     }
 
-    // Порог на пиксель: максимально допустимое отклонение между каналами.
-    // 8 из 255 — примерно 3%, человеческий глаз на таком уровне
-    // различия не замечает. Для более строгого определения — 4, для
-    // более мягкого — 16.
+    /**
+     * Максимально допустимое отклонение между каналами R/G/B, при котором
+     * пиксель ещё считается «серым». 8 из 255 — примерно 3%; глаз такого
+     * различия не замечает.
+     */
     private static final int CHANNEL_THRESHOLD = 8;
 
-    // Доля «цветных» пикселей, которую допускаем. 1% — достаточно,
-    // чтобы пережить JPEG-артефакты и шум сжатия, но не пропустить
-    // реально цветное изображение.
+    /**
+     * Доля «цветных» пикселей, которую допускаем. 1% — достаточно, чтобы
+     * пережить JPEG-артефакты, но не пропустить реально цветное изображение.
+     */
     private static final double COLORFUL_PIXEL_RATIO = 0.01;
 
     /**
-     * Эвристика: если у КАЖДОГО пикселя R=G=B, считаем изображение
-     * чёрно-белым (точнее — оттенками серого; формально "чёрно-белое"
-     * 1-битное изображение тоже под это подходит, там R=G=B всегда
-     * равны либо 0, либо 255).
+     * Эвристика: если у КАЖДОГО непрозрачного пикселя R≈G≈B,
+     * изображение считается чёрно-белым (точнее — в оттенках серого).
+     * <p>
+     * Сложность O(width × height). На очень больших изображениях это
+     * заметно; при необходимости можно проверять случайную выборку.
+     * </p>
      *
-     * Внимание: это O(width*height) — на больших изображениях
-     * конструктор Image будет заметно медленнее. Если это станет
-     * проблемой, можно проверять не все пиксели, а случайную выборку.
+     * @param image изображение
+     * @return {@code true}, если изображение в оттенках серого
      */
     private static boolean detectBlackAndWhite(BufferedImage image) {
         int width = image.getWidth();
@@ -120,15 +162,31 @@ public class Image {
         }
         return true;
     }
+    /**
+     * @return список поддерживаемых приложением расширений изображений
+     */
     public static List<String> getImageExtensions() {
         return List.of("png", "jpg", "jpeg", "bmp", "gif");
     }
 
+    /** @return идентификатор изображения */
     public String getId() { return id; }
+
+    /** @return человекочитаемое имя */
     public String getName() { return name; }
+
+    /** @return пиксельные данные */
     public BufferedImage getImage() { return image; }
+
+    /** @return размер в байтах */
     public long getSize() { return size; }
+
+    /** @return тип файла (расширение без точки) */
     public String getFileType() { return fileType; }
+
+    /** @return разрешение в формате {@code "WxH"} */
     public String getResolution() { return resolution; }
+
+    /** @return {@code true}, если изображение в оттенках серого */
     public boolean isBlackAndWhite() { return blackAndWhite; }
 }

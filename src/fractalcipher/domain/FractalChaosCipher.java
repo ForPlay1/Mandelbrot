@@ -8,25 +8,87 @@ import java.util.HashMap;
 import java.util.Map;
 import fractalcipher.exception.*;
 
+/**
+ * Конкретная реализация {@link Cipher}, объединяющая фрактальную перестановку
+ * и хаотическую диффузию.
+ * <p>
+ * Схема шифрования:
+ * <ol>
+ *   <li><b>preprocess</b> — чтение пикселей, генерация перестановки
+ *       (в режимах {@link EncryptionMode#PERMUTATION_ONLY} и {@link EncryptionMode#FULL})
+ *       или identity-перестановки (в {@link EncryptionMode#DIFFUSION_ONLY}).</li>
+ *   <li><b>process</b> — перестановка пикселей, затем диффузия:
+ *       XOR с потоком (упрощённая схема) либо два прохода CBC с S-боксами
+ *       (только {@link EncryptionMode#FULL}).</li>
+ *   <li><b>postprocess</b> — сборка {@link Image} из обработанных пикселей.</li>
+ * </ol>
+ * </p>
+ * <p>
+ * Расшифровка реализована отдельным методом {@link #decrypt()} и снимает
+ * шаги в обратном порядке.
+ * </p>
+ *
+ * @author FractalCipher Team
+ * @see Cipher
+ * @see PermutationSource
+ * @see DiffusionSource
+ */
 public class FractalChaosCipher extends Cipher {
 
+    /** Источник перестановки пикселей (фрактал). */
     private final PermutationSource permutationSource;
-    private final DiffusionSource diffusionSource;
-    private final Map<String, Double> permutationParams;
-    private final Map<String, Double> diffusionParams;
-    private final EncryptionMode mode;  // <-- НОВОЕ
 
+    /** Источник потока байт для диффузии (хаотическая карта). */
+    private final DiffusionSource diffusionSource;
+
+    /** Параметры генерации перестановки (seed, границы области и т.п.). */
+    private final Map<String, Double> permutationParams;
+
+    /** Параметры генерации потока диффузии (seed, x0, параметры карты). */
+    private final Map<String, Double> diffusionParams;
+
+    /** Режим: какие этапы применять. */
+    private final EncryptionMode mode;
+
+    /** Ширина обрабатываемого изображения (заполняется в {@link #preprocess()}). */
     private int width;
+
+    /** Высота обрабатываемого изображения (заполняется в {@link #preprocess()}). */
     private int height;
+
+    /** Промежуточный массив пикселей (ARGB int). */
     private int[] pixels;
+
+    /** Сгенерированная перестановка (заполняется в {@link #preprocess()}). */
     private int[] permutation;
-    // === НОВЫЕ ПОЛЯ ДЛЯ КЭШИРОВАНИЯ ===
+
+    /**
+     * Прямой S-бокс для первого прохода CBC.
+     * Инициализируется только в режиме {@link EncryptionMode#FULL}, иначе {@code null}.
+     */
     private final int[] sbox1;
+
+    /**
+     * Прямой S-бокс для второго (обратного) прохода CBC.
+     * Инициализируется только в режиме {@link EncryptionMode#FULL}, иначе {@code null}.
+     */
     private final int[] sbox2;
+
+    /** Обратный S-бокс для первого прохода (используется при расшифровке). */
     private final int[] invSbox1;
+
+    /** Обратный S-бокс для второго прохода (используется при расшифровке). */
     private final int[] invSbox2;
 
-    // Старый конструктор — по умолчанию FULL (для обратной совместимости)
+    /**
+     * Конструктор по умолчанию: пустые параметры, режим {@link EncryptionMode#FULL}.
+     * <p>Оставлен для обратной совместимости.</p>
+     *
+     * @param id                идентификатор шифратора
+     * @param name              человекочитаемое имя
+     * @param permutationSource источник перестановки
+     * @param diffusionSource   источник диффузии
+     */
     public FractalChaosCipher(String id, String name,
                               PermutationSource permutationSource,
                               DiffusionSource diffusionSource) {
@@ -34,6 +96,16 @@ public class FractalChaosCipher extends Cipher {
                 new HashMap<>(), new HashMap<>(), EncryptionMode.FULL);
     }
 
+    /**
+     * Конструктор с параметрами, режим {@link EncryptionMode#FULL}.
+     *
+     * @param id                 идентификатор шифратора
+     * @param name               человекочитаемое имя
+     * @param permutationSource  источник перестановки
+     * @param diffusionSource    источник диффузии
+     * @param permutationParams  параметры перестановки
+     * @param diffusionParams    параметры диффузии
+     */
     public FractalChaosCipher(String id, String name,
                               PermutationSource permutationSource,
                               DiffusionSource diffusionSource,
@@ -44,7 +116,22 @@ public class FractalChaosCipher extends Cipher {
 
     }
 
-    // Новый конструктор с режимом
+    /**
+     * Полный конструктор с явным указанием режима.
+     * <p>
+     * В режиме {@link EncryptionMode#FULL} из параметров диффузии извлекаются
+     * seed-ы S-боксов ({@code "sboxCbc1"}, {@code "sboxCbc2"}) и один раз
+     * строятся прямые и обратные таблицы замен.
+     * </p>
+     *
+     * @param id                 идентификатор шифратора
+     * @param name               человекочитаемое имя
+     * @param permutationSource  источник перестановки
+     * @param diffusionSource    источник диффузии
+     * @param permutationParams  параметры перестановки
+     * @param diffusionParams    параметры диффузии (могут содержать seed-ы S-боксов)
+     * @param mode               режим шифрования
+     */
     public FractalChaosCipher(String id, String name,
                               PermutationSource permutationSource,
                               DiffusionSource diffusionSource,
@@ -75,6 +162,17 @@ public class FractalChaosCipher extends Cipher {
         }
     }
 
+    /**
+     * Читает пиксели из {@link #imageInput} и генерирует перестановку.
+     * <p>
+     * В режимах {@link EncryptionMode#PERMUTATION_ONLY} и {@link EncryptionMode#FULL}
+     * перестановка берётся у {@link #permutationSource}; в {@link EncryptionMode#DIFFUSION_ONLY}
+     * используется identity-перестановка.
+     * </p>
+     *
+     * @throws EncryptionFailedException если источник перестановки не смог
+     *         сгенерировать корректный массив индексов
+     */
     @Override
     protected void preprocess() {
         BufferedImage buffered = imageInput.getImage();
@@ -106,6 +204,17 @@ public class FractalChaosCipher extends Cipher {
         }
     }
 
+    /**
+     * Применяет перестановку и диффузию к пикселям.
+     * <p>
+     * В {@link EncryptionMode#FULL} используется двухпроходная схема CBC с S-боксами;
+     * в остальных режимах — простой XOR с потоком (в {@link EncryptionMode#PERMUTATION_ONLY}
+     * поток нулевой, поэтому данные не меняются).
+     * </p>
+     *
+     * @throws EncryptionFailedException если источник диффузии не смог
+     *         сгенерировать поток байт
+     */
     @Override
     protected void process() {
         int[] scrambled = applyPermutation(pixels, permutation);
@@ -130,6 +239,9 @@ public class FractalChaosCipher extends Cipher {
         pixels = applyDiffusionEncrypt(scrambled, stream);
     }
 
+    /**
+     * Собирает {@link Image} из обработанных пикселей и сохраняет в {@link #imageOutput}.
+     */
     @Override
     protected void postprocess() {
         BufferedImage result = toImage(pixels, width, height);
@@ -140,6 +252,19 @@ public class FractalChaosCipher extends Cipher {
         );
     }
 
+    /**
+     * Расшифровывает изображение, снимая шаги шифрования в обратном порядке.
+     * <p>
+     * Сначала применяется обратная диффузия (с использованием {@code invSbox*}
+     * в режиме {@link EncryptionMode#FULL}), затем — обратная перестановка.
+     * </p>
+     * <p>
+     * Результат сохраняется в {@link #imageOutput}.
+     * </p>
+     *
+     * @throws EncryptionFailedException если не удалось сгенерировать поток
+     *         диффузии или перестановку
+     */
     @Override
     public void decrypt() {
         BufferedImage buffered = imageInput.getImage();
@@ -190,8 +315,13 @@ public class FractalChaosCipher extends Cipher {
         );
     }
 
-    // --- Вспомогательные методы (без изменений) ---
-
+    /**
+     * Применяет перестановку: {@code result[i] = pixels[permutation[i]]}.
+     *
+     * @param pixels      исходные пиксели
+     * @param permutation массив индексов
+     * @return новый массив с переставленными пикселями
+     */
     private int[] applyPermutation(int[] pixels, int[] permutation) {
         int[] result = new int[pixels.length];
         for (int i = 0; i < pixels.length; i++) {
@@ -200,6 +330,12 @@ public class FractalChaosCipher extends Cipher {
         return result;
     }
 
+    /**
+     * Обращает перестановку: {@code inverse[permutation[i]] = i}.
+     *
+     * @param permutation прямая перестановка
+     * @return обратная перестановка
+     */
     private int[] invertPermutation(int[] permutation) {
         int[] inverse = new int[permutation.length];
         for (int i = 0; i < permutation.length; i++) {
@@ -208,6 +344,13 @@ public class FractalChaosCipher extends Cipher {
         return inverse;
     }
 
+    /**
+     * Строит S-бокс (перестановку 0..255) на основе seed через
+     * перемешивание Фишера–Йетса.
+     *
+     * @param seed seed генератора {@link java.util.Random}
+     * @return массив из 256 уникальных значений
+     */
     private int[] buildSBox(long seed) {
         int[] sbox = new int[256];
         for (int i = 0; i < 256; i++) sbox[i] = i;
@@ -219,6 +362,12 @@ public class FractalChaosCipher extends Cipher {
         return sbox;
     }
 
+    /**
+     * Строит обратный S-бокс: {@code inv[sbox[i]] = i}.
+     *
+     * @param sbox прямой S-бокс
+     * @return обратный S-бокс
+     */
     private int[] buildInverseSBox(int[] sbox) {
         int[] inv = new int[256];
         for (int i = 0; i < 256; i++) inv[sbox[i]] = i;
@@ -226,8 +375,15 @@ public class FractalChaosCipher extends Cipher {
     }
 
     /**
-     * CBC с S-боксами. Применяется ТОЛЬКО в режиме FULL.
-     * В PERMUTATION_ONLY и DIFFUSION_ONLY — просто XOR со stream.
+     * Применяет диффузию к пикселям.
+     * <p>
+     * В {@link EncryptionMode#FULL} — два прохода CBC с S-боксами
+     * (вперёд, затем назад). В остальных режимах — простой XOR с потоком.
+     * </p>
+     *
+     * @param pixels пиксели после перестановки
+     * @param stream поток байт (длиной {@code 2 * 4 * pixels.length} для FULL)
+     * @return новый массив пикселей после диффузии
      */
     private int[] applyDiffusionEncrypt(int[] pixels, byte[] stream) {
         int n = pixels.length;
@@ -281,6 +437,18 @@ public class FractalChaosCipher extends Cipher {
         return result;
     }
 
+    /**
+     * Снимает диффузию (обратная операция к {@link #applyDiffusionEncrypt}).
+     * <p>
+     * В {@link EncryptionMode#FULL} использует {@code invSbox1}, {@code invSbox2}
+     * и знание предыдущего зашифрованного байта для восстановления открытого
+     * текста. В остальных режимах — XOR (обратим сам себе).
+     * </p>
+     *
+     * @param pixels зашифрованные пиксели
+     * @param stream поток байт (тот же, что при шифровании)
+     * @return массив пикселей до диффузии
+     */
     private int[] applyDiffusionDecrypt(int[] pixels, byte[] stream) {
         int n = pixels.length;
 
@@ -332,12 +500,26 @@ public class FractalChaosCipher extends Cipher {
         return result;
     }
 
+    /**
+     * Создаёт {@link BufferedImage} из массива ARGB-пикселей.
+     *
+     * @param pixels массив ARGB
+     * @param width  ширина
+     * @param height высота
+     * @return новое изображение
+     */
     private BufferedImage toImage(int[] pixels, int width, int height) {
         BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         result.setRGB(0, 0, width, height, pixels, 0, width);
         return result;
     }
 
+    /**
+     * Оценивает размер изображения в байтах (4 байта на пиксель, RGBA).
+     *
+     * @param image изображение
+     * @return оценочный размер в байтах
+     */
     private long estimateSize(BufferedImage image) {
         return (long) image.getWidth() * image.getHeight() * 4;
     }

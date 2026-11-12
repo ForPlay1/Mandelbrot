@@ -91,6 +91,6 @@ public class SierpinskiPermutation implements PermutationSource {
      */
     @Override
     public String getName() {
-        return "sierphinski";
+        return "sierpinski";
     }
 }
