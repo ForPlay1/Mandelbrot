@@ -1,4 +1,4 @@
-package fractalcipher.domain;
+package fractalcipher.config;
 
 /**
  * Режим работы приложения.
@@ -12,31 +12,17 @@ package fractalcipher.domain;
  */
 public enum CipherMode {
     /** Шифрование одного изображения. Требует выбора источника перестановки и диффузии. */
-    ENCRYPT("Шифрование"),
+    ENCRYPT,
 
     /** Расшифровка одного изображения. Методы берутся из файла ключа. */
-    DECRYPT("Дешифровка"),
+    DECRYPT,
 
     /** Исследовательский бенчмарк: перебор всех комбинаций алгоритмов и замер метрик. */
-    BENCHMARK("Бенчмарк"),
+    BENCHMARK,
 
     /** Пакетное шифрование всех изображений в папке. */
-    BENCRYPT("Шифрование папки"),
+    BENCRYPT,
 
     /** Пакетная расшифровка всех файлов {@code *_encrypted.png} в папке. */
-    BENDECRYPT("Расшифровка папки");
-
-    /** Читаемое название режима для отображения в UI. */
-    private final String name;
-
-    CipherMode(String translation) {
-        this.name = translation;
-    }
-
-    /**
-     * @return человекочитаемое название режима
-     */
-    public String getName() {
-        return name;
-    }
+    BENDECRYPT;
 }

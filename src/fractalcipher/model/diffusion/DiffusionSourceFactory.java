@@ -3,6 +3,8 @@ package fractalcipher.model.diffusion;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import fractalcipher.config.DiffusionMode;
 import fractalcipher.exception.UnsupportedSourceException;
 
 /**
@@ -24,7 +26,7 @@ import fractalcipher.exception.UnsupportedSourceException;
  *
  * @author FractalCipher Team
  * @see DiffusionSource
- * @see fractalcipher.domain.DiffusionMode
+ * @see DiffusionMode
  */
 public class DiffusionSourceFactory {
 
@@ -34,7 +36,7 @@ public class DiffusionSourceFactory {
     /**
      * Регистрирует все известные источники диффузии.
      * <p>
-     * Имена должны совпадать с {@link fractalcipher.domain.DiffusionMode#getName()}.
+     * Имена должны совпадать с {@link DiffusionMode#getName()}.
      * </p>
      */
     public DiffusionSourceFactory() {

@@ -1,8 +1,8 @@
 package fractalcipher.view;
 
-import fractalcipher.domain.CipherMode;
-import fractalcipher.domain.DiffusionMode;
-import fractalcipher.domain.PermutationMode;
+import fractalcipher.config.CipherMode;
+import fractalcipher.config.DiffusionMode;
+import fractalcipher.config.PermutationMode;
 import fractalcipher.utils.CipherUtils;
 import fractalcipher.utils.AppLogger;
 
@@ -157,40 +157,95 @@ public class MainView {
         return root;
     }
 
+    /**
+     * Русская подпись для режима. Логика представления — здесь, а не в домене.
+     *
+     * @param mode режим (может быть {@code null})
+     * @return русская подпись или {@code "—"}, если {@code mode == null}
+     */
+    private static String translate(CipherMode mode) {
+        if (mode == null) return "—";
+        return switch (mode) {
+            case ENCRYPT    -> "Шифрование";
+            case DECRYPT    -> "Расшифровка";
+            case BENCHMARK  -> "Бенчмарк";
+            case BENCRYPT   -> "Шифрование папки";
+            case BENDECRYPT -> "Расшифровка папки";
+        };
+    }
+
+    /**
+     * Русская подпись для источника перестановки.
+     *
+     * @param mode источник (может быть {@code null})
+     * @return русская подпись или {@code "—"}
+     */
+    private static String translate(PermutationMode mode) {
+        if (mode == null) return "—";
+        return switch (mode) {
+            case MANDELBROT   -> "Мандельброт";
+            case JULIA        -> "Жюлиа";
+            case CANTOR       -> "Кантор";
+            case BURNING_SHIP -> "Горящий корабль";
+            case SIERPINSKI   -> "Серпинский";
+            case DRAGON       -> "Дракон";
+        };
+    }
+
+    /**
+     * Русская подпись для источника диффузии.
+     *
+     * @param mode источник (может быть {@code null})
+     * @return русская подпись или {@code "—"}
+     */
+    private static String translate(DiffusionMode mode) {
+        if (mode == null) return "—";
+        return switch (mode) {
+            case LOGISTIC -> "Логистическая";
+            case HENON    -> "Хенон";
+            case TENT     -> "Тент";
+            case LORENZ   -> "Лоренц";
+            case ROSSLER  -> "Рёсслер";
+            case ARNOLD   -> "Арнольд";
+            case NULL     -> "Нет";
+        };
+    }
+
+    /**
+     * Универсальная подпись для любого enum-значения (для логирования).
+     * <p>
+     * Если тип неизвестен — возвращает {@link Enum#name()}.
+     * </p>
+     */
+    private static String translateAny(Enum<?> value) {
+        if (value instanceof CipherMode m)      return translate(m);
+        if (value instanceof PermutationMode m) return translate(m);
+        if (value instanceof DiffusionMode m)   return translate(m);
+        return String.valueOf(value);
+    }
+
     // ==========================================================
     //  РЕГИСТРАЦИЯ ОБРАБОТЧИКОВ
     // ==========================================================
 
     /**
-     * Заполняет карту обработчиков выбора.
+     * Регистрирует обработчики выбора. Сейчас каждый обработчик
+     * просто пишет выбранное значение в консоль — полезно для отладки UI.
      * <p>
-     * Сейчас обработчики просто логируют выбор в консоль — это удобно
-     * для отладки UI. Сама логика (что делать при выборе режима) — в
-     * {@link #onOptionSelected(ToggleButton)}.
+     * Тексты берутся из {@link #translateAny(Enum)}, а не из enum-ов —
+     * это убирает русские подписи из доменного слоя.
      * </p>
      */
     private void registerHandlers() {
-        handlers.put(CipherMode.ENCRYPT,   key -> System.out.println("Режим: Шифрование"));
-        handlers.put(CipherMode.DECRYPT,   key -> System.out.println("Режим: Расшифровка"));
-        handlers.put(CipherMode.BENCHMARK, key -> System.out.println("Режим: Бенчмарк"));
-        handlers.put(CipherMode.BENCRYPT,  key -> System.out.println("Режим: Бенчмарк+Шифрование"));
-        handlers.put(CipherMode.BENDECRYPT, key ->System.out.println("Режим: Расшифровка папки"));
-
-        handlers.put(PermutationMode.MANDELBROT,   key -> System.out.println("Перестановка: Мандельброт"));
-        handlers.put(PermutationMode.JULIA,        key -> System.out.println("Перестановка: Жюлиа"));
-        handlers.put(PermutationMode.CANTOR,       key -> System.out.println("Перестановка: Кантор"));
-        handlers.put(PermutationMode.BURNING_SHIP, key -> System.out.println("Перестановка: Горящий корабль"));
-        // НОВЫЕ ОБРАБОТЧИКИ:
-        handlers.put(PermutationMode.SIERPINSKI,   key -> System.out.println("Перестановка: Серпинский"));
-        handlers.put(PermutationMode.DRAGON,       key -> System.out.println("Перестановка: Дракон"));
-
-        handlers.put(DiffusionMode.LOGISTIC, key -> System.out.println("Диффузия: Логистическая"));
-        handlers.put(DiffusionMode.HENON,    key -> System.out.println("Диффузия: Хенон"));
-        handlers.put(DiffusionMode.TENT,     key -> System.out.println("Диффузия: Тент"));
-        handlers.put(DiffusionMode.LORENZ,   key -> System.out.println("Диффузия: Лоренц"));
-        handlers.put(DiffusionMode.ROSSLER,  key -> System.out.println("Диффузия: Рёсслер"));
-        handlers.put(DiffusionMode.ARNOLD,   key -> System.out.println("Диффузия: Арнольд"));
-        handlers.put(DiffusionMode.NULL,     key -> System.out.println("Диффузия: Нет"));
+        for (CipherMode m : CipherMode.values()) {
+            handlers.put(m, key -> System.out.println("Режим: " + translate(m)));
+        }
+        for (PermutationMode m : PermutationMode.values()) {
+            handlers.put(m, key -> System.out.println("Перестановка: " + translate(m)));
+        }
+        for (DiffusionMode m : DiffusionMode.values()) {
+            handlers.put(m, key -> System.out.println("Диффузия: " + translate(m)));
+        }
     }
 
     // ==========================================================
@@ -826,7 +881,7 @@ public class MainView {
         }
 
         // Выводим информацию в консоль
-        System.out.println("Запуск режима: " + mode);
+        System.out.println("Запуск режима: " + translate(mode));
         if (needMethods) {
             System.out.println("  перестановка = " + userParams.get(PermutationMode.class));
             System.out.println("  диффузия     = " + userParams.get(DiffusionMode.class));
@@ -840,7 +895,7 @@ public class MainView {
             System.out.println("  результат    = " + outputDir.getAbsolutePath());
         }
 
-        showAlert("Запуск: " + mode + ". Проверьте консоль.");
+        showAlert("Запуск: " + translate(mode) + ". Проверьте консоль.");
     }
 
     // ==========================================================

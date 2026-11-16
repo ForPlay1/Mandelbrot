@@ -1,5 +1,7 @@
 package fractalcipher.model.diffusion;
 
+import fractalcipher.config.DiffusionMode;
+
 import java.util.Map;
 
 /**
@@ -8,40 +10,53 @@ import java.util.Map;
  * В отличие от перестановки, диффузия не переставляет пиксели местами,
  * а меняет их <b>значения</b>. Поэтому здесь не нужна сортировка или
  * биекция индексов: достаточно вернуть поток псевдослучайных байт
- * длиной {@code length}, который потом XOR-ится с каналами пикселей
- * (или используется в CBC — зависит от {@link fractalcipher.domain.EncryptionMode}).
+ * длиной {@code length}. Как именно этот поток применяется к пикселям
+ * (простой XOR или CBC с S-боксами) — решает
+ * {@link fractalcipher.domain.FractalChaosCipher} в зависимости от
+ * {@link fractalcipher.domain.EncryptionMode}.
  * </p>
  * <p>
  * Все реализации регистрируются в {@link DiffusionSourceFactory} под
- * строковым именем ({@link #getName()}), совпадающим с
- * {@link fractalcipher.domain.DiffusionMode#getName()}.
+ * строковым именем ({@link #getName()}), которое должно совпадать с
+ * {@link DiffusionMode#getName()}, — иначе фабрика не найдёт источник.
  * </p>
  *
  * @author FractalCipher Team
  * @see DiffusionSourceFactory
- * @see fractalcipher.domain.DiffusionMode
+ * @see DiffusionMode
  */
 public interface DiffusionSource {
 
     /**
      * Генерирует поток псевдослучайных байт заданной длины.
-            * <p>
-     * Длина в {@link fractalcipher.domain.FractalChaosCipher#process()}
-     * равна {@code количество_пикселей × 8}: по 4 байта на ARGB-пиксель,
-            * умноженные на 2 (два прохода CBC в режиме
-     * {@link fractalcipher.domain.EncryptionMode#FULL}).
-            * </p>
-            *
-            * @param length требуемое число байт
-     * @param params параметры конкретной карты — обычно {@code "seed"},
-            *               {@code "x0"}, {@code "sboxSeed"} и параметры самой карты
-     *               ({@code "r"}, {@code "a"}, {@code "b"}, {@code "mu"} и т.п.).
-            *               В реальном шифровании все параметры выводятся из мастер-ключа.
+     * <p>
+     * В {@link fractalcipher.domain.FractalChaosCipher} длина потока
+     * равна {@code (количество пикселей) × 8}: 4 байта на ARGB-пиксель
+     * (по одному на канал A, R, G, B), умноженные на 2 — по числу
+     * проходов CBC в режиме
+     * {@link fractalcipher.domain.EncryptionMode#FULL}. В режиме
+     * {@code DIFFUSION_ONLY} запрашивается тот же объём, но используется
+     * только первая половина (второй проход CBC не выполняется).
+     * В {@code PERMUTATION_ONLY} источник диффузии вообще не вызывается —
+     * поток заменяется массивом нулей.
+     * </p>
+     *
+     * @param length требуемое число байт ({@code 8 × pixels.length})
+     * @param params параметры конкретной карты. Обычно содержат
+     *               {@code "seed"}, {@code "x0"} (для многомерных карт —
+     *               также {@code "y0"}, {@code "z0"}) и {@code "sboxSeed"};
+     *               для систем ОДУ дополнительно {@code "sigma"},
+     *               {@code "rho"}, {@code "beta"} и т.п. В реальном
+     *               шифровании все параметры выводятся из мастер-ключа
+     *               через доменную сепарацию
+     *               ({@link fractalcipher.model.KeyDerivation}).
      * @return массив байт длиной {@code length}
-     * @throws fractalcipher.exception.InvalidConfigurationException если параметры
-     *         несовместимы с требованиями карты (например, {@code mu} вне {@code (1; 2)})
-            * @throws fractalcipher.exception.EncryptionFailedException если траектория
-     *         карты разошлась или стартовую точку блока не удалось подобрать
+     * @throws fractalcipher.exception.InvalidConfigurationException
+     *         если параметры несовместимы с требованиями карты
+     *         (например, {@code mu} тент-карты вне {@code (1; 2)})
+     * @throws fractalcipher.exception.EncryptionFailedException
+     *         если траектория карты разошлась или стартовую точку блока
+     *         не удалось подобрать
      */
     byte[] generateStream(final int length, final Map<String, Double> params);
 

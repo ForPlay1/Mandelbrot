@@ -1,4 +1,4 @@
-package fractalcipher.domain;
+package fractalcipher.config;
 
 /**
  * Источник диффузии — хаотическая карта или система ОДУ,
@@ -39,8 +39,13 @@ public enum DiffusionMode {
     /** Строковое имя, используемое фабрикой источников диффузии. */
     private final String name;
 
-    DiffusionMode(String name) {
-        this.name = name;
+    /**
+     * @param sourceName идентификатор источника для
+     *                   {@link fractalcipher.model.diffusion.DiffusionSourceFactory}
+     *                   (например, {@code "logistic"})
+     */
+    DiffusionMode(String sourceName) {
+        this.name = sourceName;
     }
 
     /**

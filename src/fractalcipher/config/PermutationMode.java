@@ -1,4 +1,4 @@
-package fractalcipher.domain;
+package fractalcipher.config;
 
 /**
  * Источник перестановки пикселей (confusion-часть шифра).
@@ -32,10 +32,7 @@ public enum PermutationMode {
     /** Фрактал «Горящий корабль» (Burning Ship). */
     BURNING_SHIP("burning ship"),
 
-    /**
-     * Треугольник Серпинского.
-     * <p>Строковое имя содержит историческую опечатку, см. описание класса.</p>
-     */
+    /** Треугольник Серпинского. */
     SIERPINSKI("sierpinski"),
 
     /** Кривая Дракона (Dragon Curve). */
@@ -44,8 +41,13 @@ public enum PermutationMode {
     /** Строковое имя, используемое фабрикой источников перестановки. */
     private final String name;
 
-    PermutationMode(String translation) {
-        this.name = translation;
+    /**
+     * @param sourceName идентификатор источника для
+     *                   {@link fractalcipher.model.permutation.PermutationSourceFactory}
+     *                   (например, {@code "mandelbrot"})
+     */
+    PermutationMode(String sourceName) {
+        this.name = sourceName;
     }
 
     /**

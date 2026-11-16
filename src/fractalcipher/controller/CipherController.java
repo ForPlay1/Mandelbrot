@@ -1,5 +1,6 @@
 package fractalcipher.controller;
 
+import fractalcipher.config.*;
 import fractalcipher.domain.*;
 import fractalcipher.exception.ErrorHandler;
 import fractalcipher.exception.InvalidInputException;
