@@ -87,3 +87,15 @@ fractalcipher.exception.EncryptionFailedException: Траектория карт
 [2026-11-12 19:04:10] [INFO   ] [AppLogger] Пакетное шифрование [OK]: 123_png_encrypted.png
 [2026-11-12 19:04:10] [INFO   ] [AppLogger] Пакетное шифрование завершено за 1129 мс. Успешно: 5, Пропущено: 1, Ошибок: 0
 [2026-11-12 19:04:10] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-16 17:41:23] [INFO   ] [AppLogger] Конфликтов имён не обнаружено (режим ENCRYPT, папка: C:\Users\Samoslon\Documents\для проекта 2).
+[2026-11-16 17:41:23] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-16 17:41:23] [INFO   ] [AppLogger] Режим: ENCRYPT, Вход: C:\Users\Samoslon\Documents\для проекта\123.png
+[2026-11-16 17:41:23] [INFO   ] [AppLogger] Выходная папка: C:\Users\Samoslon\Documents\для проекта 2
+[2026-11-16 17:41:23] [INFO   ] [AppLogger] Шифрование файла: 123.png [burning ship + logistic]
+[2026-11-16 17:41:23] [INFO   ] [AppLogger] Сгенерирован и сохранен новый ключ: 123_png_encrypted.key
+[2026-11-16 17:41:24] [INFO   ] [AppLogger] Зашифровано: 123_png_encrypted.png (burning ship + logistic)
+[2026-11-16 17:41:24] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-16 17:41:33] [WARNING] [AppLogger] Обнаружено конфликтов: 1 из 1 исходных файлов (режим ENCRYPT, папка C:\Users\Samoslon\Documents\для проекта 2)
+[2026-11-16 17:41:33] [INFO   ] [AppLogger] Конфликт 1/1: 123.png → 123_png_encrypted.png (цель уже существует)
+[2026-11-16 17:46:48] [WARNING] [AppLogger] Выбрана «Отмена» на конфликте 1/1 [123.png] — операция отменена.
+[2026-11-16 17:46:48] [WARNING] [AppLogger] Запуск режима ENCRYPT отменён пользователем из-за конфликтов имён.
