@@ -1,46 +1,22 @@
-@startuml ObjectModel
+@startuml ObjectModel_Clean
 
 skinparam classAttributeIconSize 0
 skinparam packageStyle rectangle
 hide circle
 hide empty members
-
-' ============================================================
-' Не показаны (мёртвый код, на них никто не ссылается):
-' model.ImageCipher, model.ImageCipherImpl, model.EncryptionKey
-' ============================================================
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
 
 package "fractalcipher.domain" {
-
-  class Image {
-    - id: String
-    - name: String
+  class Image <<Entity>> {
     - image: BufferedImage
-    - size: long
-    - fileType: String
-    - resolution: String
-    - blackAndWhite: boolean
-    + {static} loadFromFile(id, name, file): Image
-    - {static} detectBlackAndWhite(image): boolean
-    + {static} getImageExtensions(): List<String>
+    + {static} loadFromFile(file): Image
+    + getResolution(): String
+    + isBlackAndWhite(): boolean
   }
-  note right of Image
-    detectBlackAndWhite — пороговый алгоритм:
-    • CHANNEL_THRESHOLD (8/255 ≈ 3%) — допустимое
-      отклонение между R, G, B внутри пикселя;
-    • COLORFUL_PIXEL_RATIO (1%) — доля цветных
-      пикселей, которую допускаем (для JPEG-шума);
-    • полностью прозрачные пиксели (alpha == 0)
-      пропускаются — у них нет видимого цвета;
-    • ранний выход при превышении лимита цветных.
 
-    getImageExtensions — общий список расширений
-    (png, jpg, jpeg, bmp, gif) для Main и MainView.
-  end note
-
-  abstract class Cipher {
-    - id: String
-    - name: String
+  abstract class Cipher <<Template Method>> {
     # imageInput: Image
     # imageOutput: Image
     + encrypt(): void
@@ -50,16 +26,18 @@ package "fractalcipher.domain" {
     # {abstract} postprocess(): void
   }
 
+  class FractalChaosCipher {
+    - mode: EncryptionMode
+  }
+
   enum EncryptionMode {
     PERMUTATION_ONLY
     DIFFUSION_ONLY
     FULL
   }
-  note right of EncryptionMode
-    Используется внутри FractalChaosCipher
-    для научного сравнения вклада этапов.
-  end note
+}
 
+package "fractalcipher.config" {
   enum CipherMode {
     ENCRYPT
     DECRYPT
@@ -67,12 +45,6 @@ package "fractalcipher.domain" {
     BENCRYPT
     BENDECRYPT
   }
-  note right of CipherMode
-    Режим работы приложения — выбирается
-    в MainView. Значения соответствуют
-    кнопкам UI: Шифрование / Расшифровка /
-    Бенчмарк / Шифр. папки / Расшиф. папки.
-  end note
 
   enum PermutationMode {
     MANDELBROT
@@ -82,11 +54,6 @@ package "fractalcipher.domain" {
     SIERPINSKI
     DRAGON
   }
-  note right of PermutationMode
-    Выбор источника перестановки из UI.
-    getName() возвращает русское название
-    для отображения пользователю.
-  end note
 
   enum DiffusionMode {
     LOGISTIC
@@ -97,452 +64,124 @@ package "fractalcipher.domain" {
     ARNOLD
     NULL
   }
-  note right of DiffusionMode
-    Выбор источника диффузии из UI.
-    Имена совпадают с getName() соответствующих
-    DiffusionSource (русские названия).
-  end note
-
-  class FractalChaosCipher {
-    - permutationSource: PermutationSource
-    - diffusionSource: DiffusionSource
-    - permutationParams: Map<String, Double>
-    - diffusionParams: Map<String, Double>
-    - mode: EncryptionMode
-    - width: int
-    - height: int
-    - pixels: int[]
-    - permutation: int[]
-    - sbox1: int[]
-    - sbox2: int[]
-    - invSbox1: int[]
-    - invSbox2: int[]
-    + FractalChaosCipher(id, name, permSrc, diffSrc)
-    + FractalChaosCipher(id, name, permSrc, diffSrc, permParams, diffParams)
-    + FractalChaosCipher(id, name, permSrc, diffSrc, permParams, diffParams, mode)
-    # preprocess(): void
-    # process(): void
-    # postprocess(): void
-    + decrypt(): void
-    - applyPermutation(pixels, permutation): int[]
-    - invertPermutation(permutation): int[]
-    - applyDiffusionEncrypt(pixels, stream): int[]
-    - applyDiffusionDecrypt(pixels, stream): int[]
-    - buildSBox(seed): int[]
-    - buildInverseSBox(sbox): int[]
-  }
-
-  note right of FractalChaosCipher
-    Режим (mode) определяет, какие этапы работают:
-    • PERMUTATION_ONLY — только перестановка (поток = нули)
-    • DIFFUSION_ONLY — только диффузия (перестановка = identity), XOR
-    • FULL — перестановка + диффузия + CBC с двумя S-боксами,
-      два прохода (вперёд и назад)
-    Шифруются все 4 канала ARGB (включая альфу);
-    от источника диффузии запрашивается 8 × пикселей байт
-    (4 канала × 2 прохода).
-
-    S-боксы кэшируются в конструкторе для ускорения.
-  end note
 }
 
 package "fractalcipher.model" {
-
-  class KeyDerivation <<utility>> {
-    + {static} deriveLong(masterSeed, domain): long
-    + {static} deriveDouble(masterSeed, domain): double
-    + {static} deriveSBox(masterSeed, domain): int[]
-  }
-}
-
-package "fractalcipher.model.permutation" {
-
-  interface PermutationSource {
+  interface PermutationSource <<Strategy>> {
     + generatePermutation(length, params): int[]
     + getName(): String
   }
 
-  class MandelbrotPermutation
-  class JuliaPermutation
-  class BurningShipPermutation
-  class CantorPermutation
-  class SierpinskiPermutation
-  class DragonPermutation
-  class IdentityPermutation <<выключает перестановку>>
-
-  class PermutationSourceFactory {
-    + register(source): void
-    + get(name): PermutationSource
-    + availableNames(): Set<String>
-    + clear(): void
-  }
-  note right of PermutationSourceFactory
-    get(name) бросает UnsupportedSourceException
-    при неизвестном имени.
-  end note
-}
-
-package "fractalcipher.model.diffusion" {
-
-  interface DiffusionSource {
+  interface DiffusionSource <<Strategy>> {
     + generateStream(length, params): byte[]
     + getName(): String
   }
 
-  class LogisticMapDiffusion
-  class HenonMapDiffusion
-  class TentMapDiffusion
-  class LorenzDiffusion
-  class RosslerDiffusion
-  class ArnoldMapDiffusion
-  class NullDiffusion <<выключает диффузию>>
-
-  class DiffusionUtils <<package-private>> {
-    ~ {static} fracByte(v): int
-    ~ {static} randomCord(rnd): double
-    ~ {static} randomLong(rnd): long
-    ~ {static} chainTwoPass(length, next): byte[]
-    ~ {static} applySBox(stream, seed): void
-    ~ {static} rk4(state, dt, f): void
+  class PermutationSourceFactory <<Factory>> {
+    + get(name): PermutationSource
+    + availableNames(): Set<String>
   }
-  note right of DiffusionUtils
-    rk4 бросает EncryptionFailedException
-    при расхождении траектории.
-  end note
 
-  class DiffusionSourceFactory {
-    + register(source): void
+  class DiffusionSourceFactory <<Factory>> {
     + get(name): DiffusionSource
     + availableNames(): Set<String>
-    + clear(): void
   }
-  note right of DiffusionSourceFactory
-    get(name) бросает UnsupportedSourceException
-    при неизвестном имени.
+
+  class KeyManager <<utility>> {
+    + saveKey(key, file): void
+    + loadKey(file): EncryptionKey
+  }
+}
+
+package "fractalcipher.controller" {
+  class CipherController <<Controller>> {
+    + processSelection(userParams): void
+    - runSingle(...): void
+    - runBatchEncrypt(...): void
+    - runBenchmark(...): void
+  }
+  note bottom of CipherController
+    Оркестратор. Принимает словарь из View,
+    вызывает фабрики, шифр и бенчмарк.
+    Управляет потоками и файлами.
   end note
 }
 
-package "fractalcipher.exception" {
-
-  class FractalCipherException {
-    - category: ErrorCategory
-    + FractalCipherException(category, message)
-    + FractalCipherException(category, message, cause)
-    + getCategory(): ErrorCategory
+package "fractalcipher.view" {
+  class MainView <<View>> {
+    - {static} userParams: Map<Class<?>, Object>
+    + getRoot(): Parent
+    + {static} getUserParams(): Map
+    - onRun(): void
+    - resolveConflicts(...): Set<File>
   }
-
-  class InvalidInputException
-  class InvalidConfigurationException
-  class EncryptionFailedException
-  class UnsupportedSourceException
-
-  class ErrorHandler <<utility>> {
-    - {static} logStream: PrintStream
-    - {static} verbose: boolean
-    + {static} handle(t): String
-    + {static} setVerbose(v): void
-    + {static} setLogStream(stream): void
-    - {static} classify(t): ErrorCategory
-    - {static} log(t, category): void
-    - {static} safeMessage(t, category): String
-  }
-
-  enum ErrorCategory {
-    USER_INPUT
-    CONFIGURATION
-    ENCRYPTION
-    IO
-    INTERNAL
-  }
-
-  note right of ErrorHandler
-    Централизованная обработка ошибок:
-    • классификация по категориям;
-    • логирование (в System.err или файл);
-    • безопасное сообщение для пользователя
-      (INTERNAL не раскрывает деталей).
+  note bottom of MainView
+    Собирает выбор пользователя (enums),
+    обрабатывает конфликты имён файлов
+    и публикует userParams для Controller.
   end note
 }
 
 package "fractalcipher.metrics" {
-
-  class ImageMetrics <<utility>> {
-    + {static} correlationCoefficient(image): double
-    + {static} entropy(image): double
-    + {static} npcr(image1, image2): double
-    + {static} uaci(image1, image2): double
-    + {static} mse(original, decrypted): double
+  class BenchmarkRunner <<utility>> {
+    + {static} runFull(factories, image, key): List
   }
 
-  class BenchmarkResult {
-    + imageName: String
+  class BenchmarkResult <<DTO>> {
     + permutationName: String
     + diffusionName: String
-    + encryptionTimeMs: long
-    + correlation: double
-    + entropy: double
     + npcr: double
-    + uaci: double
-    + mse: double
+    + entropy: double
     + toCsvRow(): String
   }
 
-  class CsvExporter <<utility>> {
-    + {static} export(results, baseFileName): void
+  class ImageMetrics <<utility>> {
+    + {static} npcr(img1, img2): double
+    + {static} entropy(img): double
   }
-  note right of CsvExporter
-    Сохраняет результаты бенчмарка в папку "benchmarks"
-    в формате CSV (с точкой в качестве десятичного разделителя).
-  end note
-
-  class BenchmarkRunner <<utility>> {
-    - {static} MASTER_SEED: long
-    + {static} runPermutationOnly(pf, image): List<BenchmarkResult>
-    + {static} runDiffusionOnly(df, image): List<BenchmarkResult>
-    + {static} runFull(pf, df, image): List<BenchmarkResult>
-    - {static} run(permNames, diffNames, pf, df, image, mode): List<BenchmarkResult>
-    - {static} withOnePixelFlipped(image): Image
-  }
-  note right of BenchmarkRunner
-    run использует parallelStream для перебора пар.
-    Ловит EncryptionFailedException и пропускает сбойные комбинации.
-  end note
-}
-
-package "fractalcipher.controller" {
-
-  class CipherController {
-    + handleEncrypt(cipher, image): Image
-    + handleDecrypt(cipher, image): Image
-    + handleBenchmarkPermutationOnly(pf, image): List<BenchmarkResult>
-    + handleBenchmarkDiffusionOnly(df, image): List<BenchmarkResult>
-    + handleBenchmarkFull(pf, df, image): List<BenchmarkResult>
-  }
-}
-
-package "fractalcipher.view" {
-
-  interface ImageView {
-    + requestInputImage(): Image
-    + requestFolder(): File
-    + requestMode(): String
-    + requestPermutationName(): String
-    + requestDiffusionName(): String
-    + showResult(result): void
-    + showBenchmarkResults(results): void
-    + showError(message): void
-  }
-
-  class ConsoleView {
-    - scanner: Scanner
-  }
-  note right of ConsoleView
-    Текстовая реализация ImageView.
-    Используется Main для вывода в консоль,
-    пока MainView отвечает за GUI.
-  end note
-
-  class MainView {
-    - root: BorderPane
-    - preview: ImageView
-    - selectedFile: File
-    - outputDir: File
-    - modeChosen: boolean
-    - inputChosen: boolean
-    - outputChosen: boolean
-    - modeGroup: ToggleGroup
-    - permGroup: ToggleGroup
-    - diffGroup: ToggleGroup
-    - selectionByButton: Map<ToggleButton, Enum<?>>
-    - handlers: Map<Enum<?>, Consumer<Enum<?>>>
-    - {static} userParams: Map<Class<?>, Object>
-    + MainView()
-    + getRoot(): Parent
-    + {static} getUserParams(): Map<Class<?>, Object>
-    - registerHandlers(): void
-    - buildSidebar(): Node
-    - buildDropZone(): Node
-    - buildOutputZone(): Node
-    - buildModeButtons(): Node
-    - buildPermutationButtons(): Node
-    - buildDiffusionButtons(): Node
-    - buildRunButton(): Node
-    - buildPreviewArea(): Node
-    - onOptionSelected(btn): void
-    - onChooseInput(): void
-    - onRun(): void
-    - updateEnabledState(): void
-    - getSelectedMode(): CipherMode
-    - isFolderMode(): boolean
-    - showAlert(msg): void
-  }
-  note right of MainView
-    JavaFX-интерфейс приложения:
-    • левая панель — выбор режима, перестановки,
-      диффузии, drag&drop;
-    • правая область — предпросмотр изображения;
-    • при «Запустить» формируется userParams
-      и публикуется статически;
-    • Main (в worker-потоке) читает userParams.
-
-    Для режима Бенчмарк зона выбора выходной папки скрыта.
-    Для режимов пакетной обработки (BENCRYPT, BENDECRYPT)
-    перетаскивание и выбор работают только с папками.
-  end note
 }
 
 package "fractalcipher.run" {
-
-  class Main {
-    - {static} ENCRYPTED_SUFFIX: String
-    - {static} IMAGE_EXTENSIONS: List<String>
+  class Main <<Entry Point>> {
     + main(args): void
     + start(stage): void
-    - {static} run(selection): void
-    - {static} runBenchmark(inputFile, controller, pf, df, view): void
-    - {static} runSingle(mode, permName, diffName, inputFile, image, controller, pf, df, view): void
-    - {static} runBatchEncrypt(permName, diffName, inputDir, outputDir, controller, pf, df, view): void
-    - {static} runBatchDecrypt(inputDir, outputDir, controller, pf, df, view): void
-    - {static} buildPermParams(masterSeed, permName): Map<String, Double>
-    - {static} buildDiffParams(masterSeed, diffName): Map<String, Double>
-    - {static} isImageToEncrypt(fileName): boolean
-    - {static} baseName(fileName): String
   }
-  note right of Main
-    Наследник javafx.application.Application.
-    main — единственная точка глобального try-catch.
-    run() разветвляется на обработку одиночных файлов,
-    папок (шифрование/расшифровка) и бенчмарка.
-    Бенчмарк поддерживает как файлы, так и папки.
-  end note
 }
 
 ' ============================================================
-' Наследование (Template Method)
+' СВЯЗИ (Relationships)
 ' ============================================================
+
 Cipher <|-- FractalChaosCipher
-Application <|-- Main
+Cipher o-- Image : "шифрует"
 
-' ============================================================
-' Иерархия исключений
-' ============================================================
-RuntimeException <|-- FractalCipherException
-FractalCipherException <|-- InvalidInputException
-FractalCipherException <|-- InvalidConfigurationException
-FractalCipherException <|-- EncryptionFailedException
-FractalCipherException <|-- UnsupportedSourceException
+' Мост между UI и логикой через статический словарь
+MainView ..> Main : "публикует userParams"
+Main ..> CipherController : "создает и вызывает"
+Main ..> MainView : "запускает UI"
 
-' ============================================================
-' Реализация интерфейсов (Strategy)
-' ============================================================
-PermutationSource <|.. MandelbrotPermutation
-PermutationSource <|.. JuliaPermutation
-PermutationSource <|.. BurningShipPermutation
-PermutationSource <|.. CantorPermutation
-PermutationSource <|.. SierpinskiPermutation
-PermutationSource <|.. DragonPermutation
-PermutationSource <|.. IdentityPermutation
+' Контроллер использует фабрики и шифр
+CipherController --> PermutationSourceFactory
+CipherController --> DiffusionSourceFactory
+CipherController --> Cipher : "вызывает encrypt/decrypt"
+CipherController --> BenchmarkRunner : "запускает"
+CipherController ..> CipherMode
+CipherController ..> PermutationMode
+CipherController ..> DiffusionMode
 
-DiffusionSource <|.. LogisticMapDiffusion
-DiffusionSource <|.. HenonMapDiffusion
-DiffusionSource <|.. TentMapDiffusion
-DiffusionSource <|.. LorenzDiffusion
-DiffusionSource <|.. RosslerDiffusion
-DiffusionSource <|.. ArnoldMapDiffusion
-DiffusionSource <|.. NullDiffusion
+' Шифр зависит от интерфейсов (внедряются через конструктор)
+FractalChaosCipher --> PermutationSource
+FractalChaosCipher --> DiffusionSource
+FractalChaosCipher --> EncryptionMode
 
-ImageView <|.. ConsoleView
+' View использует Config (Enums для кнопок)
+MainView ..> CipherMode
+MainView ..> PermutationMode
+MainView ..> DiffusionMode
 
-' ============================================================
-' Ассоциации (хранит как поле)
-' ============================================================
-Cipher o-- "0..1" Image : imageInput
-Cipher o-- "0..1" Image : imageOutput
-FractalChaosCipher --> PermutationSource : внедряется\nчерез конструктор
-FractalChaosCipher --> DiffusionSource : внедряется\nчерез конструктор
-FractalChaosCipher --> EncryptionMode : mode
-
-' ============================================================
-' Зависимости (используют временно / создают)
-' ============================================================
-PermutationSourceFactory ..> PermutationSource : создаёт и хранит
-DiffusionSourceFactory ..> DiffusionSource : создаёт и хранит
-
-PermutationSourceFactory ..> UnsupportedSourceException : бросает
-DiffusionSourceFactory ..> UnsupportedSourceException : бросает
-
-ArnoldMapDiffusion ..> DiffusionUtils
-LorenzDiffusion ..> DiffusionUtils
-RosslerDiffusion ..> DiffusionUtils
-TentMapDiffusion ..> DiffusionUtils
-HenonMapDiffusion ..> DiffusionUtils
-LogisticMapDiffusion ..> DiffusionUtils
-
-DiffusionUtils ..> EncryptionFailedException : бросает (rk4)
-HenonMapDiffusion ..> EncryptionFailedException : бросает (step)
-TentMapDiffusion ..> InvalidConfigurationException : бросает (параметры)
-ArnoldMapDiffusion ..> InvalidConfigurationException : бросает (параметры)
-
-FractalChaosCipher ..> EncryptionFailedException : оборачивает\nошибки перестановки\nи диффузии
-
-BenchmarkRunner ..> FractalChaosCipher : создаёт на каждую пару
-BenchmarkRunner ..> EncryptionMode : задаёт режим серии
-BenchmarkRunner ..> KeyDerivation : параметры из мастер-seed
-BenchmarkRunner ..> ImageMetrics
-BenchmarkRunner ..> BenchmarkResult : создаёт
-BenchmarkRunner ..> PermutationSourceFactory
-BenchmarkRunner ..> DiffusionSourceFactory
-BenchmarkRunner ..> IdentityPermutation : фабрика "только identity"
-BenchmarkRunner ..> NullDiffusion : фабрика "только null"
-BenchmarkRunner ..> Image
-BenchmarkRunner ..> EncryptionFailedException : ловит
-BenchmarkRunner ..> ErrorHandler : логирует сбойные\nкомбинации
-
-CipherController --> Cipher : вызывает encrypt()/decrypt()
-CipherController ..> BenchmarkRunner : делегирует серии
-CipherController ..> PermutationSourceFactory
-CipherController ..> DiffusionSourceFactory
-CipherController ..> Image
-CipherController ..> BenchmarkResult
-
-ImageView ..> Image
-
-' ============================================================
-' Main и MainView
-' ============================================================
-Main ..> CipherController : создаёт
-Main ..> ConsoleView : создаёт
-Main ..> FractalChaosCipher : создаёт
-Main ..> PermutationSourceFactory : создаёт
-Main ..> DiffusionSourceFactory : создаёт
-Main ..> ImageView
-Main ..> ErrorHandler : глобальный\nперехват исключений
-Main ..> MainView : читает userParams\n(статически)
-Main ..> CipherMode : разбирает выбор\nиз UI
-Main ..> PermutationMode : разбирает выбор\nиз UI
-Main ..> DiffusionMode : разбирает выбор\nиз UI
-Main ..> Image : loadFromFile
-Main ..> CsvExporter : сохраняет\nрезультаты бенчмарка
-Main ..> KeyDerivation : строит параметры
-Main ..> KeyManager : сохраняет/читает\nключи
-Main ..> EncryptionKey : использует для\nсериализации
-
-MainView ..> CipherMode : кнопки режима
-MainView ..> PermutationMode : кнопки перестановки
-MainView ..> DiffusionMode : кнопки диффузии
-MainView ..> Image : getImageExtensions()
-MainView ..> Alert : показывает\nпользователю
-MainView ..> FileChooser : выбор файла
-MainView ..> DirectoryChooser : выбор папки
-MainView ..> Dragboard : drag&drop
-
-CsvExporter ..> BenchmarkResult : читает данные
-ErrorHandler ..> FractalCipherException : классифицирует
-ErrorHandler --> ErrorCategory : использует
-
-' ============================================================
-' Связь MainView ↔ Main через userParams
-' ============================================================
-MainView -[hidden]-> Main
+' Бенчмарк создает шифры, использует метрики и возвращает DTO
+BenchmarkRunner ..> FractalChaosCipher : "создает"
+BenchmarkRunner ..> ImageMetrics : "считает"
+BenchmarkRunner ..> BenchmarkResult : "создает"
 
 @enduml
