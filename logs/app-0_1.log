@@ -1,0 +1,1342 @@
+[2026-11-04 16:25:21] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-04 16:25:21] [INFO   ] [AppLogger] Режим: BENCRYPT, Вход: C:\Users\Oksana\Downloads\1
+[2026-11-04 16:25:21] [INFO   ] [AppLogger] Выходная папка: C:\Users\Oksana\Downloads\2
+[2026-11-04 16:25:21] [INFO   ] [AppLogger] Начало пакетного шифрования. Файлов: 37 [mandelbrot + henon]
+[2026-11-04 16:25:22] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: sample-clouds-400x300.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:679)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateParallel(ForEachOps.java:162)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateParallel(ForEachOps.java:176)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:264)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:632)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:806)
+	at fractalcipher.controller.CipherController.runBatchEncrypt(CipherController.java:185)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:60)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:37)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+[2026-11-04 16:25:22] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: 54.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:22] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: 876.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:22] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: images3.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:22] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: 98.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:22] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: dsada.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:22] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: signal-2023-12-21-105013_013.jpeg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:22] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: oar2.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:22] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: 67.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:22] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: 767.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:22] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: sample-red-1x1.png
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:22] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: 43.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:22] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: dsadsa.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:22] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-bumblebee-400x300_encrypted.png
+[2026-11-04 16:25:22] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: аавы.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:22] [INFO   ] [AppLogger] Пакетное шифрование [OK]: images_encrypted.png
+[2026-11-04 16:25:23] [INFO   ] [AppLogger] Пакетное шифрование [OK]: images1_encrypted.png
+[2026-11-04 16:25:23] [INFO   ] [AppLogger] Пакетное шифрование [OK]: fdff_encrypted.png
+[2026-11-04 16:25:23] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: sample-red-1x1.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:23] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: sample-red-100x75.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:23] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: gqp5k6cas7bg1.png
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:23] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: sample-boat-400x300.png
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:23] [INFO   ] [AppLogger] Пакетное шифрование [OK]: вапа_encrypted.png
+[2026-11-04 16:25:23] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: vcvc.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:24] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: sample-photo-1280x720.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:24] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: 1.png
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:26] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: sample-photo-1920x1080.png
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:27] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-photo-1920x1080_encrypted.png
+[2026-11-04 16:25:28] [INFO   ] [AppLogger] Пакетное шифрование [OK]: 978_encrypted.png
+[2026-11-04 16:25:29] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: sample-10mb.png
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:29] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: sample-photo-3840x2160.png
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:30] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-5mb_encrypted.png
+[2026-11-04 16:25:30] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-1mb_encrypted.png
+[2026-11-04 16:25:30] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: sample-photo-3840x2160.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:30] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: sample-5mb.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:99)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:45)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-04 16:25:30] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-photo-2560x1440_encrypted.png
+[2026-11-04 16:25:34] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-10mb_encrypted.png
+[2026-11-04 16:25:34] [INFO   ] [AppLogger] Пакетное шифрование завершено за 12553 мс. Успешно: 11, Ошибок: 26
+[2026-11-04 16:25:34] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-04 16:29:01] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-04 16:29:01] [INFO   ] [AppLogger] Режим: BENCRYPT, Вход: C:\Users\Oksana\Downloads\1
+[2026-11-04 16:29:01] [INFO   ] [AppLogger] Выходная папка: C:\Users\Oksana\Downloads\2
+[2026-11-04 16:29:01] [INFO   ] [AppLogger] Начало пакетного шифрования. Файлов: 37 [mandelbrot + henon]
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-clouds-400x300_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: 54_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: images_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: 876_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: images3_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: 98_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: аавы_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: fdff_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-bumblebee-400x300_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: dsada_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: dsadsa_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: oar2_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: signal-2023-12-21-105013_013_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-red-1x1_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: 767_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: вапа_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: images1_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: 67_encrypted.png
+[2026-11-04 16:29:03] [INFO   ] [AppLogger] Пакетное шифрование [OK]: vcvc_encrypted.png
+[2026-11-04 16:29:04] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-boat-400x300_encrypted.png
+[2026-11-04 16:29:04] [INFO   ] [AppLogger] Пакетное шифрование [OK]: 43_encrypted.png
+[2026-11-04 16:29:05] [INFO   ] [AppLogger] Пакетное шифрование [OK]: gqp5k6cas7bg1_encrypted.png
+[2026-11-04 16:29:06] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-photo-1280x720_encrypted.png
+[2026-11-04 16:29:07] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-photo-1920x1080_encrypted.png
+[2026-11-04 16:29:07] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-red-1x1_encrypted.png
+[2026-11-04 16:29:07] [SEVERE ] [AppLogger] Пакетное шифрование [FAIL]: sample-red-100x75.jpg
+fractalcipher.exception.EncryptionFailedException: Траектория карты Хенона разошлась — проверьте параметры a, b, x0, y0
+	at fractalcipher.model.diffusion.HenonMapDiffusion.step(HenonMapDiffusion.java:98)
+	at fractalcipher.model.diffusion.HenonMapDiffusion.generateStream(HenonMapDiffusion.java:44)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:117)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:51)
+	at fractalcipher.controller.CipherController.handleEncrypt(CipherController.java:339)
+	at fractalcipher.controller.CipherController.lambda$runBatchEncrypt$1(CipherController.java:210)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.helpComplete(ForkJoinPool.java:1537)
+	at java.base/java.util.concurrent.ForkJoinPool.helpComplete(ForkJoinPool.java:2332)
+	at java.base/java.util.concurrent.ForkJoinTask.awaitDone(ForkJoinTask.java:493)
+	at java.base/java.util.concurrent.ForkJoinTask.join(ForkJoinTask.java:665)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:680)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateParallel(ForEachOps.java:162)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateParallel(ForEachOps.java:176)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:264)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:632)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:806)
+	at fractalcipher.controller.CipherController.runBatchEncrypt(CipherController.java:185)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:60)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:37)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+[2026-11-04 16:29:07] [INFO   ] [AppLogger] Пакетное шифрование [OK]: 1_encrypted.png
+[2026-11-04 16:29:08] [INFO   ] [AppLogger] Пакетное шифрование [OK]: 978_encrypted.png
+[2026-11-04 16:29:08] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-photo-1920x1080_encrypted.png
+[2026-11-04 16:29:10] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-1mb_encrypted.png
+[2026-11-04 16:29:10] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-5mb_encrypted.png
+[2026-11-04 16:29:13] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-photo-2560x1440_encrypted.png
+[2026-11-04 16:29:15] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-photo-3840x2160_encrypted.png
+[2026-11-04 16:29:17] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-10mb_encrypted.png
+[2026-11-04 16:29:17] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-10mb_encrypted.png
+[2026-11-04 16:29:18] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-5mb_encrypted.png
+[2026-11-04 16:29:18] [INFO   ] [AppLogger] Пакетное шифрование [OK]: sample-photo-3840x2160_encrypted.png
+[2026-11-04 16:29:18] [INFO   ] [AppLogger] Пакетное шифрование завершено за 16535 мс. Успешно: 36, Ошибок: 1
+[2026-11-04 16:29:18] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-04 16:31:56] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-04 16:31:56] [INFO   ] [AppLogger] Режим: BENDECRYPT, Вход: C:\Users\Oksana\Downloads\2
+[2026-11-04 16:31:56] [INFO   ] [AppLogger] Выходная папка: C:\Users\Oksana\Downloads\3
+[2026-11-04 16:31:56] [INFO   ] [AppLogger] Начало пакетной расшифровки. Файлов: 31
+[2026-11-04 16:31:56] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: sample-clouds-400x300_decrypted.png
+[2026-11-04 16:31:57] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: sample-bumblebee-400x300_decrypted.png
+[2026-11-04 16:31:57] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: dsadsa_decrypted.png
+[2026-11-04 16:31:57] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: 767_decrypted.png
+[2026-11-04 16:31:57] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: vcvc_decrypted.png
+[2026-11-04 16:31:57] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: вапа_decrypted.png
+[2026-11-04 16:31:57] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: sample-boat-400x300_decrypted.png
+[2026-11-04 16:31:57] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: fdff_decrypted.png
+[2026-11-04 16:31:57] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: аавы_decrypted.png
+[2026-11-04 16:31:57] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: 67_decrypted.png
+[2026-11-04 16:31:57] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: 43_decrypted.png
+[2026-11-04 16:31:57] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: dsada_decrypted.png
+[2026-11-04 16:31:57] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: oar2_decrypted.png
+[2026-11-04 16:31:57] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: sample-photo-1280x720_decrypted.png
+[2026-11-04 16:31:58] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: 98_decrypted.png
+[2026-11-04 16:31:58] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: 54_decrypted.png
+[2026-11-04 16:31:58] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: sample-red-1x1_decrypted.png
+[2026-11-04 16:31:58] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: 876_decrypted.png
+[2026-11-04 16:31:58] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: images3_decrypted.png
+[2026-11-04 16:31:58] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: signal-2023-12-21-105013_013_decrypted.png
+[2026-11-04 16:31:58] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: images1_decrypted.png
+[2026-11-04 16:31:58] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: images_decrypted.png
+[2026-11-04 16:32:00] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: 1_decrypted.png
+[2026-11-04 16:32:00] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: 978_decrypted.png
+[2026-11-04 16:32:00] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: gqp5k6cas7bg1_decrypted.png
+[2026-11-04 16:32:00] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: sample-photo-1920x1080_decrypted.png
+[2026-11-04 16:32:01] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: sample-1mb_decrypted.png
+[2026-11-04 16:32:01] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: sample-photo-2560x1440_decrypted.png
+[2026-11-04 16:32:04] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: sample-photo-3840x2160_decrypted.png
+[2026-11-04 16:32:05] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: sample-10mb_decrypted.png
+[2026-11-04 16:32:05] [INFO   ] [AppLogger] Пакетная расшифровка [OK]: sample-5mb_decrypted.png
+[2026-11-04 16:32:05] [INFO   ] [AppLogger] Пакетная расшифровка завершена за 8633 мс. Успешно: 31, Ошибок: 0
+[2026-11-04 16:32:05] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-04 16:38:45] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-04 16:38:45] [INFO   ] [AppLogger] Режим: ENCRYPT, Вход: C:\Users\Oksana\Downloads\sample-10mb.jpg
+[2026-11-04 16:38:45] [INFO   ] [AppLogger] Выходная папка: C:\Users\Oksana\Downloads
+[2026-11-04 16:38:45] [INFO   ] [AppLogger] Шифрование файла: sample-10mb.jpg [mandelbrot + henon]
+[2026-11-04 16:38:45] [INFO   ] [AppLogger] Сгенерирован и сохранен новый ключ: sample-10mb_encrypted.key
+[2026-11-04 16:38:48] [INFO   ] [AppLogger] Зашифровано: sample-10mb_encrypted.png (mandelbrot + henon)
+[2026-11-04 16:38:48] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-04 16:39:17] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-04 16:39:17] [INFO   ] [AppLogger] Режим: DECRYPT, Вход: C:\Users\Oksana\Downloads\sample-10mb_encrypted.png
+[2026-11-04 16:39:17] [INFO   ] [AppLogger] Выходная папка: C:\Users\Oksana\Downloads
+[2026-11-04 16:39:17] [INFO   ] [AppLogger] Расшифровка файла: sample-10mb_encrypted.png [null + null]
+[2026-11-04 16:39:17] [INFO   ] [AppLogger] Ключ успешно загружен из: sample-10mb_encrypted.key
+[2026-11-04 16:39:22] [INFO   ] [AppLogger] Расшифровано: sample-10mb_decrypted.png (mandelbrot + henon)
+[2026-11-04 16:39:22] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-16 16:15:43] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-16 16:15:43] [INFO   ] [AppLogger] Режим: BENCHMARK, Вход: C:\Users\Oksana\Downloads\1
+[2026-11-16 16:15:43] [INFO   ] [AppLogger] Запуск бенчмарка. Изображений: 42
+[2026-11-16 16:16:56] [INFO   ] [AppLogger] Бенчмарк для файла 1.png успешно завершен.
+[2026-11-16 16:20:01] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-16 16:20:01] [INFO   ] [AppLogger] Режим: BENCHMARK, Вход: C:\Users\Oksana\Downloads\1
+[2026-11-16 16:20:02] [INFO   ] [AppLogger] Запуск бенчмарка. Изображений: 42
+[2026-11-16 16:21:54] [INFO   ] [AppLogger] Бенчмарк для файла 1.png успешно завершен.
+[2026-11-16 16:25:37] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-16 16:25:37] [INFO   ] [AppLogger] Режим: BENCHMARK, Вход: C:\Users\Oksana\Downloads\1
+[2026-11-16 16:25:37] [INFO   ] [AppLogger] Запуск бенчмарка. Изображений: 42, ключей: 5
+[2026-11-16 16:25:37] [INFO   ] [AppLogger] Бенчмарк: используется ключ seed=0
+[2026-11-16 16:26:55] [INFO   ] [AppLogger] Бенчмарк для файла 1.png (seed=0) успешно завершен.
+[2026-11-16 16:28:11] [INFO   ] [AppLogger] Бенчмарк для файла 175101478397df29bcf2dcc0431b9ce26be896aa2c66968cee.jpg (seed=0) успешно завершен.
+[2026-11-16 16:29:28] [INFO   ] [AppLogger] Бенчмарк для файла 1782259195d0a3f8bca6e29d5085248a8a3e705da53bfd90e6.jpg (seed=0) успешно завершен.
+[2026-11-16 16:29:36] [INFO   ] [AppLogger] Бенчмарк для файла 43.jpg (seed=0) успешно завершен.
+[2026-11-16 16:29:43] [INFO   ] [AppLogger] Бенчмарк для файла 54.jpg (seed=0) успешно завершен.
+[2026-11-16 16:29:54] [INFO   ] [AppLogger] Бенчмарк для файла 67.jpg (seed=0) успешно завершен.
+[2026-11-16 16:30:04] [INFO   ] [AppLogger] Бенчмарк для файла 767.jpg (seed=0) успешно завершен.
+[2026-11-16 16:30:11] [INFO   ] [AppLogger] Бенчмарк для файла 876.jpg (seed=0) успешно завершен.
+[2026-11-16 16:31:34] [INFO   ] [AppLogger] Бенчмарк для файла 978.png (seed=0) успешно завершен.
+[2026-11-16 16:31:41] [INFO   ] [AppLogger] Бенчмарк для файла 98.jpg (seed=0) успешно завершен.
+[2026-11-16 16:31:49] [INFO   ] [AppLogger] Бенчмарк для файла dsada.jpg (seed=0) успешно завершен.
+[2026-11-16 16:31:56] [INFO   ] [AppLogger] Бенчмарк для файла dsadsa.jpg (seed=0) успешно завершен.
+[2026-11-16 16:32:07] [INFO   ] [AppLogger] Бенчмарк для файла fdff.jpg (seed=0) успешно завершен.
+[2026-11-16 16:32:59] [INFO   ] [AppLogger] Бенчмарк для файла gettyimages-1177964933.png (seed=0) успешно завершен.
+[2026-11-16 16:34:14] [INFO   ] [AppLogger] Бенчмарк для файла gqp5k6cas7bg1.png (seed=0) успешно завершен.
+[2026-11-16 16:34:21] [INFO   ] [AppLogger] Бенчмарк для файла images.jpg (seed=0) успешно завершен.
+[2026-11-16 16:34:32] [INFO   ] [AppLogger] Бенчмарк для файла images1.jpg (seed=0) успешно завершен.
+[2026-11-16 16:34:39] [INFO   ] [AppLogger] Бенчмарк для файла images3.jpg (seed=0) успешно завершен.
+[2026-11-16 16:35:10] [INFO   ] [AppLogger] Бенчмарк для файла oar2.jpg (seed=0) успешно завершен.
+[2026-11-16 16:40:08] [INFO   ] [AppLogger] Бенчмарк для файла sample-10mb.jpg (seed=0) успешно завершен.
+[2026-11-16 16:45:08] [INFO   ] [AppLogger] Бенчмарк для файла sample-10mb.png (seed=0) успешно завершен.
+[2026-11-16 16:47:19] [INFO   ] [AppLogger] Бенчмарк для файла sample-1mb.jpg (seed=0) успешно завершен.
+[2026-11-16 16:52:16] [INFO   ] [AppLogger] Бенчмарк для файла sample-5mb.jpg (seed=0) успешно завершен.
+[2026-11-16 16:54:28] [INFO   ] [AppLogger] Бенчмарк для файла sample-5mb.png (seed=0) успешно завершен.
+[2026-11-16 16:54:45] [INFO   ] [AppLogger] Бенчмарк для файла sample-boat-400x300.png (seed=0) успешно завершен.
+[2026-11-16 16:54:49] [INFO   ] [AppLogger] Бенчмарк для файла sample-bumblebee-400x300.png (seed=0) успешно завершен.
+[2026-11-16 16:54:54] [INFO   ] [AppLogger] Бенчмарк для файла sample-clouds-400x300.jpg (seed=0) успешно завершен.
+[2026-11-16 16:55:26] [INFO   ] [AppLogger] Бенчмарк для файла sample-photo-1280x720.jpg (seed=0) успешно завершен.
+[2026-11-16 16:56:35] [INFO   ] [AppLogger] Бенчмарк для файла sample-photo-1920x1080.jpg (seed=0) успешно завершен.
+[2026-11-16 16:58:18] [INFO   ] [AppLogger] Бенчмарк для файла sample-photo-1920x1080.png (seed=0) успешно завершен.
+[2026-11-16 17:00:48] [INFO   ] [AppLogger] Бенчмарк для файла sample-photo-2560x1440.jpg (seed=0) успешно завершен.
+[2026-11-16 17:07:38] [INFO   ] [AppLogger] Бенчмарк для файла sample-photo-3840x2160.jpg (seed=0) успешно завершен.
+[2026-11-16 17:15:40] [INFO   ] [AppLogger] Бенчмарк для файла sample-photo-3840x2160.png (seed=0) успешно завершен.
+[2026-11-16 17:15:41] [INFO   ] [AppLogger] Бенчмарк для файла sample-red-100x75.jpg (seed=0) успешно завершен.
+[2026-11-16 17:15:41] [INFO   ] [AppLogger] Бенчмарк для файла sample-red-1x1.jpg (seed=0) успешно завершен.
+[2026-11-16 17:15:42] [INFO   ] [AppLogger] Бенчмарк для файла sample-red-1x1.png (seed=0) успешно завершен.
+[2026-11-16 17:18:27] [INFO   ] [AppLogger] Бенчмарк для файла shakeai.png (seed=0) успешно завершен.
+[2026-11-16 17:20:31] [INFO   ] [AppLogger] Бенчмарк для файла signal-2023-12-21-105013_013.jpeg (seed=0) успешно завершен.
+[2026-11-16 17:21:05] [INFO   ] [AppLogger] Бенчмарк для файла vcvc.jpg (seed=0) успешно завершен.
+[2026-11-16 17:23:59] [INFO   ] [AppLogger] Бенчмарк для файла zakonotvorcy.png (seed=0) успешно завершен.
+[2026-11-16 17:24:34] [INFO   ] [AppLogger] Бенчмарк для файла аавы.jpg (seed=0) успешно завершен.
+[2026-11-16 17:25:08] [INFO   ] [AppLogger] Бенчмарк для файла вапа.jpg (seed=0) успешно завершен.
+[2026-11-16 17:25:08] [INFO   ] [AppLogger] Бенчмарк: используется ключ seed=1
+[2026-11-16 17:53:43] [INFO   ] [AppLogger] Бенчмарк для файла 1.png (seed=1) успешно завершен.
+[2026-11-16 18:31:00] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-16 18:31:00] [INFO   ] [AppLogger] Режим: BENCHMARK, Вход: C:\Users\Oksana\Downloads\1
+[2026-11-16 18:31:00] [INFO   ] [AppLogger] Запуск бенчмарка. Изображений: 42, ключей: 1
+[2026-11-16 18:31:00] [INFO   ] [AppLogger] Бенчмарк: используется ключ seed=0
+[2026-11-16 18:34:17] [INFO   ] [AppLogger] Бенчмарк для файла 1.png (seed=0) успешно завершен.
+[2026-11-16 18:37:09] [INFO   ] [AppLogger] Бенчмарк для файла 175101478397df29bcf2dcc0431b9ce26be896aa2c66968cee.jpg (seed=0) успешно завершен.
+[2026-11-16 18:38:07] [INFO   ] [AppLogger] Бенчмарк для файла 1782259195d0a3f8bca6e29d5085248a8a3e705da53bfd90e6.jpg (seed=0) успешно завершен.
+[2026-11-16 18:38:12] [INFO   ] [AppLogger] Бенчмарк для файла 43.jpg (seed=0) успешно завершен.
+[2026-11-16 18:38:17] [INFO   ] [AppLogger] Бенчмарк для файла 54.jpg (seed=0) успешно завершен.
+[2026-11-16 18:38:25] [INFO   ] [AppLogger] Бенчмарк для файла 67.jpg (seed=0) успешно завершен.
+[2026-11-16 18:38:33] [INFO   ] [AppLogger] Бенчмарк для файла 767.jpg (seed=0) успешно завершен.
+[2026-11-16 18:38:39] [INFO   ] [AppLogger] Бенчмарк для файла 876.jpg (seed=0) успешно завершен.
+[2026-11-16 18:39:42] [INFO   ] [AppLogger] Бенчмарк для файла 978.png (seed=0) успешно завершен.
+[2026-11-16 18:39:48] [INFO   ] [AppLogger] Бенчмарк для файла 98.jpg (seed=0) успешно завершен.
+[2026-11-16 18:39:54] [INFO   ] [AppLogger] Бенчмарк для файла dsada.jpg (seed=0) успешно завершен.
+[2026-11-16 18:39:59] [INFO   ] [AppLogger] Бенчмарк для файла dsadsa.jpg (seed=0) успешно завершен.
+[2026-11-16 18:40:07] [INFO   ] [AppLogger] Бенчмарк для файла fdff.jpg (seed=0) успешно завершен.
+[2026-11-16 18:40:48] [INFO   ] [AppLogger] Бенчмарк для файла gettyimages-1177964933.png (seed=0) успешно завершен.
+[2026-11-16 18:41:44] [INFO   ] [AppLogger] Бенчмарк для файла gqp5k6cas7bg1.png (seed=0) успешно завершен.
+[2026-11-16 18:41:50] [INFO   ] [AppLogger] Бенчмарк для файла images.jpg (seed=0) успешно завершен.
+[2026-11-16 18:42:20] [INFO   ] [AppLogger] Бенчмарк для файла images1.jpg (seed=0) успешно завершен.
+[2026-11-16 18:42:41] [INFO   ] [AppLogger] Бенчмарк для файла images3.jpg (seed=0) успешно завершен.
+[2026-11-16 18:44:26] [INFO   ] [AppLogger] Бенчмарк для файла oar2.jpg (seed=0) успешно завершен.
+[2026-11-16 19:09:31] [INFO   ] [AppLogger] Бенчмарк для файла sample-10mb.jpg (seed=0) успешно завершен.
+[2026-11-16 19:13:42] [INFO   ] [AppLogger] Бенчмарк для файла sample-10mb.png (seed=0) успешно завершен.
+[2026-11-16 19:15:31] [INFO   ] [AppLogger] Бенчмарк для файла sample-1mb.jpg (seed=0) успешно завершен.
+[2026-11-16 19:19:37] [INFO   ] [AppLogger] Бенчмарк для файла sample-5mb.jpg (seed=0) успешно завершен.
+[2026-11-16 19:21:27] [INFO   ] [AppLogger] Бенчмарк для файла sample-5mb.png (seed=0) успешно завершен.
+[2026-11-16 19:21:41] [INFO   ] [AppLogger] Бенчмарк для файла sample-boat-400x300.png (seed=0) успешно завершен.
+[2026-11-16 19:21:45] [INFO   ] [AppLogger] Бенчмарк для файла sample-bumblebee-400x300.png (seed=0) успешно завершен.
+[2026-11-16 19:21:48] [INFO   ] [AppLogger] Бенчмарк для файла sample-clouds-400x300.jpg (seed=0) успешно завершен.
+[2026-11-16 19:22:15] [INFO   ] [AppLogger] Бенчмарк для файла sample-photo-1280x720.jpg (seed=0) успешно завершен.
+[2026-11-16 19:23:16] [INFO   ] [AppLogger] Бенчмарк для файла sample-photo-1920x1080.jpg (seed=0) успешно завершен.
+[2026-11-16 19:24:16] [INFO   ] [AppLogger] Бенчмарк для файла sample-photo-1920x1080.png (seed=0) успешно завершен.
+[2026-11-16 19:26:07] [INFO   ] [AppLogger] Бенчмарк для файла sample-photo-2560x1440.jpg (seed=0) успешно завершен.
+[2026-11-16 19:30:17] [INFO   ] [AppLogger] Бенчмарк для файла sample-photo-3840x2160.jpg (seed=0) успешно завершен.
+[2026-11-16 19:34:23] [INFO   ] [AppLogger] Бенчмарк для файла sample-photo-3840x2160.png (seed=0) успешно завершен.
+[2026-11-16 19:34:23] [INFO   ] [AppLogger] Бенчмарк для файла sample-red-100x75.jpg (seed=0) успешно завершен.
+[2026-11-16 19:34:23] [INFO   ] [AppLogger] Бенчмарк для файла sample-red-1x1.jpg (seed=0) успешно завершен.
+[2026-11-16 19:34:24] [INFO   ] [AppLogger] Бенчмарк для файла sample-red-1x1.png (seed=0) успешно завершен.
+[2026-11-16 19:35:05] [INFO   ] [AppLogger] Бенчмарк для файла shakeai.png (seed=0) успешно завершен.
+[2026-11-16 19:35:36] [INFO   ] [AppLogger] Бенчмарк для файла signal-2023-12-21-105013_013.jpeg (seed=0) успешно завершен.
+[2026-11-16 19:35:44] [INFO   ] [AppLogger] Бенчмарк для файла vcvc.jpg (seed=0) успешно завершен.
+[2026-11-16 19:36:31] [INFO   ] [AppLogger] Бенчмарк для файла zakonotvorcy.png (seed=0) успешно завершен.
+[2026-11-16 19:36:40] [INFO   ] [AppLogger] Бенчмарк для файла аавы.jpg (seed=0) успешно завершен.
+[2026-11-16 19:36:48] [INFO   ] [AppLogger] Бенчмарк для файла вапа.jpg (seed=0) успешно завершен.
+[2026-11-16 19:36:48] [INFO   ] [AppLogger] Бенчмарк завершен. Результаты сохранены в CSV.
+[2026-11-16 19:36:48] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-16 20:16:05] [INFO   ] [AppLogger] Конфликтов имён не обнаружено (режим ENCRYPT, папка: C:\Users\Oksana\Downloads).
+[2026-11-16 20:16:05] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-16 20:16:05] [INFO   ] [AppLogger] Режим: ENCRYPT, Вход: C:\Users\Oksana\Downloads\1\1.png
+[2026-11-16 20:16:05] [INFO   ] [AppLogger] Выходная папка: C:\Users\Oksana\Downloads
+[2026-11-16 20:16:05] [INFO   ] [AppLogger] Шифрование файла: 1.png [mandelbrot + henon]
+[2026-11-16 20:16:05] [INFO   ] [AppLogger] Сгенерирован и сохранен новый ключ: 1_png_encrypted.key
+[2026-11-16 20:16:06] [INFO   ] [AppLogger] Зашифровано: 1_png_encrypted.png (mandelbrot + henon)
+[2026-11-16 20:16:06] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-16 20:20:22] [INFO   ] [AppLogger] Конфликтов имён не обнаружено (режим DECRYPT, папка: C:\Users\Oksana\Downloads).
+[2026-11-16 20:20:22] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-16 20:20:22] [INFO   ] [AppLogger] Режим: DECRYPT, Вход: C:\Users\Oksana\Downloads\1_png_encrypted.png
+[2026-11-16 20:20:22] [INFO   ] [AppLogger] Выходная папка: C:\Users\Oksana\Downloads
+[2026-11-16 20:20:22] [INFO   ] [AppLogger] Расшифровка файла: 1_png_encrypted.png [mandelbrot + henon]
+[2026-11-16 20:20:22] [INFO   ] [AppLogger] Ключ успешно загружен из: 1_png_encrypted.key
+[2026-11-16 20:20:23] [INFO   ] [AppLogger] Расшифровано: 1_png_decrypted.png (mandelbrot + henon)
+[2026-11-16 20:20:23] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-18 13:59:47] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-18 13:59:47] [INFO   ] [AppLogger] Режим: BENCHMARK, Вход: C:\Users\Oksana\Downloads\Проект\1\meme_1.jpg
+[2026-11-18 13:59:47] [INFO   ] [AppLogger] Запуск бенчмарка. Изображений: 1, ключей: 1
+[2026-11-18 13:59:47] [INFO   ] [AppLogger] Бенчмарк: используется ключ seed=0
+[2026-11-18 14:00:03] [INFO   ] [AppLogger] Бенчмарк для файла meme_1.jpg (seed=0) успешно завершен.
+[2026-11-18 14:00:03] [INFO   ] [AppLogger] Бенчмарк завершен. Результаты сохранены в CSV.
+[2026-11-18 14:00:03] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-18 14:46:19] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-18 14:46:19] [INFO   ] [AppLogger] Режим: BENCHMARK, Вход: C:\Users\Oksana\Downloads\Проект\1
+[2026-11-18 14:46:19] [INFO   ] [AppLogger] Запуск бенчмарка. Изображений: 80, ключей: 1
+[2026-11-18 14:46:19] [INFO   ] [AppLogger] Бенчмарк: используется ключ seed=0
+[2026-11-18 14:47:17] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-18 14:47:17] [INFO   ] [AppLogger] Режим: BENCHMARK, Вход: C:\Users\Oksana\Downloads\Проект\1
+[2026-11-18 14:47:17] [INFO   ] [AppLogger] Запуск бенчмарка. Изображений: 80, ключей: 5
+[2026-11-18 14:47:17] [INFO   ] [AppLogger] Бенчмарк: используется ключ seed=0
+[2026-11-18 14:49:14] [INFO   ] [AppLogger] Бенчмарк для файла landscape_1.png (seed=0) успешно завершен.
+[2026-11-18 14:51:13] [INFO   ] [AppLogger] Бенчмарк для файла landscape_10.png (seed=0) успешно завершен.
+[2026-11-18 14:53:11] [INFO   ] [AppLogger] Бенчмарк для файла landscape_10_wb.jpg (seed=0) успешно завершен.
+[2026-11-18 14:55:11] [INFO   ] [AppLogger] Бенчмарк для файла landscape_1_wb.jpeg (seed=0) успешно завершен.
+[2026-11-18 14:57:09] [INFO   ] [AppLogger] Бенчмарк для файла landscape_2.png (seed=0) успешно завершен.
+[2026-11-18 14:59:09] [INFO   ] [AppLogger] Бенчмарк для файла landscape_2_wb.jpg (seed=0) успешно завершен.
+[2026-11-18 15:01:09] [INFO   ] [AppLogger] Бенчмарк для файла landscape_3.png (seed=0) успешно завершен.
+[2026-11-18 15:03:09] [INFO   ] [AppLogger] Бенчмарк для файла landscape_3_wb.jpg (seed=0) успешно завершен.
+[2026-11-18 15:05:07] [INFO   ] [AppLogger] Бенчмарк для файла landscape_4.png (seed=0) успешно завершен.
+[2026-11-18 15:07:07] [INFO   ] [AppLogger] Бенчмарк для файла landscape_4_wb.jpg (seed=0) успешно завершен.
+[2026-11-18 15:09:06] [INFO   ] [AppLogger] Бенчмарк для файла landscape_5.png (seed=0) успешно завершен.
+[2026-11-18 15:11:05] [INFO   ] [AppLogger] Бенчмарк для файла landscape_5_wb.jpg (seed=0) успешно завершен.
+[2026-11-18 15:12:27] [INFO   ] [AppLogger] Бенчмарк для файла landscape_6.png (seed=0) успешно завершен.
+[2026-11-18 15:14:25] [INFO   ] [AppLogger] Бенчмарк для файла landscape_6_wb.jpg (seed=0) успешно завершен.
+[2026-11-18 15:16:23] [INFO   ] [AppLogger] Бенчмарк для файла landscape_7.png (seed=0) успешно завершен.
+[2026-11-18 15:18:21] [INFO   ] [AppLogger] Бенчмарк для файла landscape_7_wb.jpg (seed=0) успешно завершен.
+[2026-11-18 15:19:43] [INFO   ] [AppLogger] Бенчмарк для файла landscape_8.png (seed=0) успешно завершен.
+[2026-11-18 15:21:43] [INFO   ] [AppLogger] Бенчмарк для файла landscape_8_wb.jpg (seed=0) успешно завершен.
+[2026-11-18 15:23:41] [INFO   ] [AppLogger] Бенчмарк для файла landscape_9.png (seed=0) успешно завершен.
+[2026-11-18 15:25:41] [INFO   ] [AppLogger] Бенчмарк для файла landscape_9_wb.jpg (seed=0) успешно завершен.
+[2026-11-18 15:25:58] [INFO   ] [AppLogger] Бенчмарк для файла meme_1.jpg (seed=0) успешно завершен.
+[2026-11-18 15:26:47] [INFO   ] [AppLogger] Бенчмарк для файла meme_10.png (seed=0) успешно завершен.
+[2026-11-18 15:27:50] [INFO   ] [AppLogger] Бенчмарк для файла meme_10_wb.png (seed=0) успешно завершен.
+[2026-11-18 15:28:07] [INFO   ] [AppLogger] Бенчмарк для файла meme_1_wb.jpg (seed=0) успешно завершен.
+[2026-11-18 15:28:25] [INFO   ] [AppLogger] Бенчмарк для файла meme_2.jpg (seed=0) успешно завершен.
+[2026-11-18 15:29:29] [INFO   ] [AppLogger] Бенчмарк для файла meme_2_wb.png (seed=0) успешно завершен.
+[2026-11-18 15:29:40] [INFO   ] [AppLogger] Бенчмарк для файла meme_3.jpg (seed=0) успешно завершен.
+[2026-11-18 15:30:23] [SEVERE ] [AppLogger] Ошибка при бенчмарке файла: meme_3_wb.png (seed=0)
+java.lang.OutOfMemoryError
+	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486)
+	at java.base/java.util.concurrent.ForkJoinTask.getException(ForkJoinTask.java:560)
+	at java.base/java.util.concurrent.ForkJoinTask.reportException(ForkJoinTask.java:576)
+	at java.base/java.util.concurrent.ForkJoinTask.join(ForkJoinTask.java:666)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:680)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateParallel(ForEachOps.java:162)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateParallel(ForEachOps.java:176)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:264)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:632)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:806)
+	at fractalcipher.metrics.BenchmarkRunner.run(BenchmarkRunner.java:141)
+	at fractalcipher.metrics.BenchmarkRunner.runPermutationOnly(BenchmarkRunner.java:53)
+	at fractalcipher.controller.CipherController.handleBenchmarkPermutationOnly(CipherController.java:502)
+	at fractalcipher.controller.CipherController.runBenchmark(CipherController.java:445)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:94)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:93)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+Caused by: java.lang.OutOfMemoryError: Java heap space
+	at fractalcipher.model.permutation.CantorPermutation.sortIndicesByValue(CantorPermutation.java:89)
+	at fractalcipher.model.permutation.CantorPermutation.generatePermutation(CantorPermutation.java:62)
+	at fractalcipher.domain.FractalChaosCipher.preprocess(FractalChaosCipher.java:189)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:95)
+	at fractalcipher.metrics.BenchmarkRunner.lambda$run$0(BenchmarkRunner.java:183)
+	at fractalcipher.metrics.BenchmarkRunner$$Lambda/0x000000009b445000.accept(Unknown Source)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1724)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-18 15:30:40] [INFO   ] [AppLogger] Бенчмарк для файла meme_4.jpg (seed=0) успешно завершен.
+[2026-11-18 15:31:16] [INFO   ] [AppLogger] Бенчмарк для файла meme_4_wb.png (seed=0) успешно завершен.
+[2026-11-18 15:32:14] [INFO   ] [AppLogger] Бенчмарк для файла meme_5.jpeg (seed=0) успешно завершен.
+[2026-11-18 15:32:51] [INFO   ] [AppLogger] Бенчмарк для файла meme_5_wb.png (seed=0) успешно завершен.
+[2026-11-18 15:33:43] [INFO   ] [AppLogger] Бенчмарк для файла meme_6.jpg (seed=0) успешно завершен.
+[2026-11-18 15:35:25] [INFO   ] [AppLogger] Бенчмарк для файла meme_6_wb.png (seed=0) успешно завершен.
+[2026-11-18 15:36:31] [INFO   ] [AppLogger] Бенчмарк для файла meme_7.png (seed=0) успешно завершен.
+[2026-11-18 15:39:11] [INFO   ] [AppLogger] Бенчмарк для файла meme_7_wb.png (seed=0) успешно завершен.
+[2026-11-18 15:39:29] [INFO   ] [AppLogger] Бенчмарк для файла meme_8.png (seed=0) успешно завершен.
+[2026-11-18 15:40:15] [INFO   ] [AppLogger] Бенчмарк для файла meme_8_wb.png (seed=0) успешно завершен.
+[2026-11-18 15:40:40] [INFO   ] [AppLogger] Бенчмарк для файла meme_9.png (seed=0) успешно завершен.
+[2026-11-18 15:42:39] [INFO   ] [AppLogger] Бенчмарк для файла meme_9_wb.png (seed=0) успешно завершен.
+[2026-11-18 15:44:10] [INFO   ] [AppLogger] Бенчмарк для файла portrait_1.png (seed=0) успешно завершен.
+[2026-11-18 15:45:27] [INFO   ] [AppLogger] Бенчмарк для файла portrait_10.jpg (seed=0) успешно завершен.
+[2026-11-18 15:45:54] [INFO   ] [AppLogger] Бенчмарк для файла portrait_10_wb.png (seed=0) успешно завершен.
+[2026-11-18 15:46:52] [INFO   ] [AppLogger] Бенчмарк для файла portrait_1_wb.png (seed=0) успешно завершен.
+[2026-11-18 15:48:48] [INFO   ] [AppLogger] Бенчмарк для файла portrait_2.jpg (seed=0) успешно завершен.
+[2026-11-18 15:49:56] [INFO   ] [AppLogger] Бенчмарк для файла portrait_2_wb.png (seed=0) успешно завершен.
+[2026-11-18 15:50:19] [INFO   ] [AppLogger] Бенчмарк для файла portrait_3.jpg (seed=0) успешно завершен.
+[2026-11-18 15:51:08] [INFO   ] [AppLogger] Бенчмарк для файла portrait_3_wb.png (seed=0) успешно завершен.
+[2026-11-18 15:51:31] [INFO   ] [AppLogger] Бенчмарк для файла portrait_4.jpg (seed=0) успешно завершен.
+[2026-11-18 15:52:50] [INFO   ] [AppLogger] Бенчмарк для файла portrait_4_wb.png (seed=0) успешно завершен.
+[2026-11-18 15:53:15] [INFO   ] [AppLogger] Бенчмарк для файла portrait_5.jpg (seed=0) успешно завершен.
+[2026-11-18 15:53:45] [INFO   ] [AppLogger] Бенчмарк для файла portrait_5_wb.png (seed=0) успешно завершен.
+[2026-11-18 15:54:58] [INFO   ] [AppLogger] Бенчмарк для файла portrait_6.jpg (seed=0) успешно завершен.
+[2026-11-18 16:02:12] [INFO   ] [AppLogger] Бенчмарк для файла portrait_6_wb.png (seed=0) успешно завершен.
+[2026-11-18 16:06:14] [INFO   ] [AppLogger] Бенчмарк для файла portrait_7.jpg (seed=0) успешно завершен.
+[2026-11-18 16:07:26] [INFO   ] [AppLogger] Бенчмарк для файла portrait_7_wb.png (seed=0) успешно завершен.
+[2026-11-18 16:13:47] [INFO   ] [AppLogger] Бенчмарк для файла portrait_8.jpg (seed=0) успешно завершен.
+[2026-11-18 16:15:28] [INFO   ] [AppLogger] Бенчмарк для файла portrait_8_wb.png (seed=0) успешно завершен.
+[2026-11-18 16:16:56] [INFO   ] [AppLogger] Бенчмарк для файла portrait_9.jpg (seed=0) успешно завершен.
+[2026-11-18 16:17:57] [INFO   ] [AppLogger] Бенчмарк для файла portrait_9_wb.png (seed=0) успешно завершен.
+[2026-11-18 16:21:44] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_1.png (seed=0) успешно завершен.
+[2026-11-18 16:25:47] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_10.png (seed=0) успешно завершен.
+[2026-11-18 16:25:47] [SEVERE ] [AppLogger] Ошибка при бенчмарке файла: wallpaper_10_wb.png (seed=0)
+java.io.IOException: Файл не распознан как изображение: wallpaper_10_wb.png
+	at fractalcipher.domain.Image.loadFromFile(Image.java:84)
+	at fractalcipher.controller.CipherController.runBenchmark(CipherController.java:443)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:94)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:93)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+[2026-11-18 16:29:49] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_1_wb.png (seed=0) успешно завершен.
+[2026-11-18 16:33:57] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_2.png (seed=0) успешно завершен.
+[2026-11-18 16:37:57] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_2_wb.png (seed=0) успешно завершен.
+[2026-11-18 16:42:32] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_3.png (seed=0) успешно завершен.
+[2026-11-18 16:46:41] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_3_wb.png (seed=0) успешно завершен.
+[2026-11-18 16:50:44] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_4.png (seed=0) успешно завершен.
+[2026-11-18 16:54:58] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_4_wb.png (seed=0) успешно завершен.
+[2026-11-18 16:58:54] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_5.png (seed=0) успешно завершен.
+[2026-11-18 17:00:55] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_5_wb.png (seed=0) успешно завершен.
+[2026-11-18 17:02:56] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_6.png (seed=0) успешно завершен.
+[2026-11-18 17:04:58] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_6_wb.png (seed=0) успешно завершен.
+[2026-11-18 17:06:58] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_7.png (seed=0) успешно завершен.
+[2026-11-18 17:08:59] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_7_wb.png (seed=0) успешно завершен.
+[2026-11-18 17:11:01] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_8.png (seed=0) успешно завершен.
+[2026-11-18 17:13:02] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_8_wb.png (seed=0) успешно завершен.
+[2026-11-18 17:15:02] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_9.png (seed=0) успешно завершен.
+[2026-11-18 17:15:02] [SEVERE ] [AppLogger] Ошибка при бенчмарке файла: wallpaper_9_wb.png (seed=0)
+java.io.IOException: Файл не распознан как изображение: wallpaper_9_wb.png
+	at fractalcipher.domain.Image.loadFromFile(Image.java:84)
+	at fractalcipher.controller.CipherController.runBenchmark(CipherController.java:443)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:94)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:93)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+[2026-11-18 17:15:02] [INFO   ] [AppLogger] Бенчмарк: используется ключ seed=1
+[2026-11-18 17:17:10] [INFO   ] [AppLogger] Бенчмарк для файла landscape_1.png (seed=1) успешно завершен.
+[2026-11-18 17:19:16] [INFO   ] [AppLogger] Бенчмарк для файла landscape_10.png (seed=1) успешно завершен.
+[2026-11-18 17:21:24] [INFO   ] [AppLogger] Бенчмарк для файла landscape_10_wb.jpg (seed=1) успешно завершен.
+[2026-11-18 17:23:45] [INFO   ] [AppLogger] Бенчмарк для файла landscape_1_wb.jpeg (seed=1) успешно завершен.
+[2026-11-18 17:25:55] [INFO   ] [AppLogger] Бенчмарк для файла landscape_2.png (seed=1) успешно завершен.
+[2026-11-18 17:28:03] [INFO   ] [AppLogger] Бенчмарк для файла landscape_2_wb.jpg (seed=1) успешно завершен.
+[2026-11-18 17:30:10] [INFO   ] [AppLogger] Бенчмарк для файла landscape_3.png (seed=1) успешно завершен.
+[2026-11-18 17:32:19] [INFO   ] [AppLogger] Бенчмарк для файла landscape_3_wb.jpg (seed=1) успешно завершен.
+[2026-11-18 17:34:23] [INFO   ] [AppLogger] Бенчмарк для файла landscape_4.png (seed=1) успешно завершен.
+[2026-11-18 17:36:31] [INFO   ] [AppLogger] Бенчмарк для файла landscape_4_wb.jpg (seed=1) успешно завершен.
+[2026-11-18 17:38:37] [INFO   ] [AppLogger] Бенчмарк для файла landscape_5.png (seed=1) успешно завершен.
+[2026-11-18 17:40:44] [INFO   ] [AppLogger] Бенчмарк для файла landscape_5_wb.jpg (seed=1) успешно завершен.
+[2026-11-18 17:42:10] [INFO   ] [AppLogger] Бенчмарк для файла landscape_6.png (seed=1) успешно завершен.
+[2026-11-18 17:44:17] [INFO   ] [AppLogger] Бенчмарк для файла landscape_6_wb.jpg (seed=1) успешно завершен.
+[2026-11-18 17:46:23] [INFO   ] [AppLogger] Бенчмарк для файла landscape_7.png (seed=1) успешно завершен.
+[2026-11-18 17:48:31] [INFO   ] [AppLogger] Бенчмарк для файла landscape_7_wb.jpg (seed=1) успешно завершен.
+[2026-11-18 17:49:59] [INFO   ] [AppLogger] Бенчмарк для файла landscape_8.png (seed=1) успешно завершен.
+[2026-11-18 17:52:05] [INFO   ] [AppLogger] Бенчмарк для файла landscape_8_wb.jpg (seed=1) успешно завершен.
+[2026-11-18 17:54:12] [INFO   ] [AppLogger] Бенчмарк для файла landscape_9.png (seed=1) успешно завершен.
+[2026-11-18 17:56:23] [INFO   ] [AppLogger] Бенчмарк для файла landscape_9_wb.jpg (seed=1) успешно завершен.
+[2026-11-18 17:56:41] [INFO   ] [AppLogger] Бенчмарк для файла meme_1.jpg (seed=1) успешно завершен.
+[2026-11-18 17:57:33] [INFO   ] [AppLogger] Бенчмарк для файла meme_10.png (seed=1) успешно завершен.
+[2026-11-18 17:58:40] [INFO   ] [AppLogger] Бенчмарк для файла meme_10_wb.png (seed=1) успешно завершен.
+[2026-11-18 17:58:59] [INFO   ] [AppLogger] Бенчмарк для файла meme_1_wb.jpg (seed=1) успешно завершен.
+[2026-11-18 17:59:17] [INFO   ] [AppLogger] Бенчмарк для файла meme_2.jpg (seed=1) успешно завершен.
+[2026-11-18 18:00:26] [INFO   ] [AppLogger] Бенчмарк для файла meme_2_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:00:38] [INFO   ] [AppLogger] Бенчмарк для файла meme_3.jpg (seed=1) успешно завершен.
+[2026-11-18 18:01:08] [SEVERE ] [AppLogger] Ошибка при бенчмарке файла: meme_3_wb.png (seed=1)
+java.lang.OutOfMemoryError: Java heap space
+	at fractalcipher.domain.FractalChaosCipher.applyDiffusionDecrypt(FractalChaosCipher.java:455)
+	at fractalcipher.domain.FractalChaosCipher.decrypt(FractalChaosCipher.java:288)
+	at fractalcipher.metrics.BenchmarkRunner.lambda$run$0(BenchmarkRunner.java:187)
+	at fractalcipher.metrics.BenchmarkRunner$$Lambda/0x000000009b445000.accept(Unknown Source)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1724)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:679)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateParallel(ForEachOps.java:162)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateParallel(ForEachOps.java:176)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:264)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:632)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:806)
+	at fractalcipher.metrics.BenchmarkRunner.run(BenchmarkRunner.java:141)
+	at fractalcipher.metrics.BenchmarkRunner.runPermutationOnly(BenchmarkRunner.java:53)
+	at fractalcipher.controller.CipherController.handleBenchmarkPermutationOnly(CipherController.java:502)
+	at fractalcipher.controller.CipherController.runBenchmark(CipherController.java:445)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:94)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:93)
+	at fractalcipher.run.Main$$Lambda/0x000000009b04b000.run(Unknown Source)
+	at java.base/java.lang.Thread.runWith(Thread.java:1540)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+[2026-11-18 18:01:33] [INFO   ] [AppLogger] Бенчмарк для файла meme_4.jpg (seed=1) успешно завершен.
+[2026-11-18 18:02:21] [INFO   ] [AppLogger] Бенчмарк для файла meme_4_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:03:30] [INFO   ] [AppLogger] Бенчмарк для файла meme_5.jpeg (seed=1) успешно завершен.
+[2026-11-18 18:04:11] [INFO   ] [AppLogger] Бенчмарк для файла meme_5_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:05:09] [INFO   ] [AppLogger] Бенчмарк для файла meme_6.jpg (seed=1) успешно завершен.
+[2026-11-18 18:06:58] [INFO   ] [AppLogger] Бенчмарк для файла meme_6_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:08:08] [INFO   ] [AppLogger] Бенчмарк для файла meme_7.png (seed=1) успешно завершен.
+[2026-11-18 18:10:58] [INFO   ] [AppLogger] Бенчмарк для файла meme_7_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:11:17] [INFO   ] [AppLogger] Бенчмарк для файла meme_8.png (seed=1) успешно завершен.
+[2026-11-18 18:12:07] [INFO   ] [AppLogger] Бенчмарк для файла meme_8_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:12:33] [INFO   ] [AppLogger] Бенчмарк для файла meme_9.png (seed=1) успешно завершен.
+[2026-11-18 18:14:43] [INFO   ] [AppLogger] Бенчмарк для файла meme_9_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:16:21] [INFO   ] [AppLogger] Бенчмарк для файла portrait_1.png (seed=1) успешно завершен.
+[2026-11-18 18:17:38] [INFO   ] [AppLogger] Бенчмарк для файла portrait_10.jpg (seed=1) успешно завершен.
+[2026-11-18 18:18:07] [INFO   ] [AppLogger] Бенчмарк для файла portrait_10_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:19:09] [INFO   ] [AppLogger] Бенчмарк для файла portrait_1_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:21:17] [INFO   ] [AppLogger] Бенчмарк для файла portrait_2.jpg (seed=1) успешно завершен.
+[2026-11-18 18:22:39] [INFO   ] [AppLogger] Бенчмарк для файла portrait_2_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:23:08] [INFO   ] [AppLogger] Бенчмарк для файла portrait_3.jpg (seed=1) успешно завершен.
+[2026-11-18 18:24:02] [INFO   ] [AppLogger] Бенчмарк для файла portrait_3_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:24:28] [INFO   ] [AppLogger] Бенчмарк для файла portrait_4.jpg (seed=1) успешно завершен.
+[2026-11-18 18:25:56] [INFO   ] [AppLogger] Бенчмарк для файла portrait_4_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:26:21] [INFO   ] [AppLogger] Бенчмарк для файла portrait_5.jpg (seed=1) успешно завершен.
+[2026-11-18 18:26:55] [INFO   ] [AppLogger] Бенчмарк для файла portrait_5_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:28:10] [INFO   ] [AppLogger] Бенчмарк для файла portrait_6.jpg (seed=1) успешно завершен.
+[2026-11-18 18:35:50] [INFO   ] [AppLogger] Бенчмарк для файла portrait_6_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:40:17] [INFO   ] [AppLogger] Бенчмарк для файла portrait_7.jpg (seed=1) успешно завершен.
+[2026-11-18 18:41:34] [INFO   ] [AppLogger] Бенчмарк для файла portrait_7_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:48:13] [INFO   ] [AppLogger] Бенчмарк для файла portrait_8.jpg (seed=1) успешно завершен.
+[2026-11-18 18:49:49] [INFO   ] [AppLogger] Бенчмарк для файла portrait_8_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:51:03] [INFO   ] [AppLogger] Бенчмарк для файла portrait_9.jpg (seed=1) успешно завершен.
+[2026-11-18 18:52:05] [INFO   ] [AppLogger] Бенчмарк для файла portrait_9_wb.png (seed=1) успешно завершен.
+[2026-11-18 18:54:24] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_1.png (seed=1) успешно завершен.
+[2026-11-18 18:56:35] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_10.png (seed=1) успешно завершен.
+[2026-11-18 18:56:35] [SEVERE ] [AppLogger] Ошибка при бенчмарке файла: wallpaper_10_wb.png (seed=1)
+java.io.IOException: Файл не распознан как изображение: wallpaper_10_wb.png
+	at fractalcipher.domain.Image.loadFromFile(Image.java:84)
+	at fractalcipher.controller.CipherController.runBenchmark(CipherController.java:443)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:94)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:93)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+[2026-11-18 18:58:49] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_1_wb.png (seed=1) успешно завершен.
+[2026-11-18 19:01:13] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_2.png (seed=1) успешно завершен.
+[2026-11-18 19:03:23] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_2_wb.png (seed=1) успешно завершен.
+[2026-11-18 19:05:47] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_3.png (seed=1) успешно завершен.
+[2026-11-18 19:07:58] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_3_wb.png (seed=1) успешно завершен.
+[2026-11-18 19:10:07] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_4.png (seed=1) успешно завершен.
+[2026-11-18 19:12:15] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_4_wb.png (seed=1) успешно завершен.
+[2026-11-18 19:14:24] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_5.png (seed=1) успешно завершен.
+[2026-11-18 19:16:32] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_5_wb.png (seed=1) успешно завершен.
+[2026-11-18 19:18:38] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_6.png (seed=1) успешно завершен.
+[2026-11-18 19:20:47] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_6_wb.png (seed=1) успешно завершен.
+[2026-11-18 19:22:53] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_7.png (seed=1) успешно завершен.
+[2026-11-18 19:25:02] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_7_wb.png (seed=1) успешно завершен.
+[2026-11-18 19:27:14] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_8.png (seed=1) успешно завершен.
+[2026-11-18 19:29:27] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_8_wb.png (seed=1) успешно завершен.
+[2026-11-18 19:31:43] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_9.png (seed=1) успешно завершен.
+[2026-11-18 19:31:43] [SEVERE ] [AppLogger] Ошибка при бенчмарке файла: wallpaper_9_wb.png (seed=1)
+java.io.IOException: Файл не распознан как изображение: wallpaper_9_wb.png
+	at fractalcipher.domain.Image.loadFromFile(Image.java:84)
+	at fractalcipher.controller.CipherController.runBenchmark(CipherController.java:443)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:94)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:93)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+[2026-11-18 19:31:43] [INFO   ] [AppLogger] Бенчмарк: используется ключ seed=2
+[2026-11-18 19:33:56] [INFO   ] [AppLogger] Бенчмарк для файла landscape_1.png (seed=2) успешно завершен.
+[2026-11-18 19:35:57] [INFO   ] [AppLogger] Бенчмарк для файла landscape_10.png (seed=2) успешно завершен.
+[2026-11-18 19:38:09] [INFO   ] [AppLogger] Бенчмарк для файла landscape_10_wb.jpg (seed=2) успешно завершен.
+[2026-11-18 19:40:16] [INFO   ] [AppLogger] Бенчмарк для файла landscape_1_wb.jpeg (seed=2) успешно завершен.
+[2026-11-18 19:42:24] [INFO   ] [AppLogger] Бенчмарк для файла landscape_2.png (seed=2) успешно завершен.
+[2026-11-18 19:44:35] [INFO   ] [AppLogger] Бенчмарк для файла landscape_2_wb.jpg (seed=2) успешно завершен.
+[2026-11-18 19:46:43] [INFO   ] [AppLogger] Бенчмарк для файла landscape_3.png (seed=2) успешно завершен.
+[2026-11-18 19:48:49] [INFO   ] [AppLogger] Бенчмарк для файла landscape_3_wb.jpg (seed=2) успешно завершен.
+[2026-11-18 19:50:51] [INFO   ] [AppLogger] Бенчмарк для файла landscape_4.png (seed=2) успешно завершен.
+[2026-11-18 19:53:00] [INFO   ] [AppLogger] Бенчмарк для файла landscape_4_wb.jpg (seed=2) успешно завершен.
+[2026-11-18 19:55:14] [INFO   ] [AppLogger] Бенчмарк для файла landscape_5.png (seed=2) успешно завершен.
+[2026-11-18 19:57:25] [INFO   ] [AppLogger] Бенчмарк для файла landscape_5_wb.jpg (seed=2) успешно завершен.
+[2026-11-18 19:58:52] [INFO   ] [AppLogger] Бенчмарк для файла landscape_6.png (seed=2) успешно завершен.
+[2026-11-18 20:01:05] [INFO   ] [AppLogger] Бенчмарк для файла landscape_6_wb.jpg (seed=2) успешно завершен.
+[2026-11-18 20:03:16] [INFO   ] [AppLogger] Бенчмарк для файла landscape_7.png (seed=2) успешно завершен.
+[2026-11-18 20:05:23] [INFO   ] [AppLogger] Бенчмарк для файла landscape_7_wb.jpg (seed=2) успешно завершен.
+[2026-11-18 20:07:50] [INFO   ] [AppLogger] Бенчмарк для файла landscape_8.png (seed=2) успешно завершен.
+[2026-11-18 20:10:46] [INFO   ] [AppLogger] Бенчмарк для файла landscape_8_wb.jpg (seed=2) успешно завершен.
+[2026-11-18 20:12:54] [INFO   ] [AppLogger] Бенчмарк для файла landscape_9.png (seed=2) успешно завершен.
+[2026-11-18 20:15:06] [INFO   ] [AppLogger] Бенчмарк для файла landscape_9_wb.jpg (seed=2) успешно завершен.
+[2026-11-18 20:15:24] [INFO   ] [AppLogger] Бенчмарк для файла meme_1.jpg (seed=2) успешно завершен.
+[2026-11-18 20:16:17] [INFO   ] [AppLogger] Бенчмарк для файла meme_10.png (seed=2) успешно завершен.
+[2026-11-18 20:17:27] [INFO   ] [AppLogger] Бенчмарк для файла meme_10_wb.png (seed=2) успешно завершен.
+[2026-11-18 20:17:46] [INFO   ] [AppLogger] Бенчмарк для файла meme_1_wb.jpg (seed=2) успешно завершен.
+[2026-11-18 20:18:05] [INFO   ] [AppLogger] Бенчмарк для файла meme_2.jpg (seed=2) успешно завершен.
+[2026-11-18 20:19:17] [INFO   ] [AppLogger] Бенчмарк для файла meme_2_wb.png (seed=2) успешно завершен.
+[2026-11-18 20:19:29] [INFO   ] [AppLogger] Бенчмарк для файла meme_3.jpg (seed=2) успешно завершен.
+[2026-11-18 20:20:19] [SEVERE ] [AppLogger] Ошибка при бенчмарке файла: meme_3_wb.png (seed=2)
+java.lang.OutOfMemoryError
+	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486)
+	at java.base/java.util.concurrent.ForkJoinTask.getException(ForkJoinTask.java:560)
+	at java.base/java.util.concurrent.ForkJoinTask.reportException(ForkJoinTask.java:576)
+	at java.base/java.util.concurrent.ForkJoinTask.join(ForkJoinTask.java:666)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:680)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateParallel(ForEachOps.java:162)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateParallel(ForEachOps.java:176)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:264)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:632)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:806)
+	at fractalcipher.metrics.BenchmarkRunner.run(BenchmarkRunner.java:141)
+	at fractalcipher.metrics.BenchmarkRunner.runPermutationOnly(BenchmarkRunner.java:53)
+	at fractalcipher.controller.CipherController.handleBenchmarkPermutationOnly(CipherController.java:502)
+	at fractalcipher.controller.CipherController.runBenchmark(CipherController.java:445)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:94)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:93)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+Caused by: java.lang.OutOfMemoryError: Java heap space
+	at fractalcipher.domain.FractalChaosCipher.applyDiffusionEncrypt(FractalChaosCipher.java:392)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:239)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:96)
+	at fractalcipher.metrics.BenchmarkRunner.lambda$run$0(BenchmarkRunner.java:173)
+	at fractalcipher.metrics.BenchmarkRunner$$Lambda/0x000000009b445000.accept(Unknown Source)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1724)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-18 20:20:37] [INFO   ] [AppLogger] Бенчмарк для файла meme_4.jpg (seed=2) успешно завершен.
+[2026-11-18 20:21:16] [INFO   ] [AppLogger] Бенчмарк для файла meme_4_wb.png (seed=2) успешно завершен.
+[2026-11-18 20:22:23] [INFO   ] [AppLogger] Бенчмарк для файла meme_5.jpeg (seed=2) успешно завершен.
+[2026-11-18 20:23:03] [INFO   ] [AppLogger] Бенчмарк для файла meme_5_wb.png (seed=2) успешно завершен.
+[2026-11-18 20:23:59] [INFO   ] [AppLogger] Бенчмарк для файла meme_6.jpg (seed=2) успешно завершен.
+[2026-11-18 20:25:49] [INFO   ] [AppLogger] Бенчмарк для файла meme_6_wb.png (seed=2) успешно завершен.
+[2026-11-18 20:27:00] [INFO   ] [AppLogger] Бенчмарк для файла meme_7.png (seed=2) успешно завершен.
+[2026-11-18 20:29:49] [INFO   ] [AppLogger] Бенчмарк для файла meme_7_wb.png (seed=2) успешно завершен.
+[2026-11-18 20:30:09] [INFO   ] [AppLogger] Бенчмарк для файла meme_8.png (seed=2) успешно завершен.
+[2026-11-18 20:30:59] [INFO   ] [AppLogger] Бенчмарк для файла meme_8_wb.png (seed=2) успешно завершен.
+[2026-11-18 20:31:25] [INFO   ] [AppLogger] Бенчмарк для файла meme_9.png (seed=2) успешно завершен.
+[2026-11-18 20:33:30] [INFO   ] [AppLogger] Бенчмарк для файла meme_9_wb.png (seed=2) успешно завершен.
+[2026-11-18 20:35:05] [INFO   ] [AppLogger] Бенчмарк для файла portrait_1.png (seed=2) успешно завершен.
+[2026-11-18 20:36:24] [INFO   ] [AppLogger] Бенчмарк для файла portrait_10.jpg (seed=2) успешно завершен.
+[2026-11-18 20:36:53] [INFO   ] [AppLogger] Бенчмарк для файла portrait_10_wb.png (seed=2) успешно завершен.
+[2026-11-18 20:37:55] [INFO   ] [AppLogger] Бенчмарк для файла portrait_1_wb.png (seed=2) успешно завершен.
+[2026-11-18 20:40:02] [INFO   ] [AppLogger] Бенчмарк для файла portrait_2.jpg (seed=2) успешно завершен.
+[2026-11-18 20:41:14] [INFO   ] [AppLogger] Бенчмарк для файла portrait_2_wb.png (seed=2) успешно завершен.
+[2026-11-18 20:41:40] [INFO   ] [AppLogger] Бенчмарк для файла portrait_3.jpg (seed=2) успешно завершен.
+[2026-11-18 20:42:31] [INFO   ] [AppLogger] Бенчмарк для файла portrait_3_wb.png (seed=2) успешно завершен.
+[2026-11-18 20:42:55] [INFO   ] [AppLogger] Бенчмарк для файла portrait_4.jpg (seed=2) успешно завершен.
+[2026-11-18 20:44:24] [INFO   ] [AppLogger] Бенчмарк для файла portrait_4_wb.png (seed=2) успешно завершен.
+[2026-11-18 20:44:49] [INFO   ] [AppLogger] Бенчмарк для файла portrait_5.jpg (seed=2) успешно завершен.
+[2026-11-18 20:45:22] [INFO   ] [AppLogger] Бенчмарк для файла portrait_5_wb.png (seed=2) успешно завершен.
+[2026-11-18 20:46:36] [INFO   ] [AppLogger] Бенчмарк для файла portrait_6.jpg (seed=2) успешно завершен.
+[2026-11-18 20:54:15] [INFO   ] [AppLogger] Бенчмарк для файла portrait_6_wb.png (seed=2) успешно завершен.
+[2026-11-18 20:58:29] [INFO   ] [AppLogger] Бенчмарк для файла portrait_7.jpg (seed=2) успешно завершен.
+[2026-11-18 20:59:42] [INFO   ] [AppLogger] Бенчмарк для файла portrait_7_wb.png (seed=2) успешно завершен.
+[2026-11-18 21:08:35] [INFO   ] [AppLogger] Бенчмарк для файла portrait_8.jpg (seed=2) успешно завершен.
+[2026-11-18 21:11:30] [INFO   ] [AppLogger] Бенчмарк для файла portrait_8_wb.png (seed=2) успешно завершен.
+[2026-11-18 21:13:41] [INFO   ] [AppLogger] Бенчмарк для файла portrait_9.jpg (seed=2) успешно завершен.
+[2026-11-18 21:15:32] [INFO   ] [AppLogger] Бенчмарк для файла portrait_9_wb.png (seed=2) успешно завершен.
+[2026-11-18 21:19:20] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_1.png (seed=2) успешно завершен.
+[2026-11-18 21:22:28] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_10.png (seed=2) успешно завершен.
+[2026-11-18 21:22:28] [SEVERE ] [AppLogger] Ошибка при бенчмарке файла: wallpaper_10_wb.png (seed=2)
+java.io.IOException: Файл не распознан как изображение: wallpaper_10_wb.png
+	at fractalcipher.domain.Image.loadFromFile(Image.java:84)
+	at fractalcipher.controller.CipherController.runBenchmark(CipherController.java:443)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:94)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:93)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+[2026-11-18 21:26:26] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_1_wb.png (seed=2) успешно завершен.
+[2026-11-18 21:30:41] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_2.png (seed=2) успешно завершен.
+[2026-11-18 21:34:43] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_2_wb.png (seed=2) успешно завершен.
+[2026-11-18 21:38:42] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_3.png (seed=2) успешно завершен.
+[2026-11-18 21:41:16] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_3_wb.png (seed=2) успешно завершен.
+[2026-11-18 21:43:24] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_4.png (seed=2) успешно завершен.
+[2026-11-18 21:45:35] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_4_wb.png (seed=2) успешно завершен.
+[2026-11-18 21:47:52] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_5.png (seed=2) успешно завершен.
+[2026-11-18 21:50:02] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_5_wb.png (seed=2) успешно завершен.
+[2026-11-18 21:52:07] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_6.png (seed=2) успешно завершен.
+[2026-11-18 21:54:13] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_6_wb.png (seed=2) успешно завершен.
+[2026-11-18 21:56:18] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_7.png (seed=2) успешно завершен.
+[2026-11-18 21:58:22] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_7_wb.png (seed=2) успешно завершен.
+[2026-11-18 22:00:30] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_8.png (seed=2) успешно завершен.
+[2026-11-18 22:02:37] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_8_wb.png (seed=2) успешно завершен.
+[2026-11-18 22:04:42] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_9.png (seed=2) успешно завершен.
+[2026-11-18 22:04:42] [SEVERE ] [AppLogger] Ошибка при бенчмарке файла: wallpaper_9_wb.png (seed=2)
+java.io.IOException: Файл не распознан как изображение: wallpaper_9_wb.png
+	at fractalcipher.domain.Image.loadFromFile(Image.java:84)
+	at fractalcipher.controller.CipherController.runBenchmark(CipherController.java:443)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:94)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:93)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+[2026-11-18 22:04:42] [INFO   ] [AppLogger] Бенчмарк: используется ключ seed=3
+[2026-11-18 22:06:52] [INFO   ] [AppLogger] Бенчмарк для файла landscape_1.png (seed=3) успешно завершен.
+[2026-11-18 22:09:03] [INFO   ] [AppLogger] Бенчмарк для файла landscape_10.png (seed=3) успешно завершен.
+[2026-11-18 22:11:13] [INFO   ] [AppLogger] Бенчмарк для файла landscape_10_wb.jpg (seed=3) успешно завершен.
+[2026-11-18 22:13:26] [INFO   ] [AppLogger] Бенчмарк для файла landscape_1_wb.jpeg (seed=3) успешно завершен.
+[2026-11-18 22:15:38] [INFO   ] [AppLogger] Бенчмарк для файла landscape_2.png (seed=3) успешно завершен.
+[2026-11-18 22:17:50] [INFO   ] [AppLogger] Бенчмарк для файла landscape_2_wb.jpg (seed=3) успешно завершен.
+[2026-11-18 22:20:01] [INFO   ] [AppLogger] Бенчмарк для файла landscape_3.png (seed=3) успешно завершен.
+[2026-11-18 22:22:12] [INFO   ] [AppLogger] Бенчмарк для файла landscape_3_wb.jpg (seed=3) успешно завершен.
+[2026-11-18 22:24:20] [INFO   ] [AppLogger] Бенчмарк для файла landscape_4.png (seed=3) успешно завершен.
+[2026-11-18 22:26:31] [INFO   ] [AppLogger] Бенчмарк для файла landscape_4_wb.jpg (seed=3) успешно завершен.
+[2026-11-18 22:28:42] [INFO   ] [AppLogger] Бенчмарк для файла landscape_5.png (seed=3) успешно завершен.
+[2026-11-18 22:30:52] [INFO   ] [AppLogger] Бенчмарк для файла landscape_5_wb.jpg (seed=3) успешно завершен.
+[2026-11-18 22:32:21] [INFO   ] [AppLogger] Бенчмарк для файла landscape_6.png (seed=3) успешно завершен.
+[2026-11-18 22:34:33] [INFO   ] [AppLogger] Бенчмарк для файла landscape_6_wb.jpg (seed=3) успешно завершен.
+[2026-11-18 22:36:42] [INFO   ] [AppLogger] Бенчмарк для файла landscape_7.png (seed=3) успешно завершен.
+[2026-11-18 22:39:01] [INFO   ] [AppLogger] Бенчмарк для файла landscape_7_wb.jpg (seed=3) успешно завершен.
+[2026-11-18 22:40:31] [INFO   ] [AppLogger] Бенчмарк для файла landscape_8.png (seed=3) успешно завершен.
+[2026-11-18 22:42:43] [INFO   ] [AppLogger] Бенчмарк для файла landscape_8_wb.jpg (seed=3) успешно завершен.
+[2026-11-18 22:44:52] [INFO   ] [AppLogger] Бенчмарк для файла landscape_9.png (seed=3) успешно завершен.
+[2026-11-18 22:47:08] [INFO   ] [AppLogger] Бенчмарк для файла landscape_9_wb.jpg (seed=3) успешно завершен.
+[2026-11-18 22:47:26] [INFO   ] [AppLogger] Бенчмарк для файла meme_1.jpg (seed=3) успешно завершен.
+[2026-11-18 22:48:21] [INFO   ] [AppLogger] Бенчмарк для файла meme_10.png (seed=3) успешно завершен.
+[2026-11-18 22:49:30] [INFO   ] [AppLogger] Бенчмарк для файла meme_10_wb.png (seed=3) успешно завершен.
+[2026-11-18 22:49:49] [INFO   ] [AppLogger] Бенчмарк для файла meme_1_wb.jpg (seed=3) успешно завершен.
+[2026-11-18 22:50:09] [INFO   ] [AppLogger] Бенчмарк для файла meme_2.jpg (seed=3) успешно завершен.
+[2026-11-18 22:51:20] [INFO   ] [AppLogger] Бенчмарк для файла meme_2_wb.png (seed=3) успешно завершен.
+[2026-11-18 22:51:33] [INFO   ] [AppLogger] Бенчмарк для файла meme_3.jpg (seed=3) успешно завершен.
+[2026-11-18 22:54:20] [SEVERE ] [AppLogger] Ошибка при бенчмарке файла: meme_3_wb.png (seed=3)
+java.lang.OutOfMemoryError
+	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486)
+	at java.base/java.util.concurrent.ForkJoinTask.getException(ForkJoinTask.java:560)
+	at java.base/java.util.concurrent.ForkJoinTask.reportException(ForkJoinTask.java:576)
+	at java.base/java.util.concurrent.ForkJoinTask.join(ForkJoinTask.java:666)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:680)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateParallel(ForEachOps.java:162)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateParallel(ForEachOps.java:176)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:264)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:632)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:806)
+	at fractalcipher.metrics.BenchmarkRunner.run(BenchmarkRunner.java:141)
+	at fractalcipher.metrics.BenchmarkRunner.runDiffusionOnly(BenchmarkRunner.java:81)
+	at fractalcipher.controller.CipherController.handleBenchmarkDiffusionOnly(CipherController.java:508)
+	at fractalcipher.controller.CipherController.runBenchmark(CipherController.java:446)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:94)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:93)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+Caused by: java.lang.OutOfMemoryError: Java heap space
+	at fractalcipher.model.diffusion.DiffusionUtils.chainTwoPassParallel(DiffusionUtils.java:176)
+	at fractalcipher.model.diffusion.LorenzDiffusion.generateStream(LorenzDiffusion.java:96)
+	at fractalcipher.domain.FractalChaosCipher.process(FractalChaosCipher.java:226)
+	at fractalcipher.domain.Cipher.encrypt(Cipher.java:96)
+	at fractalcipher.metrics.BenchmarkRunner.lambda$run$0(BenchmarkRunner.java:173)
+	at fractalcipher.metrics.BenchmarkRunner$$Lambda/0x000000009b445000.accept(Unknown Source)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1724)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:293)
+	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:759)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1450)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2019)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+[2026-11-18 22:54:45] [INFO   ] [AppLogger] Бенчмарк для файла meme_4.jpg (seed=3) успешно завершен.
+[2026-11-18 22:55:41] [INFO   ] [AppLogger] Бенчмарк для файла meme_4_wb.png (seed=3) успешно завершен.
+[2026-11-18 22:56:50] [INFO   ] [AppLogger] Бенчмарк для файла meme_5.jpeg (seed=3) успешно завершен.
+[2026-11-18 22:57:34] [INFO   ] [AppLogger] Бенчмарк для файла meme_5_wb.png (seed=3) успешно завершен.
+[2026-11-18 22:58:35] [INFO   ] [AppLogger] Бенчмарк для файла meme_6.jpg (seed=3) успешно завершен.
+[2026-11-18 23:00:34] [INFO   ] [AppLogger] Бенчмарк для файла meme_6_wb.png (seed=3) успешно завершен.
+[2026-11-18 23:01:47] [INFO   ] [AppLogger] Бенчмарк для файла meme_7.png (seed=3) успешно завершен.
+[2026-11-18 23:04:47] [INFO   ] [AppLogger] Бенчмарк для файла meme_7_wb.png (seed=3) успешно завершен.
+[2026-11-18 23:05:06] [INFO   ] [AppLogger] Бенчмарк для файла meme_8.png (seed=3) успешно завершен.
+[2026-11-18 23:05:58] [INFO   ] [AppLogger] Бенчмарк для файла meme_8_wb.png (seed=3) успешно завершен.
+[2026-11-18 23:06:26] [INFO   ] [AppLogger] Бенчмарк для файла meme_9.png (seed=3) успешно завершен.
+[2026-11-18 23:08:37] [INFO   ] [AppLogger] Бенчмарк для файла meme_9_wb.png (seed=3) успешно завершен.
+[2026-11-18 23:10:18] [INFO   ] [AppLogger] Бенчмарк для файла portrait_1.png (seed=3) успешно завершен.
+[2026-11-18 23:11:36] [INFO   ] [AppLogger] Бенчмарк для файла portrait_10.jpg (seed=3) успешно завершен.
+[2026-11-18 23:12:06] [INFO   ] [AppLogger] Бенчмарк для файла portrait_10_wb.png (seed=3) успешно завершен.
+[2026-11-18 23:13:09] [INFO   ] [AppLogger] Бенчмарк для файла portrait_1_wb.png (seed=3) успешно завершен.
+[2026-11-18 23:15:20] [INFO   ] [AppLogger] Бенчмарк для файла portrait_2.jpg (seed=3) успешно завершен.
+[2026-11-18 23:16:47] [INFO   ] [AppLogger] Бенчмарк для файла portrait_2_wb.png (seed=3) успешно завершен.
+[2026-11-18 23:17:15] [INFO   ] [AppLogger] Бенчмарк для файла portrait_3.jpg (seed=3) успешно завершен.
+[2026-11-18 23:18:19] [INFO   ] [AppLogger] Бенчмарк для файла portrait_3_wb.png (seed=3) успешно завершен.
+[2026-11-18 23:18:51] [INFO   ] [AppLogger] Бенчмарк для файла portrait_4.jpg (seed=3) успешно завершен.
+[2026-11-18 23:20:44] [INFO   ] [AppLogger] Бенчмарк для файла portrait_4_wb.png (seed=3) успешно завершен.
+[2026-11-18 23:21:14] [INFO   ] [AppLogger] Бенчмарк для файла portrait_5.jpg (seed=3) успешно завершен.
+[2026-11-18 23:21:55] [INFO   ] [AppLogger] Бенчмарк для файла portrait_5_wb.png (seed=3) успешно завершен.
+[2026-11-18 23:24:19] [INFO   ] [AppLogger] Бенчмарк для файла portrait_6.jpg (seed=3) успешно завершен.
+[2026-11-18 23:38:19] [INFO   ] [AppLogger] Бенчмарк для файла portrait_6_wb.png (seed=3) успешно завершен.
+[2026-11-18 23:46:00] [INFO   ] [AppLogger] Бенчмарк для файла portrait_7.jpg (seed=3) успешно завершен.
+[2026-11-18 23:47:17] [INFO   ] [AppLogger] Бенчмарк для файла portrait_7_wb.png (seed=3) успешно завершен.
+[2026-11-18 23:54:13] [INFO   ] [AppLogger] Бенчмарк для файла portrait_8.jpg (seed=3) успешно завершен.
+[2026-11-18 23:55:53] [INFO   ] [AppLogger] Бенчмарк для файла portrait_8_wb.png (seed=3) успешно завершен.
+[2026-11-18 23:57:11] [INFO   ] [AppLogger] Бенчмарк для файла portrait_9.jpg (seed=3) успешно завершен.
+[2026-11-18 23:58:17] [INFO   ] [AppLogger] Бенчмарк для файла portrait_9_wb.png (seed=3) успешно завершен.
+[2026-11-19 00:00:32] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_1.png (seed=3) успешно завершен.
+[2026-11-19 00:02:43] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_10.png (seed=3) успешно завершен.
+[2026-11-19 00:02:43] [SEVERE ] [AppLogger] Ошибка при бенчмарке файла: wallpaper_10_wb.png (seed=3)
+java.io.IOException: Файл не распознан как изображение: wallpaper_10_wb.png
+	at fractalcipher.domain.Image.loadFromFile(Image.java:84)
+	at fractalcipher.controller.CipherController.runBenchmark(CipherController.java:443)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:94)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:93)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+[2026-11-19 00:04:56] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_1_wb.png (seed=3) успешно завершен.
+[2026-11-19 00:07:10] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_2.png (seed=3) успешно завершен.
+[2026-11-19 00:09:27] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_2_wb.png (seed=3) успешно завершен.
+[2026-11-19 00:12:00] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_3.png (seed=3) успешно завершен.
+[2026-11-19 00:14:19] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_3_wb.png (seed=3) успешно завершен.
+[2026-11-19 00:16:35] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_4.png (seed=3) успешно завершен.
+[2026-11-19 00:18:53] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_4_wb.png (seed=3) успешно завершен.
+[2026-11-19 00:21:14] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_5.png (seed=3) успешно завершен.
+[2026-11-19 00:23:31] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_5_wb.png (seed=3) успешно завершен.
+[2026-11-19 00:25:50] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_6.png (seed=3) успешно завершен.
+[2026-11-19 00:28:08] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_6_wb.png (seed=3) успешно завершен.
+[2026-11-19 00:30:23] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_7.png (seed=3) успешно завершен.
+[2026-11-19 00:32:40] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_7_wb.png (seed=3) успешно завершен.
+[2026-11-19 00:35:00] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_8.png (seed=3) успешно завершен.
+[2026-11-19 00:37:19] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_8_wb.png (seed=3) успешно завершен.
+[2026-11-19 00:39:36] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_9.png (seed=3) успешно завершен.
+[2026-11-19 00:39:36] [SEVERE ] [AppLogger] Ошибка при бенчмарке файла: wallpaper_9_wb.png (seed=3)
+java.io.IOException: Файл не распознан как изображение: wallpaper_9_wb.png
+	at fractalcipher.domain.Image.loadFromFile(Image.java:84)
+	at fractalcipher.controller.CipherController.runBenchmark(CipherController.java:443)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:94)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:93)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+[2026-11-19 00:39:36] [INFO   ] [AppLogger] Бенчмарк: используется ключ seed=4
+[2026-11-19 00:41:46] [INFO   ] [AppLogger] Бенчмарк для файла landscape_1.png (seed=4) успешно завершен.
+[2026-11-19 00:43:54] [INFO   ] [AppLogger] Бенчмарк для файла landscape_10.png (seed=4) успешно завершен.
+[2026-11-19 00:46:05] [INFO   ] [AppLogger] Бенчмарк для файла landscape_10_wb.jpg (seed=4) успешно завершен.
+[2026-11-19 00:48:18] [INFO   ] [AppLogger] Бенчмарк для файла landscape_1_wb.jpeg (seed=4) успешно завершен.
+[2026-11-19 00:50:28] [INFO   ] [AppLogger] Бенчмарк для файла landscape_2.png (seed=4) успешно завершен.
+[2026-11-19 00:52:40] [INFO   ] [AppLogger] Бенчмарк для файла landscape_2_wb.jpg (seed=4) успешно завершен.
+[2026-11-19 00:54:52] [INFO   ] [AppLogger] Бенчмарк для файла landscape_3.png (seed=4) успешно завершен.
+[2026-11-19 00:57:05] [INFO   ] [AppLogger] Бенчмарк для файла landscape_3_wb.jpg (seed=4) успешно завершен.
+[2026-11-19 00:59:14] [INFO   ] [AppLogger] Бенчмарк для файла landscape_4.png (seed=4) успешно завершен.
+[2026-11-19 01:01:30] [INFO   ] [AppLogger] Бенчмарк для файла landscape_4_wb.jpg (seed=4) успешно завершен.
+[2026-11-19 01:03:41] [INFO   ] [AppLogger] Бенчмарк для файла landscape_5.png (seed=4) успешно завершен.
+[2026-11-19 01:05:51] [INFO   ] [AppLogger] Бенчмарк для файла landscape_5_wb.jpg (seed=4) успешно завершен.
+[2026-11-19 01:07:20] [INFO   ] [AppLogger] Бенчмарк для файла landscape_6.png (seed=4) успешно завершен.
+[2026-11-19 01:09:32] [INFO   ] [AppLogger] Бенчмарк для файла landscape_6_wb.jpg (seed=4) успешно завершен.
+[2026-11-19 01:11:43] [INFO   ] [AppLogger] Бенчмарк для файла landscape_7.png (seed=4) успешно завершен.
+[2026-11-19 01:13:55] [INFO   ] [AppLogger] Бенчмарк для файла landscape_7_wb.jpg (seed=4) успешно завершен.
+[2026-11-19 01:15:26] [INFO   ] [AppLogger] Бенчмарк для файла landscape_8.png (seed=4) успешно завершен.
+[2026-11-19 01:17:37] [INFO   ] [AppLogger] Бенчмарк для файла landscape_8_wb.jpg (seed=4) успешно завершен.
+[2026-11-19 01:19:52] [INFO   ] [AppLogger] Бенчмарк для файла landscape_9.png (seed=4) успешно завершен.
+[2026-11-19 01:22:05] [INFO   ] [AppLogger] Бенчмарк для файла landscape_9_wb.jpg (seed=4) успешно завершен.
+[2026-11-19 01:22:24] [INFO   ] [AppLogger] Бенчмарк для файла meme_1.jpg (seed=4) успешно завершен.
+[2026-11-19 01:23:17] [INFO   ] [AppLogger] Бенчмарк для файла meme_10.png (seed=4) успешно завершен.
+[2026-11-19 01:24:27] [INFO   ] [AppLogger] Бенчмарк для файла meme_10_wb.png (seed=4) успешно завершен.
+[2026-11-19 01:24:46] [INFO   ] [AppLogger] Бенчмарк для файла meme_1_wb.jpg (seed=4) успешно завершен.
+[2026-11-19 01:25:05] [INFO   ] [AppLogger] Бенчмарк для файла meme_2.jpg (seed=4) успешно завершен.
+[2026-11-19 01:26:16] [INFO   ] [AppLogger] Бенчмарк для файла meme_2_wb.png (seed=4) успешно завершен.
+[2026-11-19 01:26:29] [INFO   ] [AppLogger] Бенчмарк для файла meme_3.jpg (seed=4) успешно завершен.
+[2026-11-19 01:27:14] [SEVERE ] [AppLogger] Ошибка при бенчмарке файла: meme_3_wb.png (seed=4)
+java.lang.OutOfMemoryError
+	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486)
+	at java.base/java.util.concurrent.ForkJoinTask.getException(ForkJoinTask.java:560)
+	at java.base/java.util.concurrent.ForkJoinTask.reportException(ForkJoinTask.java:576)
+	at java.base/java.util.concurrent.ForkJoinTask.join(ForkJoinTask.java:666)
+	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:680)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateParallel(ForEachOps.java:162)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateParallel(ForEachOps.java:176)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:264)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:632)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:806)
+	at fractalcipher.metrics.BenchmarkRunner.run(BenchmarkRunner.java:141)
+	at fractalcipher.metrics.BenchmarkRunner.runPermutationOnly(BenchmarkRunner.java:53)
+	at fractalcipher.controller.CipherController.handleBenchmarkPermutationOnly(CipherController.java:502)
+	at fractalcipher.controller.CipherController.runBenchmark(CipherController.java:445)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:94)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:93)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+Caused by: java.lang.OutOfMemoryError: Java heap space
+[2026-11-19 01:27:33] [INFO   ] [AppLogger] Бенчмарк для файла meme_4.jpg (seed=4) успешно завершен.
+[2026-11-19 01:28:15] [INFO   ] [AppLogger] Бенчмарк для файла meme_4_wb.png (seed=4) успешно завершен.
+[2026-11-19 01:29:22] [INFO   ] [AppLogger] Бенчмарк для файла meme_5.jpeg (seed=4) успешно завершен.
+[2026-11-19 01:30:03] [INFO   ] [AppLogger] Бенчмарк для файла meme_5_wb.png (seed=4) успешно завершен.
+[2026-11-19 01:31:01] [INFO   ] [AppLogger] Бенчмарк для файла meme_6.jpg (seed=4) успешно завершен.
+[2026-11-19 01:32:54] [INFO   ] [AppLogger] Бенчмарк для файла meme_6_wb.png (seed=4) успешно завершен.
+[2026-11-19 01:34:07] [INFO   ] [AppLogger] Бенчмарк для файла meme_7.png (seed=4) успешно завершен.
+[2026-11-19 01:37:06] [INFO   ] [AppLogger] Бенчмарк для файла meme_7_wb.png (seed=4) успешно завершен.
+[2026-11-19 01:37:26] [INFO   ] [AppLogger] Бенчмарк для файла meme_8.png (seed=4) успешно завершен.
+[2026-11-19 01:38:18] [INFO   ] [AppLogger] Бенчмарк для файла meme_8_wb.png (seed=4) успешно завершен.
+[2026-11-19 01:38:44] [INFO   ] [AppLogger] Бенчмарк для файла meme_9.png (seed=4) успешно завершен.
+[2026-11-19 01:40:59] [INFO   ] [AppLogger] Бенчмарк для файла meme_9_wb.png (seed=4) успешно завершен.
+[2026-11-19 01:42:37] [INFO   ] [AppLogger] Бенчмарк для файла portrait_1.png (seed=4) успешно завершен.
+[2026-11-19 01:43:56] [INFO   ] [AppLogger] Бенчмарк для файла portrait_10.jpg (seed=4) успешно завершен.
+[2026-11-19 01:44:26] [INFO   ] [AppLogger] Бенчмарк для файла portrait_10_wb.png (seed=4) успешно завершен.
+[2026-11-19 01:45:30] [INFO   ] [AppLogger] Бенчмарк для файла portrait_1_wb.png (seed=4) успешно завершен.
+[2026-11-19 01:47:41] [INFO   ] [AppLogger] Бенчмарк для файла portrait_2.jpg (seed=4) успешно завершен.
+[2026-11-19 01:48:55] [INFO   ] [AppLogger] Бенчмарк для файла portrait_2_wb.png (seed=4) успешно завершен.
+[2026-11-19 01:49:20] [INFO   ] [AppLogger] Бенчмарк для файла portrait_3.jpg (seed=4) успешно завершен.
+[2026-11-19 01:50:13] [INFO   ] [AppLogger] Бенчмарк для файла portrait_3_wb.png (seed=4) успешно завершен.
+[2026-11-19 01:50:39] [INFO   ] [AppLogger] Бенчмарк для файла portrait_4.jpg (seed=4) успешно завершен.
+[2026-11-19 01:52:07] [INFO   ] [AppLogger] Бенчмарк для файла portrait_4_wb.png (seed=4) успешно завершен.
+[2026-11-19 01:52:33] [INFO   ] [AppLogger] Бенчмарк для файла portrait_5.jpg (seed=4) успешно завершен.
+[2026-11-19 01:53:08] [INFO   ] [AppLogger] Бенчмарк для файла portrait_5_wb.png (seed=4) успешно завершен.
+[2026-11-19 01:54:25] [INFO   ] [AppLogger] Бенчмарк для файла portrait_6.jpg (seed=4) успешно завершен.
+[2026-11-19 02:02:19] [INFO   ] [AppLogger] Бенчмарк для файла portrait_6_wb.png (seed=4) успешно завершен.
+[2026-11-19 02:06:43] [INFO   ] [AppLogger] Бенчмарк для файла portrait_7.jpg (seed=4) успешно завершен.
+[2026-11-19 02:08:00] [INFO   ] [AppLogger] Бенчмарк для файла portrait_7_wb.png (seed=4) успешно завершен.
+[2026-11-19 02:14:53] [INFO   ] [AppLogger] Бенчмарк для файла portrait_8.jpg (seed=4) успешно завершен.
+[2026-11-19 02:16:33] [INFO   ] [AppLogger] Бенчмарк для файла portrait_8_wb.png (seed=4) успешно завершен.
+[2026-11-19 02:17:50] [INFO   ] [AppLogger] Бенчмарк для файла portrait_9.jpg (seed=4) успешно завершен.
+[2026-11-19 02:18:54] [INFO   ] [AppLogger] Бенчмарк для файла portrait_9_wb.png (seed=4) успешно завершен.
+[2026-11-19 02:21:05] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_1.png (seed=4) успешно завершен.
+[2026-11-19 02:23:16] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_10.png (seed=4) успешно завершен.
+[2026-11-19 02:23:16] [SEVERE ] [AppLogger] Ошибка при бенчмарке файла: wallpaper_10_wb.png (seed=4)
+java.io.IOException: Файл не распознан как изображение: wallpaper_10_wb.png
+	at fractalcipher.domain.Image.loadFromFile(Image.java:84)
+	at fractalcipher.controller.CipherController.runBenchmark(CipherController.java:443)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:94)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:93)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+[2026-11-19 02:25:26] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_1_wb.png (seed=4) успешно завершен.
+[2026-11-19 02:27:35] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_2.png (seed=4) успешно завершен.
+[2026-11-19 02:29:48] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_2_wb.png (seed=4) успешно завершен.
+[2026-11-19 02:32:13] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_3.png (seed=4) успешно завершен.
+[2026-11-19 02:34:25] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_3_wb.png (seed=4) успешно завершен.
+[2026-11-19 02:36:36] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_4.png (seed=4) успешно завершен.
+[2026-11-19 02:38:48] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_4_wb.png (seed=4) успешно завершен.
+[2026-11-19 02:41:05] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_5.png (seed=4) успешно завершен.
+[2026-11-19 02:43:17] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_5_wb.png (seed=4) успешно завершен.
+[2026-11-19 02:45:27] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_6.png (seed=4) успешно завершен.
+[2026-11-19 02:47:40] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_6_wb.png (seed=4) успешно завершен.
+[2026-11-19 02:49:52] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_7.png (seed=4) успешно завершен.
+[2026-11-19 02:52:01] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_7_wb.png (seed=4) успешно завершен.
+[2026-11-19 02:54:12] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_8.png (seed=4) успешно завершен.
+[2026-11-19 02:56:25] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_8_wb.png (seed=4) успешно завершен.
+[2026-11-19 02:58:35] [INFO   ] [AppLogger] Бенчмарк для файла wallpaper_9.png (seed=4) успешно завершен.
+[2026-11-19 02:58:35] [SEVERE ] [AppLogger] Ошибка при бенчмарке файла: wallpaper_9_wb.png (seed=4)
+java.io.IOException: Файл не распознан как изображение: wallpaper_9_wb.png
+	at fractalcipher.domain.Image.loadFromFile(Image.java:84)
+	at fractalcipher.controller.CipherController.runBenchmark(CipherController.java:443)
+	at fractalcipher.controller.CipherController.processSelection(CipherController.java:94)
+	at fractalcipher.run.Main.lambda$main$0(Main.java:93)
+	at java.base/java.lang.Thread.run(Thread.java:1527)
+[2026-11-19 02:58:36] [INFO   ] [AppLogger] Бенчмарк завершен. Результаты сохранены в CSV.
+[2026-11-19 02:58:36] [INFO   ] [AppLogger] --- Операция успешно завершена ---
