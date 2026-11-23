@@ -99,3 +99,51 @@ fractalcipher.exception.EncryptionFailedException: Траектория карт
 [2026-11-16 17:41:33] [INFO   ] [AppLogger] Конфликт 1/1: 123.png → 123_png_encrypted.png (цель уже существует)
 [2026-11-16 17:46:48] [WARNING] [AppLogger] Выбрана «Отмена» на конфликте 1/1 [123.png] — операция отменена.
 [2026-11-16 17:46:48] [WARNING] [AppLogger] Запуск режима ENCRYPT отменён пользователем из-за конфликтов имён.
+[2026-11-23 16:23:58] [INFO   ] [AppLogger] Конфликтов имён не обнаружено (режим ENCRYPT, папка: C:\Users\dimaz\Downloads).
+[2026-11-23 16:23:58] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-23 16:23:58] [INFO   ] [AppLogger] Режим: ENCRYPT, Вход: C:\Users\dimaz\Downloads\geogebra-export.png
+[2026-11-23 16:23:58] [INFO   ] [AppLogger] Выходная папка: C:\Users\dimaz\Downloads
+[2026-11-23 16:23:58] [INFO   ] [AppLogger] Шифрование файла: geogebra-export.png [mandelbrot + logistic]
+[2026-11-23 16:23:58] [INFO   ] [AppLogger] Сгенерирован и сохранен новый ключ: geogebra-export_png_encrypted.key
+[2026-11-23 16:24:00] [INFO   ] [AppLogger] Зашифровано: geogebra-export_png_encrypted.png (mandelbrot + logistic)
+[2026-11-23 16:24:00] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-23 16:24:34] [WARNING] [AppLogger] Обнаружено конфликтов: 1 из 1 исходных файлов (режим ENCRYPT, папка C:\Users\dimaz\Downloads)
+[2026-11-23 16:24:34] [INFO   ] [AppLogger] Конфликт 1/1: geogebra-export.png → geogebra-export_png_encrypted.png (цель уже существует)
+[2026-11-23 16:24:36] [INFO   ] [AppLogger] Конфликт 1/1 [geogebra-export.png]: выбор — Пропустить
+[2026-11-23 16:24:36] [INFO   ] [AppLogger] Разрешение конфликтов завершено: заменено=0, пропущено=1.
+[2026-11-23 16:24:36] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-23 16:24:36] [INFO   ] [AppLogger] Режим: ENCRYPT, Вход: C:\Users\dimaz\Downloads\geogebra-export.png
+[2026-11-23 16:24:36] [INFO   ] [AppLogger] Выходная папка: C:\Users\dimaz\Downloads
+[2026-11-23 16:24:37] [INFO   ] [AppLogger] Шифрование файла: geogebra-export.png [mandelbrot + logistic]
+[2026-11-23 16:24:37] [INFO   ] [AppLogger] Пропущено (по выбору пользователя): geogebra-export.png
+[2026-11-23 16:24:37] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-23 17:00:04] [WARNING] [AppLogger] Обнаружено конфликтов: 1 из 1 исходных файлов (режим ENCRYPT, папка C:\Users\dimaz\Downloads)
+[2026-11-23 17:00:04] [INFO   ] [AppLogger] Конфликт 1/1: geogebra-export.png → geogebra-export_png_encrypted.png (цель уже существует)
+[2026-11-23 17:00:05] [INFO   ] [AppLogger] Конфликт 1/1 [geogebra-export.png]: выбор — Заменить
+[2026-11-23 17:00:05] [INFO   ] [AppLogger] Разрешение конфликтов завершено: заменено=1, пропущено=0.
+[2026-11-23 17:00:05] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-23 17:00:05] [INFO   ] [AppLogger] Режим: ENCRYPT, Вход: C:\Users\dimaz\Downloads\geogebra-export.png
+[2026-11-23 17:00:05] [INFO   ] [AppLogger] Выходная папка: C:\Users\dimaz\Downloads
+[2026-11-23 17:00:06] [INFO   ] [AppLogger] Шифрование файла: geogebra-export.png [julia + henon]
+[2026-11-23 17:00:06] [INFO   ] [AppLogger] Сгенерирован и сохранен новый ключ: C:\Users\dimaz\Downloads\geogebra-export_png_encrypted.key
+[2026-11-23 17:00:08] [INFO   ] [AppLogger] Зашифровано: geogebra-export_png_encrypted.png (julia + henon)
+[2026-11-23 17:00:08] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-23 17:00:20] [WARNING] [AppLogger] Обнаружено конфликтов: 1 из 1 исходных файлов (режим ENCRYPT, папка C:\Users\dimaz\Downloads)
+[2026-11-23 17:00:20] [INFO   ] [AppLogger] Конфликт 1/1: geogebra-export.png → geogebra-export_png_encrypted.png (цель уже существует)
+[2026-11-23 17:00:22] [INFO   ] [AppLogger] Конфликт 1/1 [geogebra-export.png]: выбор — Заменить
+[2026-11-23 17:00:22] [INFO   ] [AppLogger] Разрешение конфликтов завершено: заменено=1, пропущено=0.
+[2026-11-23 17:00:22] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-23 17:00:22] [INFO   ] [AppLogger] Режим: ENCRYPT, Вход: C:\Users\dimaz\Downloads\geogebra-export.png
+[2026-11-23 17:00:22] [INFO   ] [AppLogger] Выходная папка: C:\Users\dimaz\Downloads
+[2026-11-23 17:00:22] [INFO   ] [AppLogger] Шифрование файла: geogebra-export.png [dragon + null]
+[2026-11-23 17:00:22] [INFO   ] [AppLogger] Сгенерирован и сохранен новый ключ: C:\Users\dimaz\Downloads\geogebra-export_png_encrypted.key
+[2026-11-23 17:00:24] [INFO   ] [AppLogger] Зашифровано: geogebra-export_png_encrypted.png (dragon + null)
+[2026-11-23 17:00:24] [INFO   ] [AppLogger] --- Операция успешно завершена ---
+[2026-11-23 17:05:00] [INFO   ] [AppLogger] Конфликтов имён не обнаружено (режим DECRYPT, папка: C:\Users\dimaz\Downloads).
+[2026-11-23 17:05:00] [INFO   ] [AppLogger] --- Запуск операции ---
+[2026-11-23 17:05:00] [INFO   ] [AppLogger] Режим: DECRYPT, Вход: C:\Users\dimaz\Downloads\geogebra-export_png_encrypted.png
+[2026-11-23 17:05:00] [INFO   ] [AppLogger] Выходная папка: C:\Users\dimaz\Downloads
+[2026-11-23 17:05:00] [INFO   ] [AppLogger] Расшифровка файла: geogebra-export_png_encrypted.png [null + null]
+[2026-11-23 17:05:00] [INFO   ] [AppLogger] Ключ успешно загружен из: C:\Users\dimaz\Downloads\geogebra-export_png_encrypted.key
+[2026-11-23 17:05:01] [INFO   ] [AppLogger] Расшифровано: geogebra-export_png_decrypted.png (dragon + null)
+[2026-11-23 17:05:01] [INFO   ] [AppLogger] --- Операция успешно завершена ---

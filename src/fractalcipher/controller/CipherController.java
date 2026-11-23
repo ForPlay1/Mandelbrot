@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 /**
  * Контроллер, управляющий бизнес-логикой шифрования, расшифровки и бенчмарка.
@@ -49,6 +50,25 @@ public class CipherController {
 
     /** Количество разных ключей для проверки стабильности. */
     private static final int BENCHMARK_KEYS = 5;
+
+    /**
+     * Колбэк, вызываемый после успешного сохранения результирующего изображения
+     * в одиночных режимах ({@link CipherMode#ENCRYPT} и {@link CipherMode#DECRYPT}).
+     * <p>
+     * Позволяет передать готовый файл в главное окно интерфейса без прямого
+     * связывания контроллера с классами JavaFX.
+     * </p>
+     */
+    private volatile Consumer<File> onResultReady;
+
+    /**
+     * Устанавливает обработчик готовности результирующего изображения.
+     *
+     * @param listener потребитель, принимающий сохранённый файл результата
+     */
+    public void setOnResultReady(Consumer<File> listener) {
+        this.onResultReady = listener;
+    }
 
     /**
      * Главная точка входа для бизнес-логики.
@@ -124,7 +144,7 @@ public class CipherController {
      *   <li>Шифрование: {@code "photo.png"} → {@code "photo_png_encrypted.png"} + {@code "photo_png_encrypted.key"}.
      *       Расширение входит в имя — файлы {@code photo.png} и {@code photo.jpg} больше не конфликтуют.</li>
      *   <li>Расшифровка: {@code "photo_png_encrypted.png"} → {@code "photo_png_decrypted.png"},
-     *       ключ ищется рядом с входным (зашифрованным) файлом.</li>
+     *       ключ ищется рядом с входным файлом или в папке по умолчанию из {@link AppSettings#getKeysDir()}.</li>
      * </ul>
      * </p>
      */
@@ -154,12 +174,12 @@ public class CipherController {
             return;
         }
 
-        // === 3. Ключ: для decrypt — от входного (зашифрованного), для encrypt — от цели ===
+        // === 3. Ключ: для decrypt — ищем рядом или в папке настроек, для encrypt — пишем по настройкам ===
         File keyFile;
         byte[] masterKey;
 
         if (isDecrypt) {
-            keyFile = KeyManager.getKeyFile(inputFile);
+            keyFile = resolveLoadKeyFile(inputFile);
             if (!keyFile.exists()) {
                 throw new InvalidInputException("Файл ключа не найден: " + keyFile.getAbsolutePath());
             }
@@ -168,19 +188,19 @@ public class CipherController {
                 masterKey = key.masterKey;
                 permutationName = key.permutationSourceName;
                 diffusionName = key.diffusionSourceName;
-                AppLogger.info("Ключ успешно загружен из: " + keyFile.getName());
+                AppLogger.info("Ключ успешно загружен из: " + keyFile.getAbsolutePath());
             } catch (Exception e) {
                 AppLogger.error("Ошибка чтения ключа: " + keyFile.getName(), e);
                 throw new RuntimeException("Ошибка чтения ключа: " + e.getMessage());
             }
         } else {
-            keyFile = KeyManager.getKeyFile(targetFile);
+            keyFile = resolveSaveKeyFile(targetFile);
             masterKey = new byte[32];
             new SecureRandom().nextBytes(masterKey);
             EncryptionKey newKey = new EncryptionKey(masterKey, permutationName, diffusionName);
             try {
                 KeyManager.saveKey(newKey, keyFile);
-                AppLogger.info("Сгенерирован и сохранен новый ключ: " + keyFile.getName());
+                AppLogger.info("Сгенерирован и сохранен новый ключ: " + keyFile.getAbsolutePath());
             } catch (IOException e) {
                 AppLogger.error("Не удалось сохранить ключ: " + keyFile.getName(), e);
                 throw new RuntimeException("Не удалось сохранить ключ: " + e.getMessage());
@@ -211,6 +231,12 @@ public class CipherController {
             ImageIO.write(result.getImage(), "png", targetFile);
             AppLogger.info((isDecrypt ? "Расшифровано: " : "Зашифровано: ")
                     + targetFile.getName() + " (" + permutationName + " + " + diffusionName + ")");
+
+            // Уведомляем интерфейс о готовности изображения для показа в основном окне
+            Consumer<File> listener = this.onResultReady;
+            if (listener != null) {
+                listener.accept(targetFile);
+            }
         } catch (IOException e) {
             throw new RuntimeException("Ошибка сохранения: " + e.getMessage());
         }
@@ -222,16 +248,12 @@ public class CipherController {
 
     /**
      * Шифрует все изображения в папке.
-     * <p>
-     * Использует <b>внешний параллелизм</b> (parallelStream по файлам).
+     * Использует внешний параллелизм (parallelStream по файлам).
      * Внутренний параллелизм фракталов принудительно отключен (isParallel = 0.0),
      * чтобы избежать конфликта потоков (Thread Starvation).
-     * </p>
-     * <p>
      * Целевое имя строится через {@link CipherUtils#safeStem(String)}, поэтому
      * {@code photo.png} и {@code photo.jpg} из одной папки дают разные
      * {@code photo_png_encrypted.png} и {@code photo_jpg_encrypted.png}.
-     * </p>
      */
     private void runBatchEncrypt(String permutationName, String diffusionName,
                                  File inputDir, File outputDir, Set<File> skipFiles) {
@@ -247,12 +269,11 @@ public class CipherController {
 
         AppLogger.info("Начало пакетного шифрования. Файлов: " + files.length
                 + " [" + permutationName + " + " + diffusionName + "]");
-        long startTime = System.currentTimeMillis();
 
+        long startTime = System.currentTimeMillis();
         AtomicInteger ok      = new AtomicInteger(0);
         AtomicInteger skipped = new AtomicInteger(0);
         AtomicInteger failed  = new AtomicInteger(0);
-
         final Set<File> skipFinal = skipFiles; // для лямбды
 
         // Внешний параллелизм: параллелим обработку САМИХ ФАЙЛОВ
@@ -265,15 +286,14 @@ public class CipherController {
                 AppLogger.info("Пропущено (по выбору пользователя): " + file.getName());
                 return;
             }
-
             try {
                 Image input = Image.loadFromFile(file.getName(), file.getName(), file);
 
                 byte[] masterKey = new byte[32];
                 new SecureRandom().nextBytes(masterKey);
-
                 EncryptionKey key = new EncryptionKey(masterKey, permutationName, diffusionName);
-                File targetKey = KeyManager.getKeyFile(targetImage);
+
+                File targetKey = resolveSaveKeyFile(targetImage);
                 KeyManager.saveKey(key, targetKey);
 
                 Map<String, Double> permParams = CipherUtils.buildPermParams(masterKey, permutationName);
@@ -305,7 +325,6 @@ public class CipherController {
         AppLogger.info(String.format(
                 "Пакетное шифрование завершено за %d мс. Успешно: %d, Пропущено: %d, Ошибок: %d",
                 duration, ok.get(), skipped.get(), failed.get()));
-
     }
 
     // ==================================================================
@@ -314,11 +333,9 @@ public class CipherController {
 
     /**
      * Расшифровывает все файлы {@code *_encrypted.png} в папке.
-     * <p>
      * Аналогично пакетному шифрованию, использует параллелизм на уровне файлов.
      * Ключи загружаются из соответствующих файлов {@code .key}, лежащих рядом
-     * с входным (зашифрованным) изображением.
-     * </p>
+     * с входным изображением или в папке по умолчанию из {@link AppSettings#getKeysDir()}.
      */
     private void runBatchDecrypt(File inputDir, File outputDir, Set<File> skipFiles) {
         if (inputDir == null || outputDir == null) return;
@@ -333,13 +350,12 @@ public class CipherController {
         Arrays.sort(files);
 
         AppLogger.info("Начало пакетной расшифровки. Файлов: " + files.length);
-        long startTime = System.currentTimeMillis();
 
+        long startTime = System.currentTimeMillis();
         AtomicInteger ok      = new AtomicInteger(0);
         AtomicInteger skipped = new AtomicInteger(0);
         AtomicInteger failed  = new AtomicInteger(0);
-
-        final Set<File> skipFinal= skipFiles;
+        final Set<File> skipFinal = skipFiles;
 
         Arrays.stream(files).parallel().forEach(file -> {
             String decName = CipherUtils.baseName(file.getName())
@@ -351,9 +367,8 @@ public class CipherController {
                 AppLogger.info("Пропущено (по выбору пользователя): " + file.getName());
                 return;
             }
-
             try {
-                File keyFile = KeyManager.getKeyFile(file);
+                File keyFile = resolveLoadKeyFile(file);
                 if (!keyFile.exists()) {
                     throw new InvalidInputException("Ключ не найден: " + keyFile.getName());
                 }
@@ -376,7 +391,6 @@ public class CipherController {
 
                 Image input = Image.loadFromFile(file.getName(), file.getName(), file);
                 Image result = handleDecrypt(cipher, input);
-
                 ImageIO.write(result.getImage(), "png", targetImage);
 
                 AppLogger.info("Пакетная расшифровка [OK]: " + targetImage.getName());
@@ -394,21 +408,65 @@ public class CipherController {
     }
 
     // ==================================================================
+    //  РАЗРЕШЕНИЕ ПУТЕЙ КЛЮЧЕЙ (С УЧЁТОМ НАСТРОЕК)
+    // ==================================================================
+
+    /**
+     * Определяет путь для сохранения нового файла ключа {@code .key}.
+     * Если в {@link AppSettings#getKeysDir()} задана папка по умолчанию —
+     * ключ сохраняется в неё (папка создаётся при необходимости). Иначе —
+     * рядом с целевым зашифрованным изображением.
+     *
+     * @param targetImage целевой зашифрованный файл изображения
+     * @return файл {@code .key} для записи
+     */
+    private File resolveSaveKeyFile(File targetImage) {
+        File defaultKey = KeyManager.getKeyFile(targetImage);
+        Path customKeysDir = AppSettings.getKeysDir();
+        if (customKeysDir != null) {
+            File dir = AppSettings.ensureDir(customKeysDir);
+            return new File(dir, defaultKey.getName());
+        }
+        return defaultKey;
+    }
+
+    /**
+     * Определяет путь для загрузки файла ключа {@code .key} при расшифровке.
+     * Сначала проверяет наличие ключа рядом с зашифрованным изображением
+     * (для обратной совместимости), а если его там нет и в настройках
+     * задана папка {@link AppSettings#getKeysDir()} — ищет в ней.
+     *
+     * @param encryptedImage входной зашифрованный файл изображения
+     * @return объект {@link File} предполагаемого ключа
+     */
+    private File resolveLoadKeyFile(File encryptedImage) {
+        File adjacentKey = KeyManager.getKeyFile(encryptedImage);
+        if (adjacentKey.exists()) {
+            return adjacentKey;
+        }
+        Path customKeysDir = AppSettings.getKeysDir();
+        if (customKeysDir != null) {
+            File customKey = new File(customKeysDir.toFile(), adjacentKey.getName());
+            if (customKey.exists()) {
+                return customKey;
+            }
+        }
+        return adjacentKey;
+    }
+
+    // ==================================================================
     //  БЕНЧМАРК
     // ==================================================================
 
     /**
      * Запускает исследовательский бенчмарк.
-     * <p>
-     * <b>Проверка стабильности.</b> Бенчмарк прогоняется
+     * Проверка стабильности. Бенчмарк прогоняется
      * {@value #BENCHMARK_KEYS} раз с разными мастер-ключами. Ключи
      * генерируются детерминированно от seed-а (0..N-1), чтобы результаты
      * были воспроизводимы, а seed записывается в CSV для анализа разброса.
-     * </p>
      */
     private void runBenchmark(File inputFile) {
         List<File> imagesToProcess = new ArrayList<>();
-
         if (inputFile.isDirectory()) {
             File[] files = inputFile.listFiles(
                     f -> f.isFile() && CipherUtils.isImageToEncrypt(f.getName()));
@@ -465,16 +523,13 @@ public class CipherController {
         } catch (IOException e) {
             AppLogger.error("Не удалось сохранить CSV", e);
         }
-
         view.showBenchmarkResults(allResults);
     }
 
     /**
      * Генерирует детерминированный 256-битный мастер-ключ по seed-у.
-     * <p>
      * Одинаковый seed всегда даёт одинаковый ключ — это нужно для
      * воспроизводимости бенчмарка.
-     * </p>
      */
     private static byte[] makeKey(int seed) {
         byte[] key = new byte[32];

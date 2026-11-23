@@ -1,5 +1,7 @@
 package fractalcipher.metrics;
 
+import fractalcipher.config.AppSettings;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -9,7 +11,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
- * Сохраняет результаты бенчмарка в CSV-файл в папке {@code benchmarks/}.
+ * Сохраняет результаты бенчмарка в CSV-файл в папке, указанной в настройках
+ * ({@link AppSettings#getCsvDir()}, по умолчанию {@code benchmarks/}).
  * <p>
  * Папка создаётся автоматически при первом вызове. Имя файла содержит
  * отметку времени, поэтому повторные запуски не перезаписывают
@@ -26,6 +29,7 @@ import java.util.List;
  *
  * @author FractalCipher Team
  * @see BenchmarkResult
+ * @see AppSettings
  */
 public class CsvExporter {
 
@@ -51,7 +55,7 @@ public class CsvExporter {
         String timestamp = LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
 
-        File dir = new File("benchmarks");
+        File dir = AppSettings.getCsvDir().toFile();
         if (!dir.exists()) {
             boolean created = dir.mkdirs();
             if (!created) {

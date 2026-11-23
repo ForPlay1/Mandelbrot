@@ -4,6 +4,7 @@ import fractalcipher.controller.CipherController;
 import fractalcipher.exception.ErrorHandler;
 import fractalcipher.view.MainView;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -30,6 +31,13 @@ import java.util.Map;
  * уже вне UI-потока.
  * </p>
  * <p>
+ * <b>Передача результата обратно в UI.</b> После завершения одиночного
+ * шифрования или расшифровки контроллер вызывает колбэк
+ * {@link CipherController#setOnResultReady}, который через
+ * {@link Platform#runLater(Runnable)} передаёт готовый файл в
+ * {@link MainView#onOperationCompleted} для отображения в основном окне.
+ * </p>
+ * <p>
  * <b>Как определяется «новый выбор».</b> {@code MainView} каждый раз
  * при нажатии «Запустить» создаёт <i>новый</i> объект {@code Map}.
  * Worker сравнивает ссылки ({@code selection != lastSelection}) —
@@ -46,14 +54,27 @@ import java.util.Map;
 public class Main extends Application {
 
     /**
+     * Общий экземпляр контроллера: используется worker-потоком для запуска
+     * операций и связывается с {@link MainView} в методе {@link #start(Stage)}.
+     */
+    private static final CipherController CONTROLLER = new CipherController();
+
+    /**
      * Стартует JavaFX-приложение: создаёт {@link MainView},
-     * помещает его в {@link Scene} и показывает окно.
+     * подписывает его на получение готового изображения от контроллера,
+     * помещает в {@link Scene} и показывает окно.
      *
      * @param stage главное окно (предоставляется JavaFX)
      */
     @Override
     public void start(Stage stage) {
         MainView view = new MainView();
+
+        // Результат приходит из worker-потока — перебрасываем в JavaFX Application Thread
+        CONTROLLER.setOnResultReady(resultFile ->
+                Platform.runLater(() -> view.onOperationCompleted(resultFile))
+        );
+
         Scene scene = new Scene(view.getRoot(), 1300, 750);
         stage.setTitle("Фрактальное шифрование");
         stage.setScene(scene);
@@ -77,8 +98,6 @@ public class Main extends Application {
      */
     public static void main(String[] args) {
         try {
-            CipherController controller = new CipherController();
-
             // Поток-воркер работает постоянно: опрашивает getUserParams()
             // и запускает новую операцию при появлении нового объекта Map.
             Thread worker = new Thread(() -> {
@@ -90,7 +109,7 @@ public class Main extends Application {
                     // Если данные появились и это НОВЫЙ объект (новое нажатие) - запускаем
                     if (selection != null && selection != lastSelection) {
                         lastSelection = selection;
-                        controller.processSelection(selection);
+                        CONTROLLER.processSelection(selection);
                     }
 
                     try {
